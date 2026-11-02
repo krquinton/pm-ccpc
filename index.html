@@ -932,6 +932,7 @@ db.collection('pkl-queue-matches').onSnapshot(snap => {
   renderQueueList();
   renderParticipants();
   refreshGenList();
+  schedulePublicSync();
 }, err => showToast('Queue sync error: ' + err.message, true));
 
 db.collection('pkl-queue-logs').orderBy('completedAt','desc').limit(2000).onSnapshot(snap => {
@@ -941,7 +942,34 @@ db.collection('pkl-queue-logs').orderBy('completedAt','desc').limit(2000).onSnap
   refreshGenList();
   scheduleLeaderboardPush();
   scheduleBattleSync();
+  schedulePublicSync();
 }, err => showToast('Logs sync error: ' + err.message, true));
+
+
+/* ---- Public schedule status mirror (schedule.html) ----
+   Only runs when scheduler.html has published a schedule for this session. Writes names-free status only:
+   game no -> state, start/end time, score. Nothing else leaves the private collections. */
+let pubSyncTimer = null, pubSyncLast = '', pubSchedChecked = { sid:null, at:0, exists:false };
+function schedulePublicSync(){ clearTimeout(pubSyncTimer); pubSyncTimer = setTimeout(() => { publicSync().catch(e => console.warn('Public status sync:', e.message || e)); }, 1500); }
+async function publicSync(){
+  const sid = sessionState.currentSessionId; if (!sid) return;
+  if (pubSchedChecked.sid !== sid || Date.now() - pubSchedChecked.at > 60000){
+    const d = await db.collection('pkl-public-schedules').doc(sid).get();
+    pubSchedChecked = { sid, at: Date.now(), exists: d.exists };
+  }
+  if (!pubSchedChecked.exists) return;
+  const g = {};
+  logs.filter(l => l.sessionId === sid && l.matchId).forEach(l => { g[l.matchId] = { s:'done', st:l.startedAt || null, en:l.endedAt || null, a:l.score1, b:l.score2, w:l.winner || null }; });
+  queueMatches.forEach(m => {
+    if (!m.matchId || g[m.matchId]) return;
+    if (m.status === 'playing') g[m.matchId] = { s:'playing', st:m.startedAt || null };
+    else if (m.status === 'assigned') g[m.matchId] = { s:'called' };
+  });
+  const sig = JSON.stringify(g);
+  if (sig === pubSyncLast) return;
+  await db.collection('pkl-public-status').doc(sid).set({ games: g, updatedAtMs: Date.now() });
+  pubSyncLast = sig;
+}
 
 db.collection('pkl-queue-stats').onSnapshot(snap => { statsCache = {}; snap.docs.forEach(d => { statsCache[d.id] = d.data(); }); });
 

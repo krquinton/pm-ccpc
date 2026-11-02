@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PickleManage · Scheduler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#2f332e; --navy-deep:#222622;
+    --gold:#4f9d2d; --orange:#ff6600; --blue:#3992b9; --red:#bb1421;
+    --bg:#ececec; --surface:#ffffff; --surface-2:#f7f7f5;
+    --text:#262a26; --muted:#6a706a; --border:#dcdddb;
+    --shadow: 0 6px 20px rgba(38,42,38,0.08); --radius:14px;
+  }
+  html[data-theme="dark"]{
+    --gold:#6cc144; --bg:#141714; --surface:#1e231e; --surface-2:#191d19;
+    --text:#eef1ec; --muted:#9aa49a; --border:#2f372f;
+    --shadow: 0 6px 24px rgba(0,0,0,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;}
+  h1,h2,h3,.headline{font-family:'Baloo 2',system-ui,sans-serif;}
+
+  header.top{background:linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%);color:#fff;
+    padding:20px clamp(16px,4vw,40px);display:flex;align-items:center;justify-content:space-between;gap:16px;position:relative;overflow:hidden;}
+  header.top::after{content:"";position:absolute;right:-40px;top:-60px;width:220px;height:220px;
+    background:radial-gradient(circle, rgba(79,157,45,0.25) 0%, transparent 70%);}
+  header.top .titles{position:relative;z-index:1;}
+  header.top h1{margin:0;font-size:clamp(19px,3vw,27px);font-weight:700;line-height:1.05;}
+  header.top .sub{line-height:1.15;font-size:13px;color:#c3cdc3;font-weight:500;}
+  header.top .brand-logo{height:46px;width:46px;border-radius:10px;margin-right:12px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.35);}
+  .brand{display:flex;align-items:center;position:relative;z-index:1;}
+  .top-actions{position:relative;z-index:1;display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end;}
+  .btn-top{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.3);padding:8px 14px;border-radius:8px;
+    font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-block;font-family:inherit;}
+  .btn-top:hover{background:rgba(255,255,255,0.22);}
+  .pm-user{font-size:12.5px;font-weight:600;color:rgba(255,255,255,.88);white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis;}
+  .toggle-pill{width:56px;height:30px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:20px;position:relative;cursor:pointer;flex-shrink:0;}
+  .toggle-pill .knob{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--gold);transition:transform .2s ease;display:flex;align-items:center;justify-content:center;font-size:12px;}
+  html[data-theme="dark"] .toggle-pill .knob{transform:translateX(26px);background:var(--blue);}
+
+  #pmGate{position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;}
+  #pmGate .pm-gate-box{display:flex;flex-direction:column;align-items:center;gap:14px;font-weight:600;color:var(--muted);max-width:420px;}
+  #pmGate .pm-spin{width:34px;height:34px;border-radius:50%;border:4px solid var(--border);border-top-color:var(--gold);animation:pmspin .8s linear infinite;}
+  @keyframes pmspin{to{transform:rotate(360deg)}}
+
+  .btn{border:none;border-radius:9px;padding:9px 16px;font-family:'Inter',sans-serif;font-weight:600;font-size:13.5px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-primary{background:var(--gold);color:#fff;}
+  .btn-primary:hover:not(:disabled){box-shadow:0 4px 14px rgba(79,157,45,.4);}
+  .btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border);}
+  .btn-ghost:hover:not(:disabled){border-color:var(--blue);}
+  .btn-warn{background:var(--orange);color:#fff;}
+  .btn-sm{padding:6px 11px;font-size:12.5px;border-radius:7px;}
+  .btn-icon{background:var(--surface-2);border:1px solid var(--border);color:var(--text);width:28px;height:28px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;flex:none;}
+  .btn-icon:disabled{opacity:.35;cursor:not-allowed;}
+  .btn-icon:hover:not(:disabled){border-color:var(--blue);}
+  :focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
+
+  main{max-width:1800px;margin:0 auto;padding:20px clamp(16px,4vw,40px) 20px;}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:stretch;}
+  @media (max-width:980px){.split{grid-template-columns:1fr;}}
+  .pane{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);
+    display:flex;flex-direction:column;height:calc(100vh - 190px);min-height:520px;overflow:hidden;}
+  .pane-head{padding:14px 16px 12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:10px;}
+  .pane-title{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+  .pane-title h2{margin:0;font-size:19px;}
+  .pane-title .count{font-size:12.5px;color:var(--muted);font-weight:600;}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .toolbar .spacer{flex:1;}
+  .filter{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border:1px solid var(--border);border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer;background:var(--surface-2);user-select:none;}
+  .chip input{margin:0;width:14px;height:14px;accent-color:var(--gold);}
+  .chip.on{border-color:var(--gold);}
+  .chip .n{color:var(--muted);font-weight:600;}
+  .linkbtn{background:none;border:none;color:var(--blue);font-weight:600;font-size:12.5px;cursor:pointer;padding:4px 6px;font-family:inherit;}
+  .plist{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;}
+  .plist.dropzone{outline:3px dashed var(--gold);outline-offset:-6px;}
+  .empty{margin:auto;color:var(--muted);text-align:center;font-size:14px;max-width:320px;line-height:1.5;padding:20px;}
+  .row{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:9px 12px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);cursor:grab;}
+  .row.locked{cursor:default;}
+  .row.drop-before{box-shadow:0 -3px 0 0 var(--gold);}
+  .row.drop-after{box-shadow:0 3px 0 0 var(--gold);}
+  .row .grip{color:var(--muted);font-size:16px;}
+  .row .qid{font-family:'Baloo 2';font-weight:700;color:var(--navy);font-size:14px;min-width:50px;}
+  html[data-theme="dark"] .row .qid{color:var(--blue);}
+  .row .gno{font-family:'Baloo 2';font-weight:800;font-size:14px;min-width:58px;text-align:center;background:var(--navy);color:#fff;border-radius:8px;padding:2px 8px;}
+  .row .gno.final{background:var(--gold);}
+  .row .teams{flex:1;min-width:0;font-weight:600;font-size:14px;overflow-wrap:anywhere;}
+  .row .teams .vs{color:var(--muted);font-weight:400;}
+  .row .meta{font-size:12px;color:var(--muted);white-space:nowrap;}
+  .row .tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:flex-end;}
+  .row .acts{display:flex;gap:4px;flex:none;}
+  .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;background:var(--muted);}
+  .badge.playing,.badge.assigned{background:#1f7fb8;}
+  .cf{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(187,20,33,.12);color:var(--red);border:1px solid rgba(187,20,33,.35);white-space:nowrap;}
+  .cf.cat{background:rgba(255,102,0,.12);color:#c24d00;border-color:rgba(255,102,0,.4);}
+  html[data-theme="dark"] .cf.cat{color:#ffa566;}
+  .lockbar{display:none;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--gold);}
+  .lockbar.show{display:flex;}
+  .foot{max-width:1800px;margin:0 auto;padding:6px clamp(16px,4vw,40px) 26px;text-align:center;font-size:12.5px;color:var(--muted);font-weight:500;}
+
+  .overlay{position:fixed;inset:0;background:rgba(4,15,22,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:60;}
+  .overlay.show{display:flex;}
+  .modal{background:var(--surface);border-radius:16px;width:100%;max-width:760px;padding:26px;box-shadow:0 20px 60px rgba(0,0,0,.3);max-height:92vh;overflow-y:auto;}
+  .modal h2{margin:0 0 4px;font-size:21px;}
+  .modal .modal-sub{color:var(--muted);font-size:13px;margin-bottom:16px;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;flex-wrap:wrap;}
+  .set-sec{margin:18px 0 8px;font-size:13px;font-weight:700;color:var(--muted);border-bottom:1px solid var(--border);padding-bottom:6px;}
+  .set-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;}
+  @media (max-width:640px){.set-grid{grid-template-columns:1fr;}}
+  .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+  .field label{font-size:12px;font-weight:600;color:var(--muted);}
+  .field input[type=text],.field input[type=number],.field input[type=time],.field select{background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 10px;font-size:14px;font-family:inherit;width:100%;}
+  .field input[type=color]{width:100%;height:40px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);padding:3px;}
+  .field.check{flex-direction:row;align-items:center;gap:8px;}
+  .field.check input{width:16px;height:16px;accent-color:var(--gold);}
+  .field.check label{font-size:13.5px;color:var(--text);}
+  .helper{font-size:12px;color:var(--muted);line-height:1.4;}
+
+  .prev-modal{max-width:1200px;}
+  .prev-pages{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;background:var(--bg);padding:18px;border-radius:12px;margin-top:12px;}
+  .prev-pages .sheet{box-shadow:0 4px 18px rgba(0,0,0,.25);}
+  #btnPublishOpen:disabled{background:#9aa09a;color:#eef0ee;opacity:.75;}
+  .ptable{width:100%;border-collapse:collapse;font-size:13.5px;}
+  .ptable th,.ptable td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);}
+  .ptable th{font-size:12px;color:var(--muted);font-weight:600;background:var(--surface-2);position:sticky;top:0;}
+  .ptable tr.brk td{background:rgba(255,102,0,.12);color:#c24d00;font-weight:700;text-align:center;}
+  .tip{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.5;}
+
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;
+    box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:100000;opacity:0;pointer-events:none;transition:opacity .25s ease, bottom .25s ease;max-width:90vw;}
+  .toast.show{opacity:1;bottom:30px;}
+  .toast.error{background:var(--red);}
+
+  /* ================= SCORESHEET (one 1/4 page) ================= */
+  .sheet{--u:calc(var(--pw) / 100);width:var(--pw);height:calc(var(--ph) - .3mm);background:#fff;color:#1b1f1b;display:flex;flex-direction:column;
+    gap:calc(var(--u) * 2.4);padding:calc(var(--u) * 5);font-family:'Inter',system-ui,sans-serif;position:relative;overflow:hidden;break-inside:avoid;flex:none;}
+  .sheet.cut{outline:.25mm dashed #b9bdb9;outline-offset:-.25mm;}
+  .sh-top{display:flex;gap:calc(var(--u) * 3);align-items:stretch;}
+  .sh-head{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:calc(var(--u) * .5);}
+  .sh-kicker{font-family:'Baloo 2',sans-serif;font-weight:600;font-size:calc(var(--u) * 3.1);color:#5b625b;letter-spacing:.02em;line-height:1.1;}
+  .sh-title{font-family:'Baloo 2',sans-serif;font-weight:800;line-height:1;color:#1b1f1b;overflow-wrap:anywhere;}
+  .sh-event{font-weight:600;font-size:calc(var(--u) * 4.4);color:#3a403a;line-height:1.1;}
+  .sh-meta{font-size:calc(var(--u) * 2.6);color:#5b625b;line-height:1.25;}
+  .sh-no{width:calc(var(--u) * 27);flex:none;border:.3mm solid #1b1f1b;display:flex;flex-direction:column;border-radius:calc(var(--u) * .8);overflow:hidden;}
+  .sh-no .lbl{background:#eceeec;text-align:center;font-weight:700;font-size:calc(var(--u) * 2.6);padding:calc(var(--u) * 1.1) 0;border-bottom:.3mm solid #1b1f1b;}
+  .sh-no .val{flex:1;display:flex;align-items:center;justify-content:center;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:calc(var(--u) * 8.2);line-height:1;}
+  .sh-cat{font-size:calc(var(--u) * 2.7);font-weight:600;color:#3a403a;display:flex;align-items:center;gap:calc(var(--u) * 1.5);}
+  .sh-cat::before,.sh-cat::after{content:"";height:.25mm;background:#c9ccc9;flex:1;}
+  .sh-team{flex:1;display:flex;flex-direction:column;border:.3mm solid #1b1f1b;border-radius:calc(var(--u) * .8);overflow:hidden;min-height:0;}
+  .sh-team .th{padding:calc(var(--u) * 1.6) calc(var(--u) * 3);font-family:'Baloo 2',sans-serif;font-weight:700;font-size:calc(var(--u) * 4.6);line-height:1.1;background:var(--tc);color:var(--tt);overflow-wrap:anywhere;}
+  .sh-team .tb{flex:1;display:flex;min-height:0;}
+  .sh-team .players{flex:1;display:flex;flex-direction:column;min-width:0;}
+  .sh-team .prow{flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding:calc(var(--u) * 1) calc(var(--u) * 3) calc(var(--u) * 1.6);border-bottom:.25mm solid #9da29d;min-height:0;}
+  .sh-team .prow:last-child{border-bottom:none;}
+  .sh-team .prow .pl{font-size:calc(var(--u) * 2.1);color:#6a706a;line-height:1;margin-bottom:calc(var(--u) * .6);}
+  .sh-team .prow .pn{font-family:'Baloo 2',sans-serif;font-weight:700;line-height:1.05;overflow-wrap:anywhere;color:#111;}
+  .sh-team .score{width:calc(var(--u) * 33);flex:none;border-left:.3mm solid #1b1f1b;padding:calc(var(--u) * 1.4) calc(var(--u) * 2);font-size:calc(var(--u) * 2.3);color:#6a706a;}
+  .sh-sign{display:flex;gap:calc(var(--u) * 6);padding-top:calc(var(--u) * 5);}
+  .sh-sign div{flex:1;text-align:center;font-size:calc(var(--u) * 2.3);color:#3a403a;border-top:.3mm solid #1b1f1b;padding-top:calc(var(--u) * 1.2);line-height:1.2;}
+  .sh-foot{text-align:center;font-size:calc(var(--u) * 2.1);color:#7a807a;line-height:1;}
+
+  #printRoot{display:none;}
+  .sched-print{font-family:'Inter',sans-serif;color:#111;}
+  .sched-print h1{font-size:20px;margin:0 0 2px;}
+  .sched-print .sm{color:#555;font-size:12px;margin-bottom:12px;}
+  .sched-print table{border-collapse:collapse;width:100%;font-size:12px;}
+  .sched-print th,.sched-print td{border:1px solid #999;padding:5px 8px;text-align:left;}
+  .sched-print th{background:#eee;}
+  .sched-print tr{break-inside:avoid;}
+  @media print{
+    body.printing > *:not(#printRoot){display:none !important;}
+    body.printing #printRoot{display:block;}
+    body.printing{background:#fff;}
+    body.printing .sheet{break-after:page;box-shadow:none;}
+    body.printing .sheet:last-child{break-after:auto;}
+  }
+</style>
+<style id="pageStyle"></style>
+</head>
+<body>
+<div id="pmGate"><div class="pm-gate-box"><div class="pm-spin" id="pmSpin"></div><div id="pmGateMsg">Checking your license…</div><a class="btn btn-primary" id="pmGateBack" href="login.html" style="display:none;text-decoration:none;">Back to login</a></div></div>
+
+<header class="top">
+  <div class="brand">
+    <img class="brand-logo" alt="DUPR" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGBgUFBgwICQcKDgwPDg4MDQ0PERYTDxAVEQ0NExoTFRcYGRkZDxIbHRsYHRYYGRj/2wBDAQQEBAYFBgsGBgsYEA0QGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBj/wAARCADwAPADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDwUORxTw3GeoqorYNPD+9fvtz8jcS0DjvTlbnOarrJ609WJPWrUiHEsb/enq5qsG9KcrGqTM3Atqc07JzVYPxT1kIq1IycSwHPrTg1QBwetOBHrVXM3EsBz60/eCOc59qrZpwYd6q5DiWQc9+aeGx2qsHHWpBID1p3JsWVlOetTLKQapBgRnNOBPrVXFsaST+9TJNxwaylkxUyzc8UWT2KU2aqS571KsnfNZSz4FTrMfWpaNFJM0kkyRzUwk96zVm96mWXtmlYu5eWTPenh/xqksnFSLJSC5cD8c08OevSqgcH2p4bjrQVoWxLUgkz7VTV/enhueOaYFwSZp6v9KpBuOtP3YGc0FWPFt5x0p4b0NVg9PDZrz0z03AnDc08MRVcPgc808Nx6VSkZOJZV/anh/aqwb3p4aquZuJZBNOD4681XV896kDjvVKRm4k4kpwbnrUGc0oYir5iHAtCTNP3iqm/B5p+4VSZm4FncacH5qAP2p4dfeqUkZOJOHp4Y561BkGl3VSZDiWQ/vTs85zVYNx708SHuc1SZDRYDmpUlIANVlcEc0uR61SYi6JuOtWEnwfeswGpEkwaNxqTRqLNUqykDrWWsuO9SrNmhxLVTuaglJ71IsvHWs1Z/epVm5qbWLU0aIk/GpBIcYHFZ4lAHWpFlJ70jSMrF9ZBjrTw4IqisnHWpBKcdaLFqZ47k0oaog/HNPzxXkqZ7DiShuaeDnpVfP1pwbmtLkNFsEY96Xn1qur08OfWqUjNw7EwNPDVBv8AanBsjrVpmbiTh+3NPDc9arhsetOD45zTuQ4lrcMU4HBzVYOaeJOeapMhxLAenhuKrhgadk+tUpGbjcsBu9SBwTnFVQ1ODVVzNwLYYEZFODVVVqeHxVKRnKBZD4pwbjNVw4Ip2TVpmbiWVfin5HrVZWPQ04NTTI5SyCRTg5Aqur44Ip4celUmTYsLIcZqVZcdTVPdShiDVJgX1myODUqze9ZyufWniTJp2THzNGkk+TkGphKT3rLWU96lWbnmlyFqr3PMN/FKJDjg1Bk04GvAPqXEsbzjmngj1quGHpT0YZ5qlIhxJ8mnBjUQbNOB9DWikZ8rJVY5p4aoASKUMfarTIcSfcfWnhhgZquGz3pwbPFO5LgWM/WnBuagDHjmpAQRVKRk4WJg/epFc9SarA+hpwYiqTIcS0HBNLkdM1WVyD2p4c1SZm4lkN2pwbiq4c45p4Y9qtSIcSxu4pyyEVX3U4NnvVXM3AtCQGng981VD4p4k5qlIycCwHpyv71AHBpwqkyHEn3c1J5g9KrZx3pQ2O9VcjlLIYfSnZxzVYMPWnhywwapMmxMGp4c1XVvUU8Nz7VSkKx5wH45pwIPNQ7velDZNfOJn2rimTA+9ODHNRDninDPtVpmTiTh+KUNx1FQ5NKGpkOJYV/enhge9Vg3NSK2aadiHEmBNODVAHI4p+8VakQ4k249qeHqAHjNKH9DWidyGiwGIpwbHWq4b3p4b0NUmQ4JljPoaUMcVAGxT92BjNUpEOBMrGpA+DUGe+aUMcVSZk4loSDHNODZNVQxzT1Yg9apMhxLGTTw/wCFQCT1p24GqUiHEnDY6Yp6yEDmq4NKCQetUmZuBZEg70/I9aq76erYPFWpGbgWM07cagEnrzTwwJq+ZEOJMG4pwaocntil3HNNMhxPOc04MRUQbJxT8184pH2liUN71IGGK+jf2dv2bPDnxn+HWo+IdX8R6vpk9rqLWSx2aRMrKI0fJ3qTnLn8q9hH7Bfggf8AM9eJf+/Vv/8AEV5FfP8ACUKjpVJO68mdlPLa1SKnFaM+FAwPApa+6x+wb4IHTx14k/79W/8A8RUVx+wb4UMDCy+IGuxSno01rBIo/ABf51C4mwH8z+5hLKMR2X3nwzmnBvevpLxt+xX8S/D1vLd+F9S07xTAmSIIgbW5I9kclWPsGz7V86ahp2oaTqk+marY3Fje27bJra5jMckbejKeRXq4TH4fFq9Gaf8AXY4K+FqUXaorEYYdDTgwFQDrX198Nf2O/Dvjn4SeH/F11401e0m1SyS6eCK3iZYy3YE8kfWjG5jQwUVOs7J6dww+DqYhuNNbHyWH+XinKcnmvt3/AIYS8LD/AJqBrmP+vWGvi3X7BNG8Xaro8UrypZXs1qsjgAuI5GQEgdztzWeAzbD42TjQd7eVhYrAVcOk6itcrUoPNQBsmrVhCLvVbW1ZiommSIkdQGYDP616ntLK7OLku7CBuKcDX3B/wwz4KPTxv4j/AO/dv/8AEVleKP2L/COheDtS1i38Z6/JLaQNMqSRQbWI7HCg14UeKcBJpcz+5npPJMUldpfefG4anhq+3B+w54L/AOh28Rcf9M4P/iacP2HfBg/5nbxF/wB+4P8A4mj/AFsy/wDmf3MTyHFv7K+9HxJmgHFfbn/DD3gz/odvEX/fuD/4iqt7+w74faE/2d4/1eGTHBubSKVfxC7TVx4sy9uzk/uZm8gxf8q+9HxgGwacG9K9q+If7LXxJ8C2E2q2kdv4k0yFS0k2mhvNiUfxNCecepUtivMvAPh638XfFDw/4XurmW3g1S/itHmhwXRXOMrnjP1r2aOZYevSdalPmitXY82pga1Ooqc42bMUSHHJp4fnmvtQfsReDe3jXxD/AN+4P/iaX/hiPwd/0OviH/v3B/8AE15C4uy7+Z/czufD2M/lX3o+LaXd719pf8MS+D/+h18Q/wDfuD/4mszVv2I9PNs7aF4+vI5gPlW/s0dSfcoVI/KrhxblzdnN/cyJcO41K/KvvR8ghyKeGzXcfEf4OeOvhdcKfEenLLp8j7IdTs2MlvIewJwCjf7LAe2a5zw34Y1PxPfvb2AjRY9okllztBYkIoCgszsQcKoJOCegJHu08bQqUvbQmnHueRUwlSE/ZyjaRmK2KkDjPPWtbxF4S1Pw3HDPcvHPaynYs0asuG27grKwBUlTuHZhyCcHGCH57100q0KkeaDujCdGUHaW55+OlO3GogeafuFfOqVj61o/Qf8AYPOfgTrv/Ydf/wBERV9VV8qfsHf8kI13/sPP/wCiIq+q6/Mc4/32r6n1WB/gQI3nhjba8iKfQsBTwQRkHj1r81P2xp5o/wBrLV1SaRQLGzOA5AH7qvKvC3xM8f8Agu/S78L+MNY05lOdkdyzRt7NGxKsPqK9Whw1OvQjWhU1ava36/8AAOSpmip1HCUdj9gCAeteXfGP4GeEPi94eaPU7dbLW4UIs9ZgQedCeyt/z0j9VP4YNef/ALOP7T1v8VJl8H+LYbfT/FccZeF4Rth1BVHzFAfuyAclOhGSOhA+ks5rxKlPEZfXs/dmv6+47oyp4mn3TPyB8ceC/EHw78d3vhPxNa+Rf2jdV5SZD92RD3RhyD9QeQa/TP8AZ8/5Nf8AAv8A2B4f5V57+1/8LLfxn8H5fF+n2wOt+HEa4DIuWmtc/vYz64Hzj02n1Neh/s+jH7MHgX/sDQf+g17ubZl9ewFOb+JSs/W36nn4LCfVsROK2a0+89JPT8a/ILxyw/4Wn4mGf+Yvd/8Ao96/X09Pxr8fvHLH/haXib/sL3f/AKPeujg92q1fRGOeq8IerMYNz1q/ozH/AISTTj/09w/+jFrN6Vd0hseIdP8AUXUJ/wDIi191N+6z5uK95H7IDv8AWuZ+Iv8AySrX/wDryk/lXTL0P1rmfiKcfCrX/wDryk/lX4xS+OPqff1PgZ0y9T9ajuLiC0tJLm5mjhhjUu8kjBVUDqSTwBUg6n61wvxqx/wzr43yMj+xLvr/ANcmooU/aVIw7tL7wnLlg5djcj8beEJX2ReK9Ddum1b+En/0KtyORJYlkjdWVhkMpyD9DX44BY8j5E6f3RX0h+yN8Tde0b4yWPgSfUJ7jQ9YEka2srl1t5lQurxg/dztKkDg5B6ivq8fwo8PQlWpVL8qvZq2n3nhYXPVVqqnOFrn6AlQR3r5M+JvwmsPCH7Wvw88c+HbRLbTdY1+CG8t41wkV1nduUdAHUMcf3lPrX1p1Fcn490eHVtK0iSUDfY63YXsZPZkuFB/8dZh+NfP5djJ4aq3F6STT9GrHrYzDxrQ13TTXyOs7Vm65rukeGtCuNa17UrfTtPt8GW6uXCRx5IUZPbJIH41pV4/+1EcfspeLD/sW/8A6Ux1hhKKr16dJvSTS+9mteo6dKU10TZ12lfFj4aa5dra6T488PXVw52rFHfR7mPoATk12KnIr8fC4LHcAfwr7n/Y38f654m8Ga14Y1u9mvRorwm0nnYs6wyBh5ZY8kKU4z0Bx2FfS5zwwsDQeIpT5kt0zxMtzp4mr7KpGzex9G63oul+IPD93ous2UV7YXcZint5lyrqe3+B6g4NfAmuaVa/Bb4xar4N1OZxZQ3sGsaVeyxl1dRHKiLKACSpWZlJAOGj6EMa/Quviv8AbgsoYvGnhDUlAE09lcQOe5CSIy/+jGrDhaq3iXhJP3Jr8Vrf8DTPaK9j7dfFH8noeLeMfFWn3+gJplncQ3M8zW0l01pCYbS3+zwvEkduhVSFJkkcjaACcDPJrhwwPaqwfrTg/tX6ph6MaEOSJ8JWnKrLmkcGDTs4qOlz614Nz6ax+hv7Bhz8Btd/7Dz/APoiKvqyvlL9gog/AXXcf9B6T/0RFX1bX5rm/wDvlT1Pp8F/AifmZ+2X/wAna6v/ANeNn/6KrwMHFe9ftmnH7W+r/wDXhZ/+iq8BDV9/lT/2Ol/hX5HzuMX76fqbHh7xBqHhfxVp3iPSZmhvtOuUu4XU4wyHOPocEH2Jr9jNE1OHWvDen6zbjEN7bR3KD/ZdAw/Q1+LrYMLYPO08fhX7F/Dqzn0/4ReFrC5Vlmt9HtIpFbqGWFAR+deBxXGLVKfXVfkejk7fvLob17Z29/p09ldRiSC4jaKRG6MrDBH5E1x3we0l9B+B/hrQ5PvWFmLT/v2zJ/Su5PSub8CX0Go+BLK9t2DRStKyEdCPOevkVJ+zcel1+p7DS5kzoz0/Gvx68dt/xdTxP/2F7z/0e9fsKelfjv49DJ8V/FCngjWLwH/v+9fVcI/xanojx86Xuw9TFDZq/pLA+ILAD/n6i/8ARi1lhuKv6ISfE2mj1u4R/wCRFr7icrRZ8/Fe8j9mF6fjXL/Eg4+E/iA/9OUn8q6gd/rXK/Es4+EniA/9OT1+O0f4kfVH3FT4H6HVDqfrXDfGhHk/Z48bRxozu2iXQVUUsSfKPAA6mu5XqfrS0Uqns5xn2dxyjzRce5+Ow0fV2cIuk6gWPQC1kz+W2vqD9kv4MeK/+Fo2vxE8RaNdaXpWmxSfYxeRGJ7qZ1KAqjYO1VZjuIwTgDPNfdOKMCvpsdxTVxNGVGEFG6s3e+n3I8fD5LTpVFUcr2CuM+ImuxaNp2hW7sBJqWv6fYRj1LTqx/8AHUauwlmjhiaWV1RFBZmY4CgdST2FfGPjz40WHxH/AGyPh34Z8M3QuPD+i67CftMZyl3cltrOvqij5VPfLHoRXi5dg54mo2lpFNv5L9T0MXXjSik93oj7Rryf9pTT9R1b9mLxRp2lWF1fXcqQCO3tYmlkfFxGThVBJ4BP4V6wOlNZlXrXLh6zoVYVUr8rT+42q0/aQcH1Vj8rdI+D3xV1u9W2074e+InZjjdNZPAg+ryBVH5191/s5fBq7+EngS7/ALbnhm1zVZEmuxAd0cCqCEiVv4sbmJPQk8cCvaODVPVtW0vQtHuNV1m/trCxt13zXNzII44x0yzHgV7eZ8RYnMafsGkovot2ebg8oo4Sftb3fmXCcCvgb9sjxbba38bbLQbSVZF0SxEUxU5CzStvZfqFEefrXq/xV/bB8LaNpdxpXw3Ya5qzqUXUWQraWx/vDdgykdgBt9T2r4gvtRvNU1S51LUbqW6vLmVppp5m3PI7HLMT3JJr2uFsmrUq31uvHlSWie+vU83O8wp1KfsKTv3EDDrmnZqDIp25sV+gqR8m4nF0UhwRjNJz2r5259Ryo/Q/9gj/AJIHrv8A2H5P/REVfVtfKP7BH/JAtd/7D8n/AKIhr6ur82zf/fKnqfSYT+DE/Mj9s/8A5O41f/rwsv8A0VXgAJr9IvjF+yNYfF34r3fje48c3ekyXEEMBtY7BJgvlrtzuLg8/Ssfwr+wj8OdJ1BLnxP4i1vxCiEH7L8lnC/s2zLkfRhX02Dz3CUMLCEm7pLSzPKr4CrUqyklo2fMv7NHwU1L4r/FG0vryykHhXSZ1n1G6dcJMykMtup7sxxux0XOeoz+oqrtUADH0rN0Hw9onhfQLbRPD2l2umadbJshtbWMRog9gO57nqa0JZY4YmkkdVVQWJY4AA6kntXzWZ5jLHVedqyWyPTwuGjh42W5xvxa8dWvw4+DmveLrmRVeztW+zqTzJO3yxIPq5H4A1yv7L2pjVf2T/BtyZfMlS1eCVs5O9JnU5/L9a+PP2tPj1b/ABM8XReEPCt35vhfR5S7XCH5b+5wVMg9UUEqvqSzdCK9o/YQ8c21/wDDbWvANxOovNKuzewITy0E2MkD/ZkBz/vj1ruq5XOjlvtZL3m035LZfmYQxSnieVbWt8z65PSvyT+OGi3Ph/8AaO8a6bdRGNv7XnnQEY3Ryt5qMPYq4NfrbXhPx9/Zp0L4zCHWrO/GieJraLyUvfK8yK4jGSEmUYJwScMDkZI5HFZZFmMMFXbqfDJW9Cswwrr01y7o/Mmuu+F+izeJPjT4T0KFCzXerWyEAZwokVmP4KpP4V7gf2Ffi2L/AMka94SaDP8Ar/tEw49dvlZr6I+Av7LWjfCLVT4n1nU113xKY2iinSLy4LNWGG8pSSSxHBc9sgAZOfq8bn+FhRl7OfNJrRI8ehltaVRcysj6FXpXE/F+/i034JeIbqY4X7MI/wAXdUA/NhXb181ftfePINH8IeGvA9tODe69q9tJLGDyttDMjEkehk8sfgfSvhMBRdbEQgu//BZ9BiJ8lKTZ9Jr3+tYHjzxM3gz4Za94sSzF42lWE16LcvsEuxS23dg4zjrg10C9/rXAfHP/AJNq8d/9gK7/APRRrLDRU6sIy2bX5mk21FtHzOn7e97yH+GMBPbGrH/41VK9/bx8SSRkaf8ADzSoG7G4v5JR+Sov86+QN2KUNk8kiv0uPD+X7+z/ABf+Z8m8yxNvj/I9Z+If7RHxT+JVnJp2ua6tppUnD6bpifZ4XHo/JZx7MxHtWb8DW/4yU8CZ/wCg3bf+h154CMdc16B8DT/xkt4EGf8AmOW3/oddlbD0qGFnCjFRVnt6HNTnOpXjKbu7o/V8dK8o/aS1TUNE/Zm8S6xpN5LZ31n9lnt7iI4aN1uoiCP889K9XHSvHP2qP+TSvGH/AFyt/wD0pir8ty9J4qkntzL8z7HFaUZ27M3Pgl8UrD4s/Cy08Qw+XFqMX+j6laqf9TcADOB/dYYZfY47Gu71PS7DWdIudK1S1iu7K6jaGe3lXckiMMFSPQivzI+AHxdn+EvxWhv7qWQ6BqG211WFecR5+WUD+9GTn3BYd6/T20uYLyxiu7aaOaCVBJHLGdyupGQwPcEEGu/O8teX4j3Pheq/y+Ry5di1iqXvbrc/Mr48fB2/+EXxEe0iEs2gX5aXS7t+SV7wuf76ZA9xg+uPKwea/V74m/DrQ/if8O73wrrkeEmG+3uVAL2swB2Sp7g9R3BI71+XnjbwhrngHx1qHhTxDbeTfWUm0kZ2SoeVkQ91Ycg/h1Br7jh3Ovr1L2VV/vI/iu/+f/BPm81y76vPngvdf4eRi7z608OemahBHanZNfTHj8pxwbnJp4kA7VAD3pw5r5659Kfop+wQT/wz/rhwT/xP5Og/6YQ19Wb/APZP5V+KNjresadCYdO1fULOJjuKW11JEpPqQpAz71aHivxT1HijW/8AwYTf/FV81jOH3iK0qqqWv5f8E9Gjjo04KHLsftJv/wBlvyo38dCPqK/F4+LPFRXB8Ua4R6f2jN/8XUU3iTxDcwtDceINXljPBSS+lZT+Baub/VeX/P38P+Caf2nH+U/WTx18cvhb8OrN5PE3jHTYrgAlbG2kFxcufQRJk/icD3r4Y+O37Wnib4o2tx4Z8L283h3wvJlZULg3V8vpKy8Ih/uKTnuT0r5uHBJ2gZ5yB1+tKGycV62ByKhhpKcveku+33HHiMdUqLlWiHjJ5rq/hx8Qdf8Ahh8RtP8AGPhyVRdWrFXhkJ8u5ib78TgfwsPyIBHIrkqK9qcY1IuE1dM8+LcXzI/Wf4S/Hz4f/FzR4m0PVI7TVwgNxot5IEuYm77R/wAtF9GXPvg8V6kGGcV+JMUskUySxO0ciHcjoSrKfUEcg16X4c/aE+NHhWFIdI+I2teQgwsN5It2gHoBMGxXymJ4Ybd8PPTs/wDP/gHr0s0VrVF9x+tlIWAr8w1/bI+Pwj2nxZYk4+8dKt8/+g1zPiH9o742+J4ni1P4javHE42tFYFLNSPT90qn9a5IcMYlu0pJff8A5GzzSklomfoz8Vvjj4D+EmiSXHiHVI5tSKE22j2rhrq4bt8v8C+rtgD3PFfm94p+I2v/ABS+O1r4u8QuBPPf28cNvGT5dtCJV2RJ7DPXuST3rz2Wea5uZLi4mkmmkO55ZGLs59Sx5J+tNV2VgysVYHIIOCDX0uW5PSwUW73m+v8AkeVisdKu1pZLoftYGxng9fSuA+OZz+zV484P/ICu+3/TJq/KYeJfEe7nxFrH/gdN/wDFU2XxFrs8LwT65qssTgq6SXkrKw9CC2CPrXk0eFpU5xn7XZp7f8E7Z5tGUWuUpgkU7moqAa+1TPn2icMRivQvgY3/ABkv4DJ/6Dlt/wCh15wGqaKaWCdJoJJIpEYMkkbFWUjoQRyD71FaHtKcoX3TX3jpvlmpdj9og/sfyNeOftUN/wAYj+MTgj91b9v+nmKvzW/4S3xXnnxTrn/gwm/+KqO58Ra/f2rWt9r2q3UD/einvJZEbHqrMQa+Tw3CsqNaFX2t+Vp7dn6ntVc3jODhybruVMnOQa+4v2N/jONV0Y/CnxDdZvbGMy6RJIeZoBy0PuydR/skj+GvhgH06VPbXU9rdJcWs8tvNGdySwuUZT6gjkGvpczy+GPoOlLR9H2Z4+Eryw1RTR+zJYHs35GvD/2j/ghB8V/A/wDaWjwInirS42aykxj7SnVrdz6Hqp7N7E1+dQ8W+Ku3ijXP/BhN/wDFU7/hLvFeP+Rn1v8A8GE3/wAVXzmF4Xr4arGtSrWa8v8AgnqV84pVoOnOm7PzKdxBPaXctrdQSQTxOY5IZVKsjA4KsD0IPBFR54pstxNdXD3FzNJNNIxZ5JGLsxPUknkmm7uK+4jJ9T5tx7HI5pwNMo569q8FM+gsSjrmlyKjHrS5qriJ1bsaXI9agU808c07hYlBpcA89Kj3dh2o3NTTFYk5z7UmRnGKQH5etKPfFO5LQ6iiimmS4i5pwP40zpRTuQ4km7B5pQ2T1NR5pQfSquTYmDDHWnA5qEGlBHrVJk8pMCfWnBgTUQanVakTYkpc1ECQaduGOapMmxIGpwJqMetGTVJktEwY9zTgxzzUGfWnBge9WpCsT54p272qAMAOKcDzwapMlxJgcjNLk1Fu4waUPz61SZDgczRSAg96XmvDTPcClB9aSiquKw7I9aASKbS59aaYh+fejPvTMilp3ESAjAp4OKhBpQeaaYibeM08MDUG6nBvSncViXNJk98UinIpaq4mhwopB05oJwM0yHEdk9KUGm0uTVJkOI7dzTg3vUecGlBFVclomDHA4pdwqIH3pQaLisS5zjmnbvaoQaXdzV8xLRODkUVGGI70obnmrUhWJMml3GmA5ozxkVdyGiTcacDxUeTShj6VSYmjn6UEDiowxzzT68O57FhxOBRTaXPHNUmKwtFJkYparmEFFFFO4rBmlzSUU7isOpc0ylzTTFYk3cU8N6GoQeKUGqTEThscnrTqr5NPVzmncViXKnigZHTpTVbPWnA1SYmh1FNIycijJFUmQ4jqUNTQfWlpkNDweM0u41HS5ppisSg5FKCRUWfelBIqlImxOp70A4qINTs8VSkLlJVb1peg4qHP1p4JxVqQrGDRSZFGRXjnqkm4UA5plFAEmecUoqNSc4pxIHWncmw7NLTAw6UucH600xWHUUmRS5quYQUUUU07gFKGINJRVXJaHA880oNMpQaYiRWp24VEOtLmmmInVh0zzTqrqeafu96q4WJaOR0pqsOlKCDVJk2HA0tNpcmqTJcRaKQHjmlpkcrFzS7uabRTTFYk3Uoeo80uadxWMWl3HNJRXlnpjs5paZRTuFiSimAkU/PFNE2AZzTg3rTaKAJO1FM3EClU5ouJofmlptKKpMQtFJx60ZNUmKwtFBoqkxBS5pKKdxWHdaUUyjNO5NiQNinhvWosiiqTCxOGOOKcpJNVwxFODc9aaYWJ6KiDZHWnAkGquS0Pyadmo93tTqq5LQ6ikzQDnrTJcT//2Q==">
+    <div class="titles">
+      <h1>PickleManage</h1>
+      <div class="sub">Scheduler · Final game order &amp; scoresheets</div>
+    </div>
+  </div>
+  <div class="top-actions">
+    <a class="btn-top" href="index.html" title="Back to the queue">← Queue</a>
+    <button class="btn-top" id="btnSettings">⚙ Settings</button>
+    <span class="pm-user" id="pmUser"></span>
+    <button class="btn-top" id="btnLogout">⎋ Log out</button>
+    <div class="toggle-pill" id="themeToggle" title="Toggle light/dark mode"><div class="knob" id="themeKnob">☀️</div></div>
+  </div>
+</header>
+
+<main>
+  <div class="split">
+    <!-- LEFT: queue list -->
+    <section class="pane" id="paneLeft">
+      <div class="pane-head">
+        <div class="pane-title">
+          <h2>Queue list</h2>
+          <span class="count" id="leftCount">0 games</span>
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-ghost btn-sm" id="btnLoad">↻ Load queue</button>
+          <button class="btn btn-ghost btn-sm" id="btnResetOrder" title="Sort the list back to the order in the live queue">Reset order</button>
+          <span class="spacer"></span>
+          <button class="btn btn-ghost btn-sm" id="btnOrganize" title="Reorder the games shown so categories alternate and players don't play back-to-back">✨ Organize</button>
+          <button class="btn btn-primary btn-sm" id="btnTransfer" title="Move the games shown to the final list">Transfer →</button>
+        </div>
+        <div class="filter" id="filterBar"></div>
+      </div>
+      <div class="plist" id="listLeft"></div>
+    </section>
+
+    <!-- RIGHT: final schedule -->
+    <section class="pane" id="paneRight">
+      <div class="pane-head">
+        <div class="pane-title">
+          <h2>Final schedule</h2>
+          <span class="count" id="rightCount">0 games</span>
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-primary btn-sm" id="btnFinalize">✔ Finalize</button>
+          <button class="btn btn-warn btn-sm" id="btnUnlock" style="display:none;">🔓 Unlock</button>
+          <button class="btn btn-primary btn-sm" id="btnPublishOpen" disabled title="Finalize the schedule first">🌐 Publish schedule</button>
+          <button class="btn btn-ghost btn-sm" id="btnClearRight" title="Send all games back to the queue list">← Return all</button>
+          <span class="spacer"></span>
+          <button class="btn btn-ghost btn-sm" id="btnCsv">⬇ CSV</button>
+          <button class="btn btn-ghost btn-sm" id="btnPrintList">🖨 Schedule</button>
+          <button class="btn btn-primary btn-sm" id="btnSheets">📄 Scoresheets</button>
+        </div>
+        <div class="lockbar" id="lockBar">🔒 Finalized and locked. Game numbers were saved to the live queue.</div>
+      </div>
+      <div class="plist" id="listRight"></div>
+    </section>
+  </div>
+</main>
+<div class="foot">PickleManage © 2026</div>
+
+<!-- Settings modal -->
+<div class="overlay" id="setOverlay">
+  <div class="modal" role="dialog" aria-labelledby="setTitle">
+    <h2 id="setTitle">Scoresheet settings</h2>
+    <div class="modal-sub">Titles, teams, colors, game numbers and paper size. Saved in this browser.</div>
+    <div id="setForm"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="btnSetReset">Reset to defaults</button>
+      <button class="btn btn-ghost" id="btnSetCancel">Cancel</button>
+      <button class="btn btn-primary" id="btnSetSave">Save settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scoresheet preview modal -->
+<div class="overlay" id="prevOverlay">
+  <div class="modal prev-modal" role="dialog" aria-labelledby="prevTitle">
+    <h2 id="prevTitle">Scoresheets</h2>
+    <div class="modal-sub" id="prevSub"></div>
+    <div class="tip">To print 4 per sheet: choose your printer, set <b>Pages per sheet = 4</b>, <b>Margins = None</b>, <b>Scale = 100%</b>. Pick “Save as PDF” to keep a file.</div>
+    <div class="prev-pages" id="prevPages"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="btnPrevClose">Close</button>
+      <button class="btn btn-primary" id="btnPrevPrint">🖨 Print / Save as PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="pubOverlay">
+  <div class="modal" role="dialog" aria-labelledby="pubTitle">
+    <h2 id="pubTitle">Publish schedule</h2>
+    <div class="modal-sub">Set the timing and title, preview the estimated start times, then publish to the public page.</div>
+    <div id="pubForm"></div>
+    <div class="helper" style="margin:6px 0 10px;">Uses the times above for the games in the final list. Publish only after you finalize. Games on all courts are assumed to start together.</div>
+    <div class="toolbar" style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" id="btnSchedPreview">👁 Preview</button>
+      <button class="btn btn-primary btn-sm" id="btnSchedPublish">🌐 Generate &amp; publish</button>
+      <button class="btn btn-ghost btn-sm" id="btnSchedUnpub">Unpublish</button>
+    </div>
+    <div class="tip" id="schedLinkBox" style="display:none;margin-top:10px;"><div style="margin-bottom:6px;font-weight:600;">Public link</div><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;"><input type="text" id="schedLink" readonly style="flex:1;min-width:220px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;"><button class="btn btn-ghost btn-sm" id="btnCopyLink">Copy</button></div></div>
+    <div class="modal-actions"><button class="btn btn-ghost" id="btnPubClose">Close</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="schedOverlay">
+  <div class="modal prev-modal" role="dialog" aria-labelledby="schedPrevTitle">
+    <h2 id="schedPrevTitle">Schedule preview</h2>
+    <div class="modal-sub" id="schedPrevSub"></div>
+    <div style="overflow-x:auto;"><table class="ptable" id="schedPrevTable"></table></div>
+    <div class="modal-actions"><button class="btn btn-ghost" id="btnSchedPrevClose">Close</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="printRoot"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+(function(){
+  /* ================= PickleManage login gate (same as index.html) ================= */
+  const pmCfg = {
+    apiKey: "AIzaSyB4IiCCQHtGeIT44n71oGlKk7PIOSWxfg8",
+    authDomain: "ccpc-1943f.firebaseapp.com",
+    databaseURL: "https://ccpc-1943f-default-rtdb.firebaseio.com",
+    projectId: "ccpc-1943f",
+    storageBucket: "ccpc-1943f.firebasestorage.app",
+    messagingSenderId: "904942754236",
+    appId: "1:904942754236:web:aecbec51d5cd0b745b33b9"
+  };
+  const SUPER_EMAIL = 'ton.quinton@gmail.com';
+  firebase.initializeApp(pmCfg);
+  const auth = firebase.auth(), fs = firebase.firestore();
+  try { fs.settings({ experimentalAutoDetectLongPolling: true, merge: true }); } catch (e) { console.warn('Firestore settings:', e); }
+  fs.enablePersistence({ synchronizeTabs: true }).catch(err => console.warn('Offline persistence is off:', err.code || err.message));
+
+  const gate = document.getElementById('pmGate'), msg = document.getElementById('pmGateMsg');
+  let started = false, bouncing = false, profile = null, unsub = null;
+  function gateMsg(text, failed){
+    gate.style.display = 'flex'; msg.textContent = text;
+    document.getElementById('pmSpin').style.display = failed ? 'none' : '';
+    document.getElementById('pmGateBack').style.display = failed ? '' : 'none';
+  }
+  function bounce(reason){
+    if (bouncing) return; bouncing = true;
+    if (unsub) { try { unsub(); } catch (e) {} }
+    auth.signOut().catch(() => {}).then(() => location.replace('login.html' + (reason ? '?reason=' + reason : '')));
+  }
+  function isGoogleSuper(u){ return !!u && (u.email || '').toLowerCase() === SUPER_EMAIL && u.emailVerified === true && u.providerData.some(p => p.providerId === 'google.com'); }
+  function licenseState(d){
+    if (!d) return { ok:false, why:'license' };
+    if (d.active !== true) return { ok:false, why:'license' };
+    if (d.validUntil && d.validUntil.toMillis && d.validUntil.toMillis() < Date.now()) return { ok:false, why:'expired' };
+    return { ok:true };
+  }
+  function begin(user, prof, isSuper){
+    if (started) return; started = true;
+    document.getElementById('pmUser').textContent = '👤 ' + ((prof && (prof.displayName || prof.username)) || user.displayName || user.email || '');
+    gate.style.display = 'none';
+    startApp(fs);
+  }
+  document.getElementById('btnLogout').addEventListener('click', () => {
+    if (!confirm('Log out of PickleManage?')) return;
+    bouncing = true;
+    auth.signOut().catch(() => {}).then(() => location.replace('login.html'));
+  });
+  auth.onAuthStateChanged(user => {
+    if (bouncing) return;
+    if (!user) { location.replace('login.html'); return; }
+    if (unsub) { try { unsub(); } catch (e) {} unsub = null; }
+    if (isGoogleSuper(user)) { begin(user, { displayName:'Superadmin' }, true); return; }
+    unsub = fs.collection('pm-users').doc(user.uid).onSnapshot(snap => {
+      if (!snap.exists && snap.metadata.fromCache) { gateMsg('Waiting for a connection to verify your license…'); return; }
+      profile = snap.exists ? snap.data() : null;
+      const st = licenseState(profile);
+      if (!st.ok) { bounce(st.why); return; }
+      begin(user, profile, profile.role === 'superadmin');
+    }, err => {
+      if (err && err.code === 'permission-denied') bounce('license');
+      else gateMsg("Can't verify your license right now. Check your internet connection and refresh.", true);
+    });
+  });
+  setInterval(() => { if (started && profile && !isGoogleSuper(auth.currentUser) && !licenseState(profile).ok) bounce(licenseState(profile).why); }, 60000);
+})();
+
+/* ================= Scheduler app ================= */
+function startApp(db){
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const LS_SET = 'pm-scheduler-settings', LS_DRAFT = 'pm-scheduler-draft';
+
+  /* ---- theme (shared with index.html) ---- */
+  const html = document.documentElement;
+  function applyTheme(t){ html.setAttribute('data-theme', t); $('themeKnob').textContent = t === 'dark' ? '🌙' : '☀️'; try { localStorage.setItem('pkl-theme', t); } catch(e){} }
+  applyTheme((function(){ try { return localStorage.getItem('pkl-theme'); } catch(e){ return null; } })() || 'light');
+  $('themeToggle').addEventListener('click', () => applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+
+  let toastT = null;
+  function toast(text, err){ const t = $('toast'); t.textContent = text; t.className = 'toast show' + (err ? ' error' : ''); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), err ? 5000 : 2800); }
+
+  /* ================= Settings ================= */
+  const PAPERS = {
+    short:  { l:'Short bond, ¼ page (4.25 × 5.5 in)', w:107.95, h:139.7 },
+    long:   { l:'Long bond, ¼ page (4.25 × 6.5 in)',  w:107.95, h:165.1 },
+    a4:     { l:'A4, ¼ page (105 × 148.5 mm)',        w:105,    h:148.5 },
+    custom: { l:'Custom size', w:107.95, h:139.7 }
+  };
+  const DEF = {
+    sheetTitle:'OFFICIAL GAME SCORESHEET', eventName:'DUAL MEET', matchTitle:'{team1} x {team2}',
+    dateText:'August 16, 2026', venue:'Paloo 4Ecom Center',
+    team1:'CCPC', team2:'MTC', autoTeams:true, color1:'#0b4f9c', color2:'#111111', teamPrefix:'TEAM',
+    gameNoLabel:'GAME NO', playerLabel:'PLAYER NAME', scoreLabel:'SCORE',
+    footer:'PickleManage © 2026',
+    prefix:'G-', digits:3, start:1,
+    publicTitle:'', startTime:'09:00', minutes:20, courts:4, delayMin:0, delayFrom:1, breakOn:false, breakAt:'12:00', breakMin:60,
+    paper:'short', widthMm:107.95, heightMm:139.7, showCat:true, cutBorder:true
+  };
+  const SCHEMA = [
+    { sec:'Sheet text' },
+    { k:'sheetTitle', l:'Sheet title' }, { k:'eventName', l:'Event name' },
+    { k:'matchTitle', l:'Match title', h:'Use {team1} and {team2} for the team names.' }, { k:'footer', l:'Footer' },
+    { k:'dateText', l:'Date' }, { k:'venue', l:'Venue' },
+    { sec:'Teams' },
+    { k:'team1', l:'Team 1 name' }, { k:'team2', l:'Team 2 name' },
+    { k:'color1', l:'Team 1 color', t:'color' }, { k:'color2', l:'Team 2 color', t:'color' },
+    { k:'teamPrefix', l:'Text before team name' },
+    { k:'autoTeams', l:'Use the category’s team names when it has them', t:'check', full:true },
+    { sec:'Labels' },
+    { k:'gameNoLabel', l:'Game number label' }, { k:'playerLabel', l:'Player label' },
+    { k:'scoreLabel', l:'Score label' },
+    { sec:'Game numbers' },
+    { k:'prefix', l:'Prefix' }, { k:'digits', l:'Digits', t:'number', min:1, max:6 },
+    { k:'start', l:'Start at', t:'number', min:0, max:99999 },
+    { sec:'Paper' },
+    { k:'paper', l:'Paper size', t:'select' },
+    { k:'widthMm', l:'Custom width (mm)', t:'number', min:50, max:300, step:'0.1' }, { k:'heightMm', l:'Custom height (mm)', t:'number', min:50, max:400, step:'0.1' },
+    { k:'showCat', l:'Show the category on each sheet', t:'check', full:true },
+    { k:'cutBorder', l:'Draw a thin dashed cut line around each sheet', t:'check', full:true }
+  ];
+  const PUB_SCHEMA = [
+    { sec:'Page' },
+    { k:'publicTitle', l:'Page title', h:'Shown at the top of the public page. Leave blank to use the event name.' },
+    { sec:'Timing' },
+    { k:'startTime', l:'First game starts at', t:'time' }, { k:'minutes', l:'Minutes per game', t:'number', min:1, max:240 },
+    { k:'courts', l:'Number of courts', t:'number', min:1, max:50 },
+    { k:'delayMin', l:'Delay (minutes)', t:'number', min:0, max:600, h:'Pushes games back from the game position below. Use it when the day runs late, then publish again.' },
+    { k:'delayFrom', l:'Delay starts at game position', t:'number', min:1, max:9999 },
+    { k:'breakOn', l:'Add a break', t:'check', full:true },
+    { k:'breakAt', l:'Break begins at or after', t:'time' }, { k:'breakMin', l:'Break length (minutes)', t:'number', min:1, max:600 },
+  ];
+  let S = loadSettings();
+  function loadSettings(){ try { const o = Object.assign({}, DEF, JSON.parse(localStorage.getItem(LS_SET) || '{}')); if (o.footer === 'Powered by: PickleManage 2026') o.footer = DEF.footer; return o; } catch(e){ return Object.assign({}, DEF); } }
+  function saveSettings(){ try { localStorage.setItem(LS_SET, JSON.stringify(S)); } catch(e){} }
+
+  function buildForm(schema, prefix, target){
+    let h = '', open = false;
+    schema.forEach(f => {
+      if (f.sec){ if (open) h += '</div>'; h += `<div class="set-sec">${esc(f.sec)}</div><div class="set-grid">`; open = true; return; }
+      const v = S[f.k], id = prefix + f.k;
+      if (f.t === 'check') h += `<div class="field check" style="${f.full ? 'grid-column:1/-1' : ''}"><input type="checkbox" id="${id}" ${v ? 'checked' : ''}><label for="${id}">${esc(f.l)}</label></div>`;
+      else if (f.t === 'time') h += `<div class="field"><label for="${id}">${esc(f.l)}</label><input type="time" id="${id}" value="${esc(v)}"></div>`;
+      else if (f.t === 'color') h += `<div class="field"><label for="${id}">${esc(f.l)}</label><input type="color" id="${id}" value="${esc(v)}"></div>`;
+      else if (f.t === 'select') h += `<div class="field"><label for="${id}">${esc(f.l)}</label><select id="${id}">${Object.keys(PAPERS).map(k => `<option value="${k}" ${v === k ? 'selected' : ''}>${esc(PAPERS[k].l)}</option>`).join('')}</select></div>`;
+      else if (f.t === 'number') h += `<div class="field"><label for="${id}">${esc(f.l)}</label><input type="number" id="${id}" value="${esc(v)}" min="${f.min}" max="${f.max}" step="${f.step || 1}"></div>`;
+      else h += `<div class="field"><label for="${id}">${esc(f.l)}</label><input type="text" id="${id}" value="${esc(v)}">${f.h ? `<div class="helper">${esc(f.h)}</div>` : ''}</div>`;
+    });
+    if (open) h += '</div>';
+    $(target).innerHTML = h;
+  }
+  function readForm(schema, prefix){
+    const out = Object.assign({}, S);
+    schema.forEach(f => {
+      if (!f.k) return; const el = $(prefix + f.k); if (!el) return;
+      if (f.t === 'check') out[f.k] = el.checked;
+      else if (f.t === 'number') { const n = parseFloat(el.value); out[f.k] = isFinite(n) ? n : DEF[f.k]; }
+      else out[f.k] = el.value;
+    });
+    out.digits = Math.max(1, Math.min(6, Math.round(out.digits)));
+    out.start = Math.max(0, Math.round(out.start));
+    out.minutes = Math.max(1, Math.round(out.minutes)); out.courts = Math.max(1, Math.round(out.courts)); out.delayMin = Math.max(0, Math.round(out.delayMin));
+    out.delayFrom = Math.max(1, Math.round(out.delayFrom)); out.breakMin = Math.max(1, Math.round(out.breakMin));
+    if (!/^\d{1,2}:\d{2}$/.test(out.startTime)) out.startTime = DEF.startTime; if (!/^\d{1,2}:\d{2}$/.test(out.breakAt)) out.breakAt = DEF.breakAt;
+    return out;
+  }
+  function buildSettingsForm(){ buildForm(SCHEMA, 'set_', 'setForm'); }
+  function readSettingsForm(){ return readForm(SCHEMA, 'set_'); }
+  function buildPubForm(){ buildForm(PUB_SCHEMA, 'pub_', 'pubForm'); }
+  function readPubForm(){ return readForm(PUB_SCHEMA, 'pub_'); }
+  $('btnSettings').addEventListener('click', () => { buildSettingsForm(); $('setOverlay').classList.add('show'); });
+  $('btnSetCancel').addEventListener('click', () => $('setOverlay').classList.remove('show'));
+  $('btnSetSave').addEventListener('click', () => { S = readSettingsForm(); saveSettings(); $('setOverlay').classList.remove('show'); renderAll(); toast('Settings saved.'); });
+  $('btnSetReset').addEventListener('click', () => { if (!confirm('Reset all scoresheet settings to the defaults?')) return; S = Object.assign({}, DEF); buildSettingsForm(); });
+  $('setOverlay').addEventListener('mousedown', e => { if (e.target === $('setOverlay')) $('setOverlay').classList.remove('show'); });
+
+  /* ================= State ================= */
+  let byId = new Map();     // docId -> match
+  let left = [], right = []; // arrays of docIds
+  let locked = false;
+  let catOff = new Set();   // hidden categories (left filter)
+  let loadedAt = '';
+
+  function saveDraft(){
+    const matches = {}; [...left, ...right].forEach(id => { if (byId.has(id)) { const m = byId.get(id); matches[id] = Object.assign({}, m, { keys: [...m.keys] }); } });
+    try { localStorage.setItem(LS_DRAFT, JSON.stringify({ left, right, locked, catOff:[...catOff], loadedAt, matches })); } catch(e){}
+  }
+  function restoreDraft(){
+    try {
+      const d = JSON.parse(localStorage.getItem(LS_DRAFT) || 'null'); if (!d) return;
+      const mm = d.matches || {};
+      Object.keys(mm).forEach(id => { mm[id].keys = new Set(mm[id].keys || []); byId.set(id, mm[id]); });
+      left = (d.left || []).filter(id => byId.has(id)); right = (d.right || []).filter(id => byId.has(id));
+      locked = !!d.locked && right.length > 0; catOff = new Set(d.catOff || []); loadedAt = d.loadedAt || '';
+    } catch(e){ console.warn('Draft not restored', e); }
+  }
+  /* ================= Load queue from Firebase ================= */
+  function buildMatch(id, x, buckets, pmap){
+    const b = buckets[x.bucket] || { label: x.bucketName || 'Removed category', teamNames:[], pools:[] };
+    let poolId = x.pool;
+    if (!poolId || !b.pools.some(q => q.id === poolId)){ const e = x.team1 && x.team1[0]; const lp = e && pmap[e.participantId]; poolId = lp && lp.pool; }
+    const pn = (b.pools.find(q => q.id === poolId) || {}).name || '';
+    const cat = b.label + (pn ? ' | ' + pn : '');
+    const t1 = (x.team1 || []), t2 = (x.team2 || []);
+    const side = (arr, fb) => { const bt = Number(arr[0] && arr[0].battleTeam); return (bt === 1 || bt === 2) && b.teamNames[bt - 1] ? b.teamNames[bt - 1] : ''; };
+    const keys = new Set();
+    [...t1, ...t2].forEach(p => { if (p.participantId) keys.add('id:' + p.participantId); if (p.name) keys.add('n:' + norm(p.name)); });
+    return { id, matchId: x.matchId || '', status: x.status || 'waiting', order: Number(x.order) || 0, cat,
+      t1: t1.map(p => p.name || ''), t2: t2.map(p => p.name || ''), sideNames: [side(t1), side(t2)], keys };
+  }
+  async function loadQueue(){
+    const btn = $('btnLoad'); btn.disabled = true; btn.textContent = 'Loading…';
+    try {
+      const [bs, ms, ps] = await Promise.all([ db.collection('pkl-queue-buckets').get(), db.collection('pkl-queue-matches').get(), db.collection('pkl-queue-participants').get() ]);
+      const buckets = {}; bs.docs.forEach(d => { const x = d.data(); buckets[d.id] = { label: x.name || 'Category', teamNames: Array.isArray(x.teamNames) ? x.teamNames.slice(0,2).map(n => String(n || '')) : [], pools: Array.isArray(x.pools) ? x.pools.filter(q => q && q.id).map(q => ({ id:String(q.id), name:String(q.name || 'Pool') })) : [] }; });
+      const pmap = {}; ps.docs.forEach(d => { pmap[d.id] = d.data(); });
+      const list = ms.docs.map(d => buildMatch(d.id, d.data(), buckets, pmap)).sort((a, b) => a.order - b.order);
+      const nm = new Map(list.map(m => [m.id, m]));
+      right = right.filter(id => nm.has(id));
+      const rset = new Set(right);
+      const prevLeft = left.filter(id => nm.has(id) && !rset.has(id)); const lset = new Set(prevLeft);
+      left = prevLeft.concat(list.filter(m => !lset.has(m.id) && !rset.has(m.id)).map(m => m.id));
+      byId = nm; if (!right.length) locked = false;
+      loadedAt = new Date().toLocaleTimeString();
+      saveDraft(); renderAll(); toast(`Loaded ${list.length} game${list.length === 1 ? '' : 's'} from the queue.`);
+    } catch (err) { toast('Could not load the queue: ' + err.message, true); }
+    btn.disabled = false; btn.textContent = '↻ Load queue';
+  }
+  $('btnLoad').addEventListener('click', loadQueue);
+  $('btnResetOrder').addEventListener('click', () => { left.sort((a, b) => byId.get(a).order - byId.get(b).order); saveDraft(); renderAll(); toast('Queue list back in live queue order.'); });
+
+  /* ================= Organize (deterministic) ================= */
+  const W1 = { share:10000, cat:5000 }, W2 = { share:300, cat:60 }, W3 = { share:40, cat:0 };
+  const memo = new Map();
+  function sharesM(a, b){
+    const k = a.id < b.id ? a.id + '|' + b.id : b.id + '|' + a.id;
+    let r = memo.get(k); if (r !== undefined) return r;
+    r = false; for (const x of a.keys){ if (b.keys.has(x)) { r = true; break; } }
+    memo.set(k, r); return r;
+  }
+  const pc = (a, b, w) => (sharesM(a, b) ? w.share : 0) + (a.cat === b.cat ? w.cat : 0);
+  function seqCost(s){ let c = 0; for (let i = 1; i < s.length; i++){ c += pc(s[i-1], s[i], W1); if (i >= 2) c += pc(s[i-2], s[i], W2); if (i >= 3) c += pc(s[i-3], s[i], W3); } return c; }
+  function organizeList(items){
+    memo.clear();
+    const rem = items.slice(), out = [], cnt = {};
+    rem.forEach(m => { cnt[m.cat] = (cnt[m.cat] || 0) + 1; });
+    while (rem.length){
+      const p1 = out[out.length-1], p2 = out[out.length-2], p3 = out[out.length-3];
+      let best = 0, bs = Infinity;
+      rem.forEach((m, i) => {
+        let s = 0;
+        if (p1) s += pc(p1, m, W1); if (p2) s += pc(p2, m, W2); if (p3) s += pc(p3, m, W3);
+        s -= cnt[m.cat] * 10; s += i * 0.001;
+        if (s < bs){ bs = s; best = i; }
+      });
+      const m = rem.splice(best, 1)[0]; cnt[m.cat]--; out.push(m);
+    }
+    let cur = seqCost(out), passes = 0, improved = true; const maxPass = out.length > 250 ? 2 : 6;
+    while (improved && passes < maxPass){
+      improved = false; passes++;
+      for (let i = 0; i < out.length; i++) for (let j = i + 1; j < out.length; j++){
+        [out[i], out[j]] = [out[j], out[i]];
+        const c = seqCost(out);
+        if (c < cur - 1e-9){ cur = c; improved = true; } else { [out[i], out[j]] = [out[j], out[i]]; }
+      }
+    }
+    return out;
+  }
+  function adjConflicts(arr){ let n = 0; for (let i = 1; i < arr.length; i++) if (sharesM(arr[i-1], arr[i]) || arr[i-1].cat === arr[i].cat) n++; return n; }
+  function visibleLeft(){ return left.filter(id => !catOff.has(byId.get(id).cat)); }
+  $('btnOrganize').addEventListener('click', () => {
+    const vis = visibleLeft(); if (vis.length < 2) return toast('Nothing to organize. Load the queue or tick more categories.', true);
+    const items = vis.map(id => byId.get(id)); memo.clear();
+    const before = adjConflicts(items);
+    const out = organizeList(items), after = adjConflicts(out);
+    const pos = []; left.forEach((id, i) => { if (!catOff.has(byId.get(id).cat)) pos.push(i); });
+    pos.forEach((p, k) => { left[p] = out[k].id; });
+    saveDraft(); renderAll();
+    toast(after === 0 ? `Organized ${out.length} games with no back-to-back conflicts.` : `Organized ${out.length} games. ${after} back-to-back conflict${after === 1 ? '' : 's'} could not be avoided (was ${before}).`);
+  });
+  $('btnTransfer').addEventListener('click', () => {
+    if (locked) return toast('The final list is locked. Unlock it first.', true);
+    const vis = visibleLeft(); if (!vis.length) return toast('No games shown to transfer.', true);
+    const vs = new Set(vis); left = left.filter(id => !vs.has(id)); right = right.concat(vis);
+    saveDraft(); renderAll(); toast(`Transferred ${vis.length} game${vis.length === 1 ? '' : 's'} to the final list.`);
+  });
+  $('btnClearRight').addEventListener('click', () => {
+    if (locked) return toast('The final list is locked. Unlock it first.', true);
+    if (!right.length) return;
+    if (!confirm('Send all games in the final list back to the queue list?')) return;
+    left = left.concat(right); right = []; saveDraft(); renderAll();
+  });
+
+  /* ================= Final list helpers ================= */
+  const gameNo = i => S.prefix + String(S.start + i).padStart(S.digits, '0');
+  function conflictsAt(i){
+    if (i === 0) return null; const a = byId.get(right[i-1]), b = byId.get(right[i]); memo.clear();
+    return { player: sharesM(a, b), cat: a.cat === b.cat };
+  }
+  $('btnFinalize').addEventListener('click', async () => {
+    if (!right.length) return toast('Transfer games to the final list first.', true);
+    const items = right.map(id => byId.get(id));
+    const live = items.filter(m => m.status === 'assigned' || m.status === 'playing').length;
+    if (!confirm(`Finalize ${items.length} games?\n\nEach game gets its Game No (${gameNo(0)} to ${gameNo(items.length-1)}) and the live queue order is updated to match.` + (live ? `\n\nNote: ${live} of these are already on a court.` : ''))) return;
+    const btn = $('btnFinalize'); btn.disabled = true;
+    try {
+      const orders = items.map(m => m.order).sort((a, b) => a - b);
+      const unique = new Set(orders).size === orders.length && orders.every(o => o > 0);
+      const base = orders.find(o => o > 0) || Date.now();
+      for (let i = 0; i < items.length; i += 400){
+        const batch = db.batch();
+        items.slice(i, i + 400).forEach((m, k) => { batch.update(db.collection('pkl-queue-matches').doc(m.id), { matchId: gameNo(i + k), order: unique ? orders[i + k] : base + i + k }); });
+        await batch.commit();
+      }
+      items.forEach((m, i) => { m.matchId = gameNo(i); m.order = unique ? orders[i] : base + i; });
+      locked = true; saveDraft(); renderAll(); toast('Finalized. Game numbers saved to the live queue.');
+    } catch (err) { toast('Could not finalize: ' + err.message, true); }
+    btn.disabled = false;
+  });
+  $('btnUnlock').addEventListener('click', () => { locked = false; saveDraft(); renderAll(); toast('Unlocked. Finalize again to save changes to the queue.'); });
+
+  /* ================= Rendering ================= */
+  const teamText = arr => arr.join(' & ');
+  const STATUS = { onhold:'On hold', assigned:'Assigned', playing:'Playing' };
+  function renderFilter(){
+    const cats = {}; byId.forEach(m => { if (left.includes(m.id) || right.includes(m.id)) cats[m.cat] = cats[m.cat] || 0; });
+    left.forEach(id => { const c = byId.get(id).cat; cats[c] = (cats[c] || 0) + 1; });
+    const names = Object.keys(cats).sort((a, b) => a.localeCompare(b));
+    if (!names.length){ $('filterBar').innerHTML = ''; return; }
+    $('filterBar').innerHTML = `<span class="helper" style="margin-right:4px;">Categories:</span>` +
+      names.map(n => `<label class="chip ${catOff.has(n) ? '' : 'on'}"><input type="checkbox" data-cat="${esc(n)}" ${catOff.has(n) ? '' : 'checked'}>${esc(n)} <span class="n">${cats[n]}</span></label>`).join('') +
+      `<button class="linkbtn" data-all="1">All</button><button class="linkbtn" data-all="0">None</button>`;
+  }
+  $('filterBar').addEventListener('change', e => { const c = e.target.dataset && e.target.dataset.cat; if (c === undefined) return; if (e.target.checked) catOff.delete(c); else catOff.add(c); saveDraft(); renderAll(); });
+  $('filterBar').addEventListener('click', e => {
+    const a = e.target.dataset && e.target.dataset.all; if (a === undefined) return;
+    if (a === '1') catOff.clear(); else left.forEach(id => catOff.add(byId.get(id).cat));
+    saveDraft(); renderAll();
+  });
+  function leftRow(m){
+    return `<div class="row" draggable="true" data-id="${m.id}" data-side="left">
+      <span class="grip" title="Drag to reorder or to the final list">⠿</span>
+      <span class="qid">${esc(m.matchId)}</span>
+      <div class="teams">${esc(teamText(m.t1))} <span class="vs">vs</span> ${esc(teamText(m.t2))}</div>
+      <div class="tags">${STATUS[m.status] ? `<span class="badge ${m.status}">${STATUS[m.status]}</span>` : ''}<span class="meta">${esc(m.cat)}</span></div>
+      <div class="acts"><button class="btn-icon" title="Move to final list" data-act="to-right" ${locked ? 'disabled' : ''}>→</button></div></div>`;
+  }
+  function rightRow(m, i){
+    const c = conflictsAt(i);
+    return `<div class="row ${locked ? 'locked' : ''}" draggable="${locked ? 'false' : 'true'}" data-id="${m.id}" data-side="right">
+      ${locked ? '' : '<span class="grip" title="Drag to reorder or back to the queue list">⠿</span>'}
+      <span class="gno ${locked ? 'final' : ''}">${esc(gameNo(i))}</span>
+      <div class="teams">${esc(teamText(m.t1))} <span class="vs">vs</span> ${esc(teamText(m.t2))}</div>
+      <div class="tags">${c && c.player ? '<span class="cf" title="A player is in the previous game too">Same player</span>' : ''}${c && c.cat ? '<span class="cf cat" title="Same category as the previous game">Same category</span>' : ''}${STATUS[m.status] ? `<span class="badge ${m.status}">${STATUS[m.status]}</span>` : ''}<span class="meta">${esc(m.cat)}</span></div>
+      <div class="acts"><button class="btn-icon" title="Move up" data-act="up" ${locked || i === 0 ? 'disabled' : ''}>▲</button><button class="btn-icon" title="Move down" data-act="down" ${locked || i === right.length - 1 ? 'disabled' : ''}>▼</button><button class="btn-icon" title="Back to queue list" data-act="to-left" ${locked ? 'disabled' : ''}>←</button></div></div>`;
+  }
+  function renderAll(){
+    renderFilter();
+    const vis = visibleLeft();
+    $('leftCount').textContent = `${vis.length} shown · ${left.length} total` + (loadedAt ? ` · loaded ${loadedAt}` : '');
+    $('listLeft').innerHTML = left.length
+      ? (vis.length ? vis.map(id => leftRow(byId.get(id))).join('') : '<div class="empty">No games match the ticked categories.</div>')
+      : '<div class="empty">The queue list is empty. Press “Load queue” to bring in the games from the live queue.</div>';
+    let nconf = 0; for (let i = 1; i < right.length; i++){ const c = conflictsAt(i); if (c && (c.player || c.cat)) nconf++; }
+    $('rightCount').textContent = `${right.length} game${right.length === 1 ? '' : 's'}` + (nconf ? ` · ${nconf} back-to-back` : '');
+    memo.clear();
+    $('listRight').innerHTML = right.length ? right.map((id, i) => rightRow(byId.get(id), i)).join('') : '<div class="empty">Blank for now. Organize the queue list, then press “Transfer” or drag games here.</div>';
+    $('btnFinalize').style.display = locked ? 'none' : ''; $('btnUnlock').style.display = locked ? '' : 'none';
+    $('lockBar').classList.toggle('show', locked);
+    $('btnPublishOpen').disabled = !locked; $('btnPublishOpen').title = locked ? 'Set the timing and publish the public schedule' : 'Finalize the schedule first';
+    ['btnClearRight'].forEach(id => $(id).disabled = locked);
+    $('btnTransfer').disabled = locked;
+    ['btnCsv','btnPrintList','btnSheets'].forEach(id => $(id).disabled = !right.length);
+  }
+
+  /* ================= Drag & drop, row buttons ================= */
+  let drag = null;
+  function moveTo(id, toSide, refId, after){
+    left = left.filter(x => x !== id); right = right.filter(x => x !== id);
+    const arr = toSide === 'left' ? left : right; let idx = arr.length;
+    if (refId){ const i = arr.indexOf(refId); if (i >= 0) idx = after ? i + 1 : i; }
+    arr.splice(idx, 0, id);
+  }
+  function clearMarks(){ document.querySelectorAll('.row.drop-before,.row.drop-after').forEach(r => r.classList.remove('drop-before','drop-after')); document.querySelectorAll('.plist.dropzone').forEach(p => p.classList.remove('dropzone')); }
+  [['listLeft','left'], ['listRight','right']].forEach(([lid, side]) => {
+    const el = $(lid);
+    el.addEventListener('dragstart', e => {
+      const row = e.target.closest && e.target.closest('.row'); if (!row) return;
+      if (row.dataset.side === 'right' && locked){ e.preventDefault(); return; }
+      drag = { id: row.dataset.id, from: row.dataset.side };
+      e.dataTransfer.setData('text/plain', drag.id); e.dataTransfer.effectAllowed = 'move'; row.style.opacity = '.5';
+    });
+    el.addEventListener('dragend', e => { const row = e.target.closest && e.target.closest('.row'); if (row) row.style.opacity = ''; drag = null; clearMarks(); });
+    el.addEventListener('dragover', e => {
+      if (!drag || (side === 'right' && locked)) return; e.preventDefault(); clearMarks();
+      const row = e.target.closest('.row');
+      if (row && row.dataset.id !== drag.id){ const r = row.getBoundingClientRect(); row.classList.add(e.clientY > r.top + r.height / 2 ? 'drop-after' : 'drop-before'); }
+      else if (!row) el.classList.add('dropzone');
+    });
+    el.addEventListener('dragleave', e => { if (!el.contains(e.relatedTarget)) clearMarks(); });
+    el.addEventListener('drop', e => {
+      if (!drag || (side === 'right' && locked)) return; e.preventDefault();
+      const row = e.target.closest('.row'); let ref = null, after = false;
+      if (row && row.dataset.id !== drag.id){ ref = row.dataset.id; after = row.classList.contains('drop-after'); }
+      const id = drag.id; clearMarks(); drag = null;
+      moveTo(id, side, ref, after); saveDraft(); renderAll();
+    });
+    el.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-act]'); if (!btn) return;
+      const id = btn.closest('.row').dataset.id, act = btn.dataset.act;
+      if (locked && act !== 'x') return;
+      if (act === 'to-right'){ left = left.filter(x => x !== id); right.push(id); }
+      else if (act === 'to-left'){ right = right.filter(x => x !== id); left.unshift(id); }
+      else { const i = right.indexOf(id), j = act === 'up' ? i - 1 : i + 1; if (j < 0 || j >= right.length) return; [right[i], right[j]] = [right[j], right[i]]; }
+      saveDraft(); renderAll();
+    });
+  });
+
+  /* ================= Exports ================= */
+  function rightItems(){ return right.map(id => byId.get(id)); }
+  $('btnCsv').addEventListener('click', () => {
+    const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const rows = [['Game No','Category','Team 1','Team 2','Status']];
+    rightItems().forEach((m, i) => rows.push([gameNo(i), m.cat, teamText(m.t1), teamText(m.t2), STATUS[m.status] || 'Waiting']));
+    const blob = new Blob(['\ufeff' + rows.map(r => r.map(q).join(',')).join('\r\n')], { type:'text/csv;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'game-schedule.csv'; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  });
+  function doPrint(htmlStr, pageCss){
+    $('printRoot').innerHTML = htmlStr; $('pageStyle').textContent = pageCss; document.body.classList.add('printing');
+    const done = () => { document.body.classList.remove('printing'); $('printRoot').innerHTML = ''; window.removeEventListener('afterprint', done); };
+    window.addEventListener('afterprint', done);
+    setTimeout(() => window.print(), 150);
+  }
+  $('btnPrintList').addEventListener('click', () => {
+    const items = rightItems(); if (!items.length) return;
+    const rows = items.map((m, i) => `<tr><td><b>${esc(gameNo(i))}</b></td><td>${esc(m.cat)}</td><td>${esc(teamText(m.t1))}</td><td>${esc(teamText(m.t2))}</td></tr>`).join('');
+    doPrint(`<div class="sched-print"><h1>${esc(S.eventName)} · Game schedule</h1><div class="sm">${esc([S.dateText, S.venue].filter(Boolean).join(' | '))}</div><table><thead><tr><th>${esc(S.gameNoLabel)}</th><th>Category</th><th>Team 1</th><th>Team 2</th></tr></thead><tbody>${rows}</tbody></table><div class="sm" style="margin-top:14px;text-align:center;">${esc(S.footer)}</div></div>`, '@page{size:auto;margin:12mm;}');
+  });
+
+  const lum = hex => { const n = parseInt(String(hex).replace('#',''), 16) || 0; const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255; return (0.299 * r + 0.587 * g + 0.114 * b) / 255; };
+  function paperSize(){ const p = PAPERS[S.paper] || PAPERS.short; return S.paper === 'custom' ? { w: S.widthMm, h: S.heightMm } : { w: p.w, h: p.h }; }
+  function sheetHtml(m, i){
+    const pz = paperSize();
+    const n1 = S.autoTeams && m.sideNames[0] ? m.sideNames[0] : S.team1, n2 = S.autoTeams && m.sideNames[1] ? m.sideNames[1] : S.team2;
+    const title = S.matchTitle.replace(/\{team1\}/gi, n1).replace(/\{team2\}/gi, n2);
+    const tl = title.length, tsz = tl <= 12 ? 9.5 : tl <= 16 ? 8 : tl <= 22 ? 6.4 : tl <= 30 ? 5.2 : 4.4;
+    const meta = [S.dateText, S.venue].filter(Boolean).join(' | ');
+    const pn = arr => { const rows = arr.length ? arr : ['']; return rows.map(n => { const l = n.length, z = l <= 14 ? 6.6 : l <= 22 ? 5.4 : l <= 32 ? 4.4 : 3.6; return `<div class="prow"><div class="pl">${esc(S.playerLabel)}</div><div class="pn" style="font-size:calc(var(--u) * ${z})">${esc(n)}</div></div>`; }).join(''); };
+    const team = (cls, name, arr, col) => `<div class="sh-team" style="--tc:${esc(col)};--tt:${lum(col) > 0.6 ? '#111' : '#fff'}"><div class="th">${esc((S.teamPrefix ? S.teamPrefix + ' ' : '') + name)}</div><div class="tb"><div class="players">${pn(arr)}</div><div class="score">${esc(S.scoreLabel)}</div></div></div>`;
+    return `<div class="sheet ${S.cutBorder ? 'cut' : ''}" style="--pw:${pz.w}mm;--ph:${pz.h}mm">
+      <div class="sh-top"><div class="sh-head"><div class="sh-kicker">${esc(S.sheetTitle)}</div><div class="sh-title" style="font-size:calc(var(--u) * ${tsz})">${esc(title)}</div><div class="sh-event">${esc(S.eventName)}</div>${meta ? `<div class="sh-meta">${esc(meta)}</div>` : ''}</div>
+      <div class="sh-no"><div class="lbl">${esc(S.gameNoLabel)}</div><div class="val">${esc(gameNo(i))}</div></div></div>
+      ${S.showCat ? `<div class="sh-cat">${esc(m.cat)}</div>` : ''}
+      ${team('t1', n1, m.t1, S.color1)}${team('t2', n2, m.t2, S.color2)}
+      <div class="sh-foot">${esc(S.footer)}</div></div>`;
+  }
+  let sheetsHtml = '';
+  $('btnSheets').addEventListener('click', () => {
+    const items = rightItems(); if (!items.length) return;
+    const pz = paperSize(); sheetsHtml = items.map((m, i) => sheetHtml(m, i)).join('');
+    $('prevPages').innerHTML = sheetsHtml;
+    $('prevSub').textContent = `${items.length} sheet${items.length === 1 ? '' : 's'} · ${pz.w} × ${pz.h} mm each (¼ page)` + (locked ? '' : ' · not finalized yet, numbers are a preview');
+    $('prevOverlay').classList.add('show');
+  });
+  $('btnPrevClose').addEventListener('click', () => $('prevOverlay').classList.remove('show'));
+  $('prevOverlay').addEventListener('mousedown', e => { if (e.target === $('prevOverlay')) $('prevOverlay').classList.remove('show'); });
+  $('btnPrevPrint').addEventListener('click', () => { const pz = paperSize(); $('prevOverlay').classList.remove('show'); doPrint(sheetsHtml, `@page{size:${pz.w}mm ${pz.h}mm;margin:0;}`); });
+
+
+  /* ================= Generate schedule / publish ================= */
+  const toMin = t => { const m = /^(\d{1,2}):(\d{2})$/.exec(String(t)); return m ? (+m[1]) * 60 + (+m[2]) : 540; };
+  const fmtMin = m => { m = ((Math.round(m) % 1440) + 1440) % 1440; const h = Math.floor(m / 60), mm = m % 60; return `${h % 12 || 12}:${String(mm).padStart(2,'0')} ${h < 12 ? 'AM' : 'PM'}`; };
+  function computeSchedule(){
+    const items = rightItems(), C = Math.max(1, S.courts), D = Math.max(1, S.minutes);
+    const delayAt = Math.floor((Math.max(1, S.delayFrom) - 1) / C) * C;
+    let t = toMin(S.startTime), used = false, brk = null; const games = [];
+    for (let i = 0; i < items.length; i += C){
+      if (S.delayMin && i === delayAt) t += S.delayMin;
+      if (S.breakOn && !used && i > 0 && t >= toMin(S.breakAt)){ brk = { atMin:t, minutes:S.breakMin, beforeNo: locked ? items[i].matchId : gameNo(i) }; t += S.breakMin; used = true; }
+      for (let j = i; j < Math.min(i + C, items.length); j++) games.push({ idx:j, startMin:t });
+      t += D;
+    }
+    return { items, games, brk, endMin: t };
+  }
+  function renderSchedPreview(){
+    const sc = computeSchedule();
+    $('schedPrevSub').textContent = `${sc.items.length} games · ${S.courts} court${S.courts === 1 ? '' : 's'} · ${S.minutes} min per game · ${fmtMin(sc.games[0].startMin)} to ${fmtMin(sc.endMin)} (estimated finish)` + (locked ? '' : ' · not finalized yet');
+    let h = '<thead><tr><th>Game No</th><th>Est. start</th><th>Category</th><th>Team 1</th><th>Team 2</th></tr></thead><tbody>';
+    sc.games.forEach(g => {
+      const m = sc.items[g.idx];
+      if (sc.brk && sc.brk.beforeNo === (locked ? m.matchId : gameNo(g.idx))) h += `<tr class="brk"><td colspan="5">Break · ${fmtMin(sc.brk.atMin)} to ${fmtMin(sc.brk.atMin + sc.brk.minutes)}</td></tr>`;
+      h += `<tr><td><b>${esc(locked ? m.matchId : gameNo(g.idx))}</b></td><td>${fmtMin(g.startMin)}</td><td>${esc(m.cat)}</td><td>${esc(teamText(m.t1))}</td><td>${esc(teamText(m.t2))}</td></tr>`;
+    });
+    $('schedPrevTable').innerHTML = h + '</tbody>';
+    $('schedOverlay').classList.add('show');
+  }
+  function applyFormSettings(){ S = readPubForm(); saveSettings(); }
+  $('btnSchedPreview').addEventListener('click', () => {
+    if (!right.length) return toast('The final list is empty. Transfer games first.', true);
+    applyFormSettings(); renderSchedPreview();
+  });
+  $('btnSchedPrevClose').addEventListener('click', () => $('schedOverlay').classList.remove('show'));
+  $('schedOverlay').addEventListener('mousedown', e => { if (e.target === $('schedOverlay')) $('schedOverlay').classList.remove('show'); });
+  const LS_PUB = 'pm-scheduler-published';
+  function pubLink(id){ return new URL('schedule.html', location.href).href.split('?')[0] + '?e=' + encodeURIComponent(id); }
+  function showLink(){ try { const p = JSON.parse(localStorage.getItem(LS_PUB) || 'null'); if (p && p.id){ $('schedLink').value = pubLink(p.id); $('schedLinkBox').style.display = ''; return; } } catch(e){} $('schedLinkBox').style.display = 'none'; }
+  $('btnPublishOpen').addEventListener('click', () => { if (!locked) return toast('Finalize the schedule first.', true); buildPubForm(); showLink(); $('pubOverlay').classList.add('show'); });
+  function closePub(){ S = readPubForm(); saveSettings(); $('pubOverlay').classList.remove('show'); }
+  $('btnPubClose').addEventListener('click', closePub);
+  $('pubOverlay').addEventListener('mousedown', e => { if (e.target === $('pubOverlay')) closePub(); });
+  $('btnCopyLink').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('schedLink').value); toast('Link copied.'); } catch(e){ $('schedLink').select(); } });
+  async function currentSession(){
+    const d = await db.collection('pkl-queue-session').doc('state').get(); const x = d.exists ? d.data() : {};
+    if (!x.currentSessionId) throw new Error('No active session found in the queue.');
+    return { id: x.currentSessionId, name: x.currentSessionName || '', date: x.currentSessionDate || '' };
+  }
+  $('btnSchedPublish').addEventListener('click', async () => {
+    if (!right.length) return toast('The final list is empty. Transfer games first.', true);
+    if (!locked) return toast('Finalize the schedule first, then publish.', true);
+    applyFormSettings();
+    const btn = $('btnSchedPublish'); btn.disabled = true;
+    try {
+      const sess = await currentSession(), sc = computeSchedule();
+      const games = sc.games.map(g => { const m = sc.items[g.idx]; return { no: m.matchId, cat: m.cat, t1: m.t1, t2: m.t2, startMin: g.startMin }; });
+      await db.collection('pkl-public-schedules').doc(sess.id).set({
+        sessionId: sess.id, eventName: (S.publicTitle || '').trim() || S.eventName, dateText: S.dateText, venue: S.venue, footer: S.footer,
+        startMin: toMin(S.startTime), minutes: S.minutes, courts: S.courts, break: sc.brk || null, games,
+        updatedAtMs: Date.now(), updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      try { localStorage.setItem(LS_PUB, JSON.stringify({ id: sess.id, at: Date.now() })); } catch(e){}
+      showLink(); toast(`Published ${games.length} games. Est. finish ${fmtMin(sc.endMin)}.`);
+    } catch (err) { toast('Could not publish: ' + err.message, true); }
+    btn.disabled = false;
+  });
+  $('btnSchedUnpub').addEventListener('click', async () => {
+    let id = null; try { const p = JSON.parse(localStorage.getItem(LS_PUB) || 'null'); id = p && p.id; } catch(e){}
+    try { if (!id) id = (await currentSession()).id; } catch(e){ return toast(e.message, true); }
+    if (!confirm('Take the public schedule offline? The link will stop working.')) return;
+    try {
+      await db.collection('pkl-public-schedules').doc(id).delete(); await db.collection('pkl-public-status').doc(id).delete().catch(() => {});
+      try { localStorage.removeItem(LS_PUB); } catch(e){} showLink(); toast('Public schedule removed.');
+    } catch (err) { toast('Could not unpublish: ' + err.message, true); }
+  });
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.overlay.show').forEach(o => o.classList.remove('show')); });
+
+  /* ---- go ---- */
+  restoreDraft(); renderAll(); loadQueue();
+}
+</script>
+</body>
+</html>
