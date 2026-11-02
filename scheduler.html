@@ -280,6 +280,16 @@
     <h2 id="pubTitle">Publish schedule</h2>
     <div class="modal-sub">Set the timing and title, preview the estimated start times, then publish to the public page.</div>
     <div id="pubForm"></div>
+    <div class="field" style="margin-top:4px;">
+      <label>Logo in the page header</label>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <img id="pubLogoPrev" alt="" style="width:52px;height:52px;border-radius:10px;object-fit:cover;background:var(--surface-2);border:1px solid var(--border);">
+        <label class="btn btn-ghost btn-sm" for="pubLogoFile" style="cursor:pointer;">⬆ Upload logo</label>
+        <input type="file" id="pubLogoFile" accept="image/*" style="display:none;">
+        <button class="btn btn-ghost btn-sm" id="btnLogoRemove" type="button">Remove</button>
+      </div>
+      <div class="helper">Square images look best. It is resized and saved with the schedule, so publish again to apply a change. Without a logo, the PickleManage logo is shown.</div>
+    </div>
     <div class="helper" style="margin:6px 0 10px;">Uses the times above for the games in the final list. Publish only after you finalize. Games on all courts are assumed to start together.</div>
     <div class="toolbar" style="display:flex;gap:8px;flex-wrap:wrap;">
       <button class="btn btn-ghost btn-sm" id="btnSchedPreview">👁 Preview</button>
@@ -403,7 +413,7 @@ function startApp(db){
     gameNoLabel:'GAME NO', playerLabel:'PLAYER NAME', scoreLabel:'SCORE',
     footer:'PickleManage © 2026',
     prefix:'G-', digits:3, start:1,
-    publicTitle:'', startTime:'09:00', minutes:20, courts:4, delayMin:0, delayFrom:1, breakOn:false, breakAt:'12:00', breakMin:60,
+    publicTitle:'', pubLogo:'', startTime:'09:00', minutes:20, courts:4, delayMin:0, delayFrom:1, breakOn:false, breakAt:'12:00', breakMin:60,
     paper:'short', widthMm:107.95, heightMm:139.7, showCat:true, cutBorder:true
   };
   const SCHEMA = [
@@ -814,7 +824,26 @@ function startApp(db){
   const LS_PUB = 'pm-scheduler-published';
   function pubLink(id){ return new URL('schedule.html', location.href).href.split('?')[0] + '?e=' + encodeURIComponent(id); }
   function showLink(){ try { const p = JSON.parse(localStorage.getItem(LS_PUB) || 'null'); if (p && p.id){ $('schedLink').value = pubLink(p.id); $('schedLinkBox').style.display = ''; return; } } catch(e){} $('schedLinkBox').style.display = 'none'; }
-  $('btnPublishOpen').addEventListener('click', () => { if (!locked) return toast('Finalize the schedule first.', true); buildPubForm(); showLink(); $('pubOverlay').classList.add('show'); });
+  $('btnPublishOpen').addEventListener('click', () => { if (!locked) return toast('Finalize the schedule first.', true); buildPubForm(); refreshLogoPrev(); showLink(); $('pubOverlay').classList.add('show'); });
+
+  /* ---- public page logo ---- */
+  const DEFAULT_LOGO = document.querySelector('header.top .brand-logo').src;
+  function refreshLogoPrev(){ $('pubLogoPrev').src = S.pubLogo || DEFAULT_LOGO; $('btnLogoRemove').style.display = S.pubLogo ? '' : 'none'; }
+  $('pubLogoFile').addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return;
+    if (!/^image\//.test(f.type)) return toast('Choose an image file.', true);
+    if (f.size > 8 * 1024 * 1024) return toast('That image is too large. Use one under 8 MB.', true);
+    const url = URL.createObjectURL(f), img = new Image();
+    img.onload = () => {
+      const max = 160, r = Math.min(1, max / Math.max(img.width, img.height)), w = Math.max(1, Math.round(img.width * r)), h = Math.max(1, Math.round(img.height * r));
+      const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h);
+      let out = c.toDataURL('image/png'); if (out.length > 200000) out = c.toDataURL('image/jpeg', 0.85);
+      URL.revokeObjectURL(url); S.pubLogo = out; saveSettings(); refreshLogoPrev(); toast('Logo ready. Publish to apply it.');
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); toast('Could not read that image.', true); };
+    img.src = url;
+  });
+  $('btnLogoRemove').addEventListener('click', () => { S.pubLogo = ''; saveSettings(); refreshLogoPrev(); });
   function closePub(){ S = readPubForm(); saveSettings(); $('pubOverlay').classList.remove('show'); }
   $('btnPubClose').addEventListener('click', closePub);
   $('pubOverlay').addEventListener('mousedown', e => { if (e.target === $('pubOverlay')) closePub(); });
@@ -834,7 +863,7 @@ function startApp(db){
       const games = sc.games.map(g => { const m = sc.items[g.idx]; return { no: m.matchId, cat: m.cat, t1: m.t1, t2: m.t2, startMin: g.startMin }; });
       await db.collection('pkl-public-schedules').doc(sess.id).set({
         sessionId: sess.id, eventName: (S.publicTitle || '').trim() || S.eventName, dateText: S.dateText, venue: S.venue, footer: S.footer,
-        startMin: toMin(S.startTime), minutes: S.minutes, courts: S.courts, break: sc.brk || null, games,
+        logo: S.pubLogo || '', startMin: toMin(S.startTime), minutes: S.minutes, courts: S.courts, break: sc.brk || null, games,
         updatedAtMs: Date.now(), updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       try { localStorage.setItem(LS_PUB, JSON.stringify({ id: sess.id, at: Date.now() })); } catch(e){}
@@ -847,7 +876,7 @@ function startApp(db){
     try { if (!id) id = (await currentSession()).id; } catch(e){ return toast(e.message, true); }
     if (!confirm('Take the public schedule offline? The link will stop working.')) return;
     try {
-      await db.collection('pkl-public-schedules').doc(id).delete(); await db.collection('pkl-public-status').doc(id).delete().catch(() => {});
+      await db.collection('pkl-public-schedules').doc(id).delete(); await db.collection('pkl-public-status').doc(id).delete().catch(() => {}); await db.collection('pkl-public-board').doc(id).delete().catch(() => {});
       try { localStorage.removeItem(LS_PUB); } catch(e){} showLink(); toast('Public schedule removed.');
     } catch (err) { toast('Could not unpublish: ' + err.message, true); }
   });

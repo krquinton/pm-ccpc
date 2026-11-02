@@ -947,9 +947,9 @@ db.collection('pkl-queue-logs').orderBy('completedAt','desc').limit(2000).onSnap
 
 
 /* ---- Public schedule status mirror (schedule.html) ----
-   Only runs when scheduler.html has published a schedule for this session. Writes names-free status only:
-   game no -> state, start/end time, score. Nothing else leaves the private collections. */
-let pubSyncTimer = null, pubSyncLast = '', pubSchedChecked = { sid:null, at:0, exists:false };
+   Only runs when scheduler.html has published a schedule for this session. Mirrors game status/scores and category standings (names and scores only,
+   no DUPR IDs or ratings) into pkl-public-status and pkl-public-board. */
+let pubSyncTimer = null, pubSyncLast = '', pubBoardLast = '', pubSchedChecked = { sid:null, at:0, exists:false };
 function schedulePublicSync(){ clearTimeout(pubSyncTimer); pubSyncTimer = setTimeout(() => { publicSync().catch(e => console.warn('Public status sync:', e.message || e)); }, 1500); }
 async function publicSync(){
   const sid = sessionState.currentSessionId; if (!sid) return;
@@ -966,9 +966,25 @@ async function publicSync(){
     else if (m.status === 'assigned') g[m.matchId] = { s:'called' };
   });
   const sig = JSON.stringify(g);
-  if (sig === pubSyncLast) return;
-  await db.collection('pkl-public-status').doc(sid).set({ games: g, updatedAtMs: Date.now() });
-  pubSyncLast = sig;
+  if (sig !== pubSyncLast){
+    await db.collection('pkl-public-status').doc(sid).set({ games: g, updatedAtMs: Date.now() });
+    pubSyncLast = sig;
+  }
+  /* standings per category (and pool), same ranking as the Leaderboard tab */
+  const data = buildLeaderboard(sid, true), groups = [];
+  lbBuckets(sid).forEach(b => {
+    const kind = (b.mode === 'fixed' || b.mode === 'battle') ? 'Pair' : (b.mode === 'team' ? 'Team' : 'Player');
+    const add = (suffix, rows) => groups.push({ name: b.label + (suffix ? ' | ' + suffix : ''), kind, rows: rows.map(e => ({ r:e.rank, n:e.name, gp:e.gp, w:e.w, l:e.l, pf:e.pf, pd:e.pd })) });
+    if (bucketHasPools(b.key)){
+      bucketPools(b.key).forEach(q => add(q.name, data[b.key + '|' + q.id] || []));
+      if ((data[b.key + '|'] || []).length) add('No pool', data[b.key + '|']);
+    } else add('', data[b.key] || []);
+  });
+  const bsig = JSON.stringify(groups);
+  if (bsig !== pubBoardLast){
+    await db.collection('pkl-public-board').doc(sid).set({ groups, updatedAtMs: Date.now() });
+    pubBoardLast = bsig;
+  }
 }
 
 db.collection('pkl-queue-stats').onSnapshot(snap => { statsCache = {}; snap.docs.forEach(d => { statsCache[d.id] = d.data(); }); });
