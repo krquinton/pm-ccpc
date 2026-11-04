@@ -183,7 +183,7 @@ function R(){
   let head;
   if (bt) {
     const p1 = Number(bt.p1) || 0, p2 = Number(bt.p2) || 0;
-    const live = ms.filter(isB).length + p1 + p2;
+    const live = ms.length + p1 + p2;   // every game still in the queue / on a court + games already scored (all categories)
     const N = Math.max(Number(bt.total) || 0, live), W = Math.floor(N / 2) + 1;
     const fin = N && (p1 >= W || p2 >= W);
     const allDone = N && p1 + p2 >= N;

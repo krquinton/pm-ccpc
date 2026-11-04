@@ -1123,7 +1123,7 @@ function renderParticipants(){
   }
   const pIds = playingIds();
   wrap.innerHTML = BUCKETS.map((b, bi) => {
-    const list = participants.filter(p => p.bucket === b.key).sort(b.mode === 'fixed' ? ((x,y) => pairSortKey(x).localeCompare(pairSortKey(y)) || x.name.localeCompare(y.name)) : ((x,y) => x.name.localeCompare(y.name)));
+    const list = participants.filter(p => p.bucket === b.key).sort(b.mode === 'fixed' ? ((x,y) => pairSortKey(x).localeCompare(pairSortKey(y)) || x.name.localeCompare(y.name)) : ((x,y) => b.mode === 'team' ? ((x.slot || 1e9) - (y.slot || 1e9) || x.name.localeCompare(y.name, undefined, { numeric:true })) : x.name.localeCompare(y.name)));
     const pools = b.pools || [], pooled = pools.length > 0;
     const bat = b.mode === 'battle', ncol = (bat ? 4 : (b.mode === 'team' ? 3 : 5)) + (pooled ? 1 : 0);
     if (pooled) list.sort((x, y) => (pools.findIndex(q => q.id === x.pool)) - (pools.findIndex(q => q.id === y.pool)));   // stable: unassigned first, then pool order
@@ -1602,7 +1602,7 @@ function openAddModal(bucketKey){
   document.getElementById('errGuestDupr').textContent = '';
   document.getElementById('csvReport').innerHTML = '';
   document.getElementById('csvFile').value = '';
-  document.getElementById('csvCols').innerHTML = isBattle(bucketKey) ? 'Columns: <b>Name, Team</b>. Name is the pair (e.g. Ton and Lara). Team must be <b>1</b> or <b>2</b>, or the exact team name. Every row needs a team. Rows with problems are skipped and listed below.' : 'Columns: <b>' + csvColumnsFor(bucketKey).join(', ') + '</b>' + (team ? '' : '. Current DUPR can be blank or NR') + '. Pool is optional (new pool names are created automatically). Rows with problems are skipped and listed below.';
+  document.getElementById('csvCols').innerHTML = isBattle(bucketKey) ? 'Columns: <b>Name, Team</b>. Name is the pair (e.g. Ton and Lara). Team must be <b>1</b> or <b>2</b>, or the exact team name. Every row needs a team. Rows with problems are skipped and listed below.' : (bucketModeOf(bucketKey) === 'team' ? 'Columns: <b>Team</b> (or Name), <b>Pool</b>, <b>Slot</b>. Any column order works, the header row is read. Pool and Slot are optional: teams go into the Pool you name (new pools are created automatically) and in Slot order. Rows with problems are skipped and listed below.' : 'Columns: <b>' + csvColumnsFor(bucketKey).join(', ') + '</b>' + (team ? '' : '. Current DUPR can be blank or NR') + '. Pool is optional (new pool names are created automatically). Rows with problems are skipped and listed below.');
   document.getElementById('guestNameLabel').textContent = isBattle(bucketKey) ? 'Pair name (e.g. Ton and Lara)' : (team ? 'Team name' : 'Name');
   document.getElementById('guestName').placeholder = isBattle(bucketKey) ? 'Ton and Lara' : (team ? 'Team name' : 'Name');
   document.getElementById('guestDuprIdField').style.display = team ? 'none' : '';
@@ -1636,7 +1636,7 @@ function renderPending(){
   wrap.style.display = pendingAdds.length ? 'flex' : 'none';
   document.getElementById('pendingLabel').textContent = `To be added (${pendingAdds.length})` + (isFixed(addBucket) && pendingAdds.length % 2 ? ' · add 1 more to complete the pair' : '');
   list.innerHTML = pendingAdds.map((x, i) => `
-    <div class="pending-item"><span>${isFixed(addBucket) ? `<span class="mode-tag" style="margin:0 6px 0 0;">Pair ${Math.floor(i/2)+1}</span>` : ''}<b>${escapeHtml(x.name)}</b>${team ? '' : `<span style="color:var(--muted);"> · ${escapeHtml(x.duprRaw)}</span>`}${x.poolName ? `<span class="pool-tag">${escapeHtml(x.poolName)}</span>` : ''}${isMixed(addBucket) ? pendingGenderHtml(x, i) : ''}${isBattle(addBucket) ? pendingTeamHtml(x, i) : ''}</span><button type="button" data-i="${i}" title="Remove from list">✕</button></div>`).join('');
+    <div class="pending-item"><span>${isFixed(addBucket) ? `<span class="mode-tag" style="margin:0 6px 0 0;">Pair ${Math.floor(i/2)+1}</span>` : ''}${x.slot ? `<span class="mode-tag" style="margin:0 6px 0 0;">#${x.slot}</span>` : ''}<b>${escapeHtml(x.name)}</b>${team ? '' : `<span style="color:var(--muted);"> · ${escapeHtml(x.duprRaw)}</span>`}${x.poolName ? `<span class="pool-tag">${escapeHtml(x.poolName)}</span>` : ''}${isMixed(addBucket) ? pendingGenderHtml(x, i) : ''}${isBattle(addBucket) ? pendingTeamHtml(x, i) : ''}</span><button type="button" data-i="${i}" title="Remove from list">✕</button></div>`).join('');
   document.getElementById('btnAddConfirm').textContent = pendingAdds.length > 1 ? `Add ${pendingAdds.length} to category` : 'Add to category';
 }
 document.getElementById('pendingList').addEventListener('click', e => {
@@ -1654,7 +1654,7 @@ document.getElementById('pendingList').addEventListener('click', e => {
 function csvColumnsFor(bk){
   const mode = bucketModeOf(bk);
   if (mode === 'battle') return ['Name', 'Team'];
-  if (mode === 'team') return ['Name', 'Pool'];
+  if (mode === 'team') return ['Name', 'Pool', 'Slot'];
   return ['Name', 'DUPR ID', 'Current DUPR', ...(mode === 'mixed' ? ['Gender'] : []), ...(mode === 'fixed' ? ['Pair Number'] : []), 'Pool'];
 }
 function downloadCsvTemplate(){
@@ -1664,7 +1664,7 @@ function downloadCsvTemplate(){
     const v = {
       'Name': mode === 'battle' ? `Sample Pair ${i + 1}` : (mode === 'team' ? `Sample Team ${i + 1}` : `Sample Player ${i + 1}`),
       'DUPR ID': `ABC${1230 + i}`, 'Current DUPR': (3 + i * 0.25).toFixed(3),
-      'Gender': i % 2 ? 'F' : 'M', 'Team': i % 2 ? '2' : '1', 'Pair Number': String(Math.floor(i / 2) + 1), 'Pool': 'Pool A'
+      'Gender': i % 2 ? 'F' : 'M', 'Slot': String(i + 1), 'Team': i % 2 ? '2' : '1', 'Pair Number': String(Math.floor(i / 2) + 1), 'Pool': 'Pool A'
     };
     rows.push(cols.map(c => csvCell(v[c])).join(','));
   }
@@ -1698,7 +1698,8 @@ function parseCsvText(text){
 const CSV_ALIAS = { name:'name', playername:'name', teamname:'name', player:'name', team:'name',
   duprid:'duprId', duprno:'duprId', duprnumber:'duprId',
   currentdupr:'dupr', dupr:'dupr', rating:'dupr', duprrating:'dupr', currentrating:'dupr',
-  gender:'gender', sex:'gender', pairnumber:'pair', pairno:'pair', pair:'pair', pairid:'pair', pool:'pool', poolname:'pool', group:'pool' };
+  gender:'gender', sex:'gender', pairnumber:'pair', pairno:'pair', pair:'pair', pairid:'pair', pool:'pool', poolname:'pool', group:'pool',
+  slot:'slot', slotno:'slot', slotnumber:'slot', position:'slot', order:'slot' };
 function csvToPending(text){
   const out = { ok:[], skipped:[], error:'' };
   const rows = parseCsvText(text);
@@ -1728,6 +1729,10 @@ function csvToPending(text){
       const raw = get(r, 'dupr');
       if (raw) { const d = parseDupr(raw); if (!d.ok) return skip(`Current DUPR "${raw}": ${d.error}`); e.dupr = d.value; e.duprRaw = d.raw; }
     }
+    if (mode === 'team') {
+      const sv = get(r, 'slot').replace(/^#/, '');
+      if (sv) { const n = Number(sv); if (!Number.isInteger(n) || n < 1) return skip(`Slot \"${sv}\" must be a whole number from 1`); e.slotRaw = n; }
+    }
     if (mixed) { e.gender = normGender(get(r, 'gender')); if (!e.gender) return skip('Gender must be M or F'); }
     if (fixed) { e.pairKey = get(r, 'pair'); if (!e.pairKey) return skip('Pair Number is empty'); }
     if (battle) {
@@ -1737,6 +1742,16 @@ function csvToPending(text){
     }
     seen.add(nk); good.push(e);
   });
+  if (mode === 'team' && ('slot' in map)) {
+    /* group by pool (first appearance), order each pool by Slot, ties and blanks follow file order */
+    const grp = new Map();
+    good.forEach(e => { const k = e.poolName.toLowerCase(); if (!grp.has(k)) grp.set(k, []); grp.get(k).push(e); });
+    good.length = 0;
+    grp.forEach(g => {
+      g.sort((a, b) => ((a.slotRaw === undefined ? Infinity : a.slotRaw) - (b.slotRaw === undefined ? Infinity : b.slotRaw)) || (a.line - b.line));
+      g.forEach((e, i) => { e.slot = i + 1; good.push(e); });
+    });
+  }
   if (fixed) {
     const groups = new Map();
     good.forEach(e => { if (!groups.has(e.pairKey)) groups.set(e.pairKey, []); groups.get(e.pairKey).push(e); });
@@ -1820,11 +1835,20 @@ document.getElementById('btnAddConfirm').addEventListener('click', async () => {
       if (cur.length > 12) throw new Error('A category can have at most 12 pools.');
       batch.update(db.collection('pkl-queue-buckets').doc(addBucket), { pools: cur });
     }
+    /* Slot continues after teams already in that pool, so imports append instead of colliding */
+    const slotBase = {};
+    const slotFor = x => {
+      if (!x.slot) return null;
+      const pid = x.poolName ? poolMap[x.poolName.toLowerCase()] : '';
+      if (!(pid in slotBase)) slotBase[pid] = Math.max(0, ...participants.filter(p => p.bucket === addBucket && (p.pool || '') === pid && p.slot).map(p => Number(p.slot) || 0));
+      return x.slot + slotBase[pid];
+    };
     pendingAdds.forEach((x, ix) => {
       batch.set(db.collection('pkl-queue-participants').doc(), {
         bucket: addBucket, sourceType:x.sourceType, memberId:null, name:x.name, duprId:x.duprId || '',
         dupr:x.dupr, duprRaw:x.duprRaw, status:'active', statusSince: now, sitOutStreak: 0, ...(x.gender ? { gender: x.gender } : {}), ...(x.battleTeam ? { battleTeam: x.battleTeam } : {}), ...(fixedAdd ? { pairId: pairIds[ix - (ix % 2)] } : {}),
         ...(x.poolName ? { pool: poolMap[x.poolName.toLowerCase()] } : {}),
+        ...(x.slot ? { slot: slotFor(x) } : {}),
         joinedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     });
