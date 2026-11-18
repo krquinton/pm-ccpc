@@ -1,0 +1,161 @@
+New #,Est. start,Category,Team 1,Team 2,Orig game,Orig time,Moved?
+G-001,8:30 AM,Womens | Novice,Althea and Joylyn,Frisha and Alea,G-003,8:30,
+G-002,8:30 AM,Womens | Novice,Isay G. and Lara,Zey and Wella,G-014,9:15,yes
+G-003,8:30 AM,Mens | Novice,King and Cyrus,Calvin and Angelo,G-019,9:30,yes
+G-004,8:30 AM,Mens | Novice,Fr. Willie and Patrick,Paolo and Xab,G-033,10:30,yes
+G-005,8:45 AM,Mens | Novice,Boyet and Allen,MB and CT,G-031,10:15,yes
+G-006,8:45 AM,Womens | Novice,Kith Kath and Agatha,Sarah and Vanna,G-038,10:45,yes
+G-007,8:45 AM,Mens | Novice,Glen and Mac,Charlz V. and Warend G.,G-043,11:00,yes
+G-008,8:45 AM,Mens | Novice,Joseph and Jojo T.,Jhal and Brian Agustin,G-045,11:15,yes
+G-009,9:00 AM,Mens | Novice,King and Cyrus,Paolo and Xab,G-009,9:00,
+G-010,9:00 AM,Womens | Novice,Althea and Joylyn,Zey and Wella,G-020,9:30,yes
+G-011,9:00 AM,Womens | Novice,Marian and Ellen F.,Frisha and Alea,G-024,9:45,yes
+G-012,9:00 AM,Womens | Novice,Alona and Marah,Ara Quilla and Dianne,G-044,11:00,yes
+G-013,9:15 AM,Mens | Novice,King and Cyrus,MB and CT,G-002,8:30,yes
+G-014,9:15 AM,Mens | Novice,Fr. Willie and Patrick,Charlz V. and Warend G.,G-004,8:30,yes
+G-015,9:15 AM,Womens | Novice,Isay G. and Lara,Sarah and Vanna,G-006,8:45,yes
+G-016,9:15 AM,Mens | Novice,Joseph and Jojo T.,Calvin and Angelo,G-027,10:00,yes
+G-017,9:30 AM,Womens | Novice,Kith Kath and Agatha,Zey and Wella,G-008,8:45,yes
+G-018,9:30 AM,Womens | Novice,Marian and Ellen F.,Ara Quilla and Dianne,G-016,9:15,yes
+G-019,9:30 AM,Mens | Novice,Boyet and Allen,Jhal and Brian Agustin,G-021,9:45,yes
+G-020,9:30 AM,Mens | Novice,Glen and Mac,Paolo and Xab,G-025,10:00,yes
+G-021,9:45 AM,Mens | Novice,Joseph and Jojo T.,MB and CT,G-007,8:45,yes
+G-022,9:45 AM,Womens | Novice,Alona and Marah,Frisha and Alea,G-010,9:00,yes
+G-023,9:45 AM,Womens | Novice,Althea and Joylyn,Sarah and Vanna,G-012,9:00,yes
+G-024,9:45 AM,Mens | Novice,King and Cyrus,Charlz V. and Warend G.,G-029,10:15,yes
+G-025,10:00 AM,Mens | Novice,Fr. Willie and Patrick,Jhal and Brian Agustin,G-013,9:15,yes
+G-026,10:00 AM,Womens | Novice,Isay G. and Lara,Ara Quilla and Dianne,G-028,10:00,
+G-027,10:00 AM,Mens | Novice,Glen and Mac,Calvin and Angelo,G-035,10:30,yes
+G-028,10:00 AM,Mens | Novice,Boyet and Allen,Paolo and Xab,G-040,10:45,yes
+G-029,10:15 AM,Womens | Novice,Alona and Marah,Zey and Wella,G-026,10:00,yes
+G-030,10:15 AM,Womens | Novice,Kith Kath and Agatha,Frisha and Alea,G-030,10:15,
+G-031,10:15 AM,Womens | Novice,Marian and Ellen F.,Sarah and Vanna,G-032,10:15,
+G-032,10:15 AM,Mens | Novice,Joseph and Jojo T.,Charlz V. and Warend G.,G-037,10:45,yes
+G-033,10:30 AM,Mens | Novice,Boyet and Allen,Calvin and Angelo,G-001,8:30,yes
+G-034,10:30 AM,Mens | Novice,Fr. Willie and Patrick,MB and CT,G-023,9:45,yes
+G-035,10:30 AM,Womens | Novice,Althea and Joylyn,Ara Quilla and Dianne,G-034,10:30,
+G-036,10:30 AM,Mens | Novice,King and Cyrus,Jhal and Brian Agustin,G-039,10:45,yes
+G-037,10:45 AM,Mens | Novice,Glen and Mac,MB and CT,G-015,9:15,yes
+G-038,10:45 AM,Mens | Novice,Joseph and Jojo T.,Paolo and Xab,G-017,9:30,yes
+G-039,10:45 AM,Womens | Novice,Alona and Marah,Sarah and Vanna,G-018,9:30,yes
+G-040,10:45 AM,Womens | Novice,Isay G. and Lara,Frisha and Alea,G-036,10:30,yes
+G-041,11:00 AM,Mens | Novice,Boyet and Allen,Charlz V. and Warend G.,G-011,9:00,yes
+G-042,11:00 AM,Womens | Novice,Kith Kath and Agatha,Ara Quilla and Dianne,G-022,9:45,yes
+G-043,11:00 AM,Womens | Novice,Marian and Ellen F.,Zey and Wella,G-041,11:00,
+G-044,11:00 AM,Mens | Novice,Fr. Willie and Patrick,Calvin and Angelo,G-042,11:00,
+G-045,11:15 AM,Mens | Novice,Glen and Mac,Jhal and Brian Agustin,G-005,8:45,yes
+G-046,11:15 AM,Womens | Int,Louise and Doc Joy,Aila and Michelle,G-054,11:45,yes
+G-047,11:15 AM,Mens | Legends,Medo and Mark C.,Bong Borromeo and Oman,G-068,12:30,yes
+G-048,11:15 AM,Mens | Legends,Jelson and Dewfall,Lot and Atty. Cocoy,G-073,1:00,yes
+G-049,11:30 AM,Womens | Int,Kiana and Camille,Tara and Joan,G-053,11:45,yes
+G-050,11:30 AM,Womens | Int,Mat and Rosa,Karel and Queenie,G-055,11:45,yes
+G-051,11:30 AM,Mens | Legends,Ian and Gel,BT and Jun B.,G-080,1:15,yes
+G-052,11:30 AM,Mens | Legends,Doc Ronald and Allan,Em and Tony,G-090,2:00,yes
+G-053,11:45 AM,Mens | Legends,Medo and Mark C.,Lot and Atty. Cocoy,G-061,12:15,yes
+G-054,11:45 AM,Mens | Legends,Melo and Arnel,Bong Borromeo and Oman,G-062,12:15,yes
+G-055,11:45 AM,Womens | Int,Louise and Doc Joy,Lourraine L. and Cyrille T.,G-071,12:45,yes
+G-056,11:45 AM,Mens | Legends,Jelson and Dewfall,Bong and Toto,G-076,1:00,yes
+G-057,12:00 PM,Womens | Int,Cacay and Bevs,Tara and Joan,G-064,12:15,yes
+G-058,12:00 PM,Womens | Int,Gemma and Andra,Aila and Michelle,G-065,12:30,yes
+G-059,12:00 PM,Mens | Legends,Ian and Gel,Lot and Atty. Cocoy,G-067,12:30,yes
+G-060,12:00 PM,Womens | Int,Kiana and Camille,Karel and Queenie,G-070,12:45,yes
+G-061,12:15 PM,Womens | Int,Mat and Rosa,Lourraine L. and Cyrille T.,G-063,12:15,
+G-062,12:15 PM,Mens | Legends,Melo and Arnel,Em and Tony,G-084,1:30,yes
+G-063,12:15 PM,Mens | Legends,Doc Ronald and Allan,Bong and Toto,G-086,1:45,yes
+G-064,12:15 PM,Mens | Legends,Medo and Mark C.,BT and Jun B.,G-088,1:45,yes
+G-065,12:30 PM,Womens | Int,Cacay and Bevs,Aila and Michelle,G-046,11:15,yes
+G-066,12:30 PM,Womens | Int,Gemma and Andra,Tara and Joan,G-057,12:00,yes
+G-067,12:30 PM,Womens | Int,Louise and Doc Joy,Karel and Queenie,G-059,12:00,yes
+G-068,12:30 PM,Mens | Legends,Jelson and Dewfall,Bong Borromeo and Oman,G-081,1:30,yes
+G-069,12:45 PM,Womens | Int,Kiana and Camille,Lourraine L. and Cyrille T.,G-048,11:15,yes
+G-070,12:45 PM,Mens | Legends,Melo and Arnel,Lot and Atty. Cocoy,G-075,1:00,yes
+G-071,12:45 PM,Mens | Legends,Medo and Mark C.,Em and Tony,G-078,1:15,yes
+G-072,12:45 PM,Mens | Legends,Ian and Gel,Bong and Toto,G-089,2:00,yes
+G-073,1:00 PM,Womens | Int,Louise and Doc Joy,Tara and Joan,G-049,11:30,yes
+G-074,1:00 PM,Womens | Int,Mat and Rosa,Aila and Michelle,G-050,11:30,yes
+G-075,1:00 PM,Mens | Legends,Jelson and Dewfall,BT and Jun B.,G-060,12:00,yes
+G-076,1:00 PM,Mens | Legends,Doc Ronald and Allan,Bong Borromeo and Oman,G-077,1:15,yes
+G-077,1:15 PM,Womens | Int,Cacay and Bevs,Karel and Queenie,G-051,11:30,yes
+G-078,1:15 PM,Womens | Int,Gemma and Andra,Lourraine L. and Cyrille T.,G-052,11:30,yes
+G-079,1:15 PM,Mens | Legends,Ian and Gel,Em and Tony,G-074,1:00,yes
+G-080,1:15 PM,Mens | Legends,Medo and Mark C.,Bong and Toto,G-083,1:30,yes
+G-081,1:30 PM,Womens | Int,Kiana and Camille,Aila and Michelle,G-058,12:00,yes
+G-082,1:30 PM,Womens | Int,Mat and Rosa,Tara and Joan,G-069,12:45,yes
+G-083,1:30 PM,Mens | Legends,Melo and Arnel,BT and Jun B.,G-072,12:45,yes
+G-084,1:30 PM,Mens | Legends,Doc Ronald and Allan,Lot and Atty. Cocoy,G-082,1:30,
+G-085,1:45 PM,Womens | Int,Gemma and Andra,Karel and Queenie,G-047,11:15,yes
+G-086,1:45 PM,Womens | Int,Cacay and Bevs,Lourraine L. and Cyrille T.,G-056,11:45,yes
+G-087,1:45 PM,Mens | Legends,Ian and Gel,Bong Borromeo and Oman,G-085,1:45,
+G-088,1:45 PM,Mens | Legends,Jelson and Dewfall,Em and Tony,G-087,1:45,
+G-089,2:00 PM,Mens | Legends,Doc Ronald and Allan,BT and Jun B.,G-066,12:30,yes
+G-090,2:00 PM,Mens | Legends,Melo and Arnel,Bong and Toto,G-079,1:15,yes
+G-091,2:00 PM,Womens | Legends,Jenny and JV,Honey and Lisa,G-126,4:15,yes
+G-092,2:00 PM,Womens | Legends,Daisy and Mazut,Carol and Eden,G-134,4:45,yes
+G-093,2:15 PM,Mens | Int,Gab and Darrel,Marvin Q. and Ryan V.,G-094,2:15,
+G-094,2:15 PM,Womens | Legends,Jane and Malou,Paz and Cath,G-110,3:15,yes
+G-095,2:15 PM,Womens | Legends,Mhars and Cherry,Carol and Eden,G-112,3:15,yes
+G-096,2:15 PM,Womens | Legends,Zhy and Roda,Honey and Lisa,G-114,3:30,yes
+G-097,2:30 PM,Womens | Legends,Jenny and JV,Paz and Cath,G-104,2:45,yes
+G-098,2:30 PM,Womens | Legends,Daisy and Mazut,Michelle and Tara,G-108,3:00,yes
+G-099,2:30 PM,Mens | Int,Gab and Darrel,Edid & Kim Cunanan,G-132,4:30,yes
+G-100,2:30 PM,Mens | Int,Romell and Lance,Matt and Eugene,G-135,4:45,yes
+G-101,2:45 PM,Womens | Legends,Jane and Malou,Michelle and Tara,G-102,2:45,
+G-102,2:45 PM,Womens | Legends,Jenny and JV,Carol and Eden,G-118,3:45,yes
+G-103,2:45 PM,Womens | Legends,Mhars and Cherry,Honey and Lisa,G-120,3:45,yes
+G-104,2:45 PM,Mens | Int,Ton and Kenneth,Matt and Eugene,G-129,4:30,yes
+G-105,3:00 PM,Womens | Legends,Daisy and Mazut,Honey and Lisa,G-100,2:30,yes
+G-106,3:00 PM,Mens | Int,Gab and Darrel,Paul B. and Jonathan B.,G-113,3:30,yes
+G-107,3:00 PM,Womens | Legends,Zhy and Roda,Paz and Cath,G-131,4:30,yes
+G-108,3:00 PM,Mens | Int,Karlos and Emman,Marvin Q. and Ryan V.,G-133,4:45,yes
+G-109,3:15 PM,Womens | Legends,Jenny and JV,Michelle and Tara,G-096,2:15,yes
+G-110,3:15 PM,Womens | Legends,Mhars and Cherry,Paz and Cath,G-098,2:30,yes
+G-111,3:15 PM,Mens | Int,Romell and Lance,Edid & Kim Cunanan,G-117,3:45,yes
+G-112,3:15 PM,Womens | Legends,Jane and Malou,Carol and Eden,G-124,4:00,yes
+G-113,3:30 PM,Womens | Legends,Jane and Malou,Honey and Lisa,G-093,2:15,yes
+G-114,3:30 PM,Mens | Int,Ton and Kenneth,Ryan C. and Edvin Jae,G-099,2:30,yes
+G-115,3:30 PM,Mens | Int,Gab and Darrel,Matt and Eugene,G-103,2:45,yes
+G-116,3:30 PM,Mens | Int,Karlos and Emman,Paul B. and Jonathan B.,G-105,3:00,yes
+G-117,3:45 PM,Womens | Legends,Zhy and Roda,Carol and Eden,G-106,3:00,yes
+G-118,3:45 PM,Womens | Legends,Daisy and Mazut,Paz and Cath,G-116,3:30,yes
+G-119,3:45 PM,Womens | Legends,Mhars and Cherry,Michelle and Tara,G-128,4:15,yes
+G-120,3:45 PM,Mens | Adv,Paul and Allan,Keanu and Balot,G-159,6:15,yes
+G-121,4:00 PM,Mens | Int,Karlos and Emman,Edid & Kim Cunanan,G-125,4:15,yes
+G-122,4:00 PM,Mens | Int,Romell and Lance,Marvin Q. and Ryan V.,G-127,4:15,yes
+G-123,4:00 PM,Mens | Adv,Hans and Dandan,Cerjie and Cedric,G-136,4:45,yes
+G-124,4:00 PM,Mens | Adv,Jon and Lark,Denz B. and Koymacks Ladao,G-137,5:00,yes
+G-125,4:15 PM,Mens | Int,Ton and Kenneth,Paul B. and Jonathan B.,G-092,2:00,yes
+G-126,4:15 PM,Mens | Int,Andrew and Jerico,Matt and Eugene,G-111,3:15,yes
+G-127,4:15 PM,Womens | Legends,Zhy and Roda,Michelle and Tara,G-122,4:00,yes
+G-128,4:15 PM,Mens | Int,Gab and Darrel,Ryan C. and Edvin Jae,G-123,4:00,yes
+G-129,4:30 PM,Mens | Adv,Paul and Allan,Rain and Wowo,G-144,5:15,yes
+G-130,4:30 PM,Mens | Adv,Hans and Dandan,Keanu and Balot,G-146,5:30,yes
+G-131,4:30 PM,Mens | Adv,Jon and Lark,Marc E. and Kelly S.,G-147,5:30,yes
+G-132,4:30 PM,Mens | Adv,Mackie and Marc,Cerjie and Cedric,G-153,6:00,yes
+G-133,4:45 PM,Mens | Int,Karlos and Emman,Matt and Eugene,G-095,2:15,yes
+G-134,4:45 PM,Mens | Int,Andrew and Jerico,Marvin Q. and Ryan V.,G-101,2:45,yes
+G-135,4:45 PM,Mens | Int,Ton and Kenneth,Edid & Kim Cunanan,G-109,3:15,yes
+G-136,4:45 PM,Mens | Adv,Raymond and Nikko,Denz B. and Koymacks Ladao,G-150,5:45,yes
+G-137,5:00 PM,Mens | Int,Romell and Lance,Paul B. and Jonathan B.,G-097,2:30,yes
+G-138,5:00 PM,Mens | Adv,Mackie and Marc,Marc E. and Kelly S.,G-143,5:15,yes
+G-139,5:00 PM,Mens | Adv,Hans and Dandan,Rain and Wowo,G-156,6:00,yes
+G-140,5:00 PM,Mens | Adv,Jon and Lark,Cerjie and Cedric,G-157,6:15,yes
+G-141,5:15 PM,Mens | Int,Andrew and Jerico,Edid & Kim Cunanan,G-091,2:00,yes
+G-142,5:15 PM,Mens | Int,Karlos and Emman,Ryan C. and Edvin Jae,G-115,3:30,yes
+G-143,5:15 PM,Mens | Adv,Paul and Allan,Denz B. and Koymacks Ladao,G-154,6:00,yes
+G-144,5:15 PM,Mens | Adv,Raymond and Nikko,Keanu and Balot,G-155,6:00,yes
+G-145,5:30 PM,Mens | Int,Ton and Kenneth,Marvin Q. and Ryan V.,G-119,3:45,yes
+G-146,5:30 PM,Mens | Adv,Paul and Allan,Marc E. and Kelly S.,G-139,5:00,yes
+G-147,5:30 PM,Mens | Adv,Raymond and Nikko,Cerjie and Cedric,G-145,5:30,
+G-148,5:30 PM,Mens | Adv,Mackie and Marc,Rain and Wowo,G-148,5:30,
+G-149,5:45 PM,Mens | Int,Romell and Lance,Ryan C. and Edvin Jae,G-107,3:00,yes
+G-150,5:45 PM,Mens | Int,Andrew and Jerico,Paul B. and Jonathan B.,G-121,4:00,yes
+G-151,5:45 PM,Mens | Adv,Hans and Dandan,Denz B. and Koymacks Ladao,G-141,5:15,yes
+G-152,5:45 PM,Mens | Adv,Jon and Lark,Keanu and Balot,G-142,5:15,yes
+G-153,6:00 PM,Mens | Adv,Mackie and Marc,Keanu and Balot,G-138,5:00,yes
+G-154,6:00 PM,Mens | Adv,Raymond and Nikko,Rain and Wowo,G-140,5:00,yes
+G-155,6:00 PM,Mens | Adv,Paul and Allan,Cerjie and Cedric,G-149,5:45,yes
+G-156,6:00 PM,Mens | Adv,Hans and Dandan,Marc E. and Kelly S.,G-151,5:45,yes
+G-157,6:15 PM,Mens | Int,Andrew and Jerico,Ryan C. and Edvin Jae,G-130,4:30,yes
+G-158,6:15 PM,Mens | Adv,Jon and Lark,Rain and Wowo,G-152,5:45,yes
+G-159,6:15 PM,Mens | Adv,Mackie and Marc,Denz B. and Koymacks Ladao,G-158,6:15,
+G-160,6:15 PM,Mens | Adv,Raymond and Nikko,Marc E. and Kelly S.,G-160,6:15,
