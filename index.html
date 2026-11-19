@@ -67,6 +67,51 @@
   html[data-theme="dark"] nav.tabs button.active{color:#fff;}
 
   main{max-width:1800px;margin:0 auto;padding:20px clamp(16px,4vw,40px) 60px;border-top:1px solid var(--border);}
+  /* ---- Sponsors tab ---- */
+  .sp-layout{display:grid;grid-template-columns:minmax(300px,390px) minmax(0,1fr);gap:18px;align-items:start;}
+  @media(max-width:900px){.sp-layout{grid-template-columns:1fr;}}
+  .sp-stack{display:grid;gap:18px;}
+  .sp-card{padding:18px 20px;}
+  .sp-card h3{margin:0 0 4px;font-size:17px;}
+  .sp-card .sp-sub{margin:0 0 16px;}
+  .sp-card .field textarea{background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 10px;font-size:14px;font-family:inherit;width:100%;resize:vertical;min-height:70px;}
+  .sp-card .sp-grid3 input{background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 10px;font-size:14px;font-family:inherit;width:100%;}
+  .sp-seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+  .field .sp-seg label{display:flex;align-items:center;justify-content:center;text-align:center;padding:9px 6px;border:1px solid var(--border);border-radius:8px;cursor:pointer;
+    font-size:13px;font-weight:600;color:var(--text);text-transform:none;letter-spacing:0;background:var(--surface-2);}
+  .sp-seg input{position:absolute;opacity:0;pointer-events:none;}
+  .field .sp-seg label:has(input:checked){background:var(--gold);border-color:var(--gold);color:#fff;}
+  .sp-seg label:focus-within,.sp-drop:focus-visible{outline:3px solid rgba(57,146,185,.5);outline-offset:2px;}
+  .sp-drop{border:1.5px dashed var(--border);border-radius:10px;padding:16px;text-align:center;cursor:pointer;color:var(--muted);font-size:13px;line-height:1.5;}
+  .sp-drop strong{color:var(--text);}
+  .sp-drop:hover,.sp-drop.over{border-color:var(--gold);}
+  .sp-preview{display:none;align-items:center;gap:12px;border:1px solid var(--border);border-radius:10px;padding:10px;}
+  .sp-preview.show{display:flex;}
+  .sp-img{width:110px;height:66px;border-radius:8px;background:#fff;display:grid;place-items:center;overflow:hidden;border:1px solid var(--border);flex:none;}
+  .sp-img img{max-width:100%;max-height:100%;object-fit:contain;}
+  .sp-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .sp-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .sp-tier{margin-bottom:20px;}
+  .sp-tier:last-child{margin-bottom:0;}
+  .sp-tier-h{display:flex;align-items:center;gap:10px;margin:0 0 10px;}
+  .sp-tier-h h4{margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+  .sp-pill{font-size:12px;font-weight:700;padding:1px 9px;border-radius:99px;background:var(--surface-2);border:1px solid var(--border);color:var(--muted);}
+  .sp-row{display:flex;align-items:center;gap:12px;padding:9px 10px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:var(--surface-2);}
+  .sp-row.editing{border-color:var(--gold);box-shadow:0 0 0 3px rgba(79,157,45,.18);}
+  .sp-thumb{width:60px;height:38px;border-radius:6px;background:#fff;border:1px solid var(--border);display:grid;place-items:center;overflow:hidden;flex:none;}
+  .sp-thumb img{max-width:100%;max-height:100%;object-fit:contain;}
+  .sp-thumb span{font-weight:800;font-size:14px;color:#6a706a;}
+  .sp-nm{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .sp-tools{display:flex;gap:4px;align-items:center;flex:none;}
+  .sp-tools .btn-icon{color:var(--text);font-size:14px;}
+  .sp-tools .sp-del{color:var(--red);}
+  html[data-theme="dark"] .sp-tools .sp-del{color:#ff8a8f;}
+  .sp-empty{border:1px dashed var(--border);border-radius:10px;padding:14px;color:var(--muted);font-size:13px;text-align:center;}
+  .tvimg-box{height:200px;border-radius:10px;background:#000;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .tvimg-box img{max-width:100%;max-height:100%;object-fit:contain;display:none;}
+  .tvimg-box.has img{display:block;}
+  .tvimg-box.has span{display:none;}
+  .tvimg-box span{color:#9aa49a;font-size:13px;}
   .panel{display:none;}
   .panel.active{display:block;}
 
@@ -391,6 +436,7 @@
   <button data-tab="matchups">2 · Match Suggestions</button>
   <button data-tab="queue">3 · Queue &amp; Courts</button>
   <button data-tab="leaderboard">4 · Leaderboard</button>
+  <button data-tab="sponsors">5 · Sponsors</button>
   <button data-tab="logs">Logs</button>
 </nav>
 
@@ -419,6 +465,9 @@
       <span class="qlegend" id="qLegend"><span><i style="background:#2fbf6b"></i>Good to go</span><span><i style="background:#ff9f1a"></i>Just finished</span><span><i style="background:#e5484d"></i>Playing / on court</span></span>
       <label class="tv-switch" title="Show the waiting list on the TV display"><input type="checkbox" id="chkDisplayQueue" checked><span>Display queue on TV</span></label>
       <button class="btn btn-ghost btn-sm" id="btnShowLeaderboard" style="text-transform:none;letter-spacing:0;">🏆 Show leaderboard</button>
+      <button class="btn btn-ghost btn-sm" id="btnLbPick" style="display:none;text-transform:none;letter-spacing:0;" title="Choose which categories the TV leaderboard shows (max 3)">⚙ Leaderboard categories</button>
+      <button class="btn btn-ghost btn-sm" id="btnShowImage" style="text-transform:none;letter-spacing:0;" title="Show a picture full screen on the TV">🖼 Show Image</button>
+      <button class="btn btn-ghost btn-sm" id="btnShowSponsors" style="text-transform:none;letter-spacing:0;" title="Play the sponsor showcase once on the TV">🎉 Show Sponsors</button>
     </div>
     <div class="queue-list" id="queueList"></div>
   </section>
@@ -432,7 +481,56 @@
         <div style="font-size:12.5px;color:var(--muted);">Ranked by Wins → Total Points → Point Differential</div>
       </div>
     </div>
+    <div id="meetBreakdown"></div>
     <div class="bucket-grid" id="lbGrid"></div>
+  </section>
+
+  <section class="panel" id="panel-sponsors">
+    <div class="sp-layout">
+      <div class="sp-stack">
+        <div class="bucket-card sp-card">
+          <h3 id="spFormTitle">Add sponsor</h3>
+          <div class="helper sp-sub" id="spFormSub">Shows on the TV the next time you press Show Sponsors.</div>
+          <div class="field" style="margin-bottom:4px;"><label for="spName">Name</label><input type="text" id="spName" maxlength="80" autocomplete="off" placeholder="e.g. Juan's Hardware"></div>
+          <div class="error-text" id="errSpName"></div>
+          <div class="field"><label id="spTypeLbl">Type</label>
+            <div class="sp-seg" role="radiogroup" aria-labelledby="spTypeLbl">
+              <label><input type="radio" name="spType" value="major" checked>Major</label>
+              <label><input type="radio" name="spType" value="minor">Minor</label>
+              <label><input type="radio" name="spType" value="special">Special Thanks</label>
+            </div>
+          </div>
+          <div class="field"><label>Logo (optional)</label>
+            <div class="sp-drop" id="spDrop" tabindex="0" role="button" aria-label="Upload logo"><strong>Click to upload</strong> o i-drag dito ang logo<br><span>PNG na transparent ang background ang pinakamaganda</span></div>
+            <input type="file" id="spFile" accept="image/*" hidden>
+            <div class="sp-preview" id="spPreview"><div class="sp-img"><img id="spPreviewImg" alt="Logo preview"></div><div class="helper" id="spPreviewMeta" style="flex:1;margin:0;"></div><button type="button" class="btn btn-ghost btn-sm" id="btnSpRemoveLogo">Remove</button></div>
+          </div>
+          <div class="sp-actions"><button class="btn btn-primary" id="btnSpSave">Add sponsor</button><button class="btn btn-ghost" id="btnSpCancel" style="display:none;">Cancel</button></div>
+        </div>
+        <div class="bucket-card sp-card">
+          <h3>Display text</h3>
+          <div class="helper sp-sub">Words shown in the intro and closing of the TV showcase.</div>
+          <div class="field"><label for="spS_eventName">Event name</label><input type="text" id="spS_eventName" maxlength="80" placeholder="e.g. PKL BOX Open Play"></div>
+          <div class="field"><label for="spS_eyebrow">Intro small heading</label><input type="text" id="spS_eyebrow" maxlength="60"></div>
+          <div class="field"><label for="spS_introText">Intro message</label><textarea id="spS_introText" maxlength="180"></textarea><div class="helper" style="margin:0;">The word "sponsor/sponsors" is highlighted on the TV.</div></div>
+          <div class="field"><label for="spS_outroTitle">Closing title</label><input type="text" id="spS_outroTitle" maxlength="40"></div>
+          <div class="field"><label for="spS_outroText">Closing message</label><input type="text" id="spS_outroText" maxlength="120"></div>
+          <div class="field"><label>Seconds on screen</label>
+            <div class="sp-grid3">
+              <div><div class="helper" style="margin:0 0 4px;">Each major</div><input type="number" id="spS_majorSeconds" min="2" max="30" aria-label="Seconds for each major sponsor"></div>
+              <div><div class="helper" style="margin:0 0 4px;">Minor page</div><input type="number" id="spS_minorSeconds" min="2" max="30" aria-label="Seconds for each minor page"></div>
+              <div><div class="helper" style="margin:0 0 4px;">Thanks page</div><input type="number" id="spS_specialSeconds" min="2" max="30" aria-label="Seconds for each special thanks page"></div>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="btnSpSettingsSave">Save display text</button>
+        </div>
+      </div>
+      <div class="bucket-card sp-card">
+        <h3>Sponsors</h3>
+        <div class="helper sp-sub">This is the order on the TV. Use ↑ ↓ to change it. Play it from Tab 3 with 🎉 Show Sponsors.</div>
+        <div id="spList"></div>
+      </div>
+    </div>
   </section>
 
   <section class="panel" id="panel-logs">
@@ -483,7 +581,10 @@
     <div class="field" id="battleNamesField" style="display:none;"><label>Team names</label>
       <input type="text" id="battleName1" placeholder="Team 1 name" maxlength="40" style="margin-bottom:8px;">
       <input type="text" id="battleName2" placeholder="Team 2 name" maxlength="40">
-      <div class="helper">Each pair you add to this category is assigned to one of these two teams. Every Team 1 pair plays every Team 2 pair.</div></div>
+      <div class="helper">Each pair you add to this category is assigned to one of these two teams. Every Team 1 pair plays every Team 2 pair.</div>
+      <label style="margin-top:10px;">Meet points per win</label>
+      <input type="number" id="battlePoints" min="1" max="99" step="1" value="1">
+      <div class="helper">How many points the winning team gets on the dual meet scoreboard for each match won in this category. Can be changed anytime; the score is recounted.</div></div>
     <div class="field"><label>Courts</label><div class="court-checks" id="bucketCourts"></div>
       <div class="helper">Matches from this category can only be put on the checked courts.</div></div>
     <div class="error-text" id="errBucket"></div>
@@ -560,6 +661,33 @@
     </div>
     <div class="opt-metrics" id="optMetrics"></div>
     <div class="modal-actions"><button class="btn btn-ghost" id="btnOptCancel">Cancel</button><button class="btn btn-primary" id="btnOptApply">Apply new order</button></div>
+  </div>
+</div>
+
+<!-- TV static image -->
+<div class="overlay" id="tvImgOverlay">
+  <div class="modal">
+    <h2>Image on TV</h2>
+    <div class="modal-sub">The TV shows this picture full screen until you press Hide Image.</div>
+    <div class="tvimg-box" id="tvImgBox"><img id="tvImgPreview" alt="Image to show on the TV"><span id="tvImgEmpty">No image yet</span></div>
+    <div class="helper" id="tvImgMeta" style="margin:8px 0 4px;"></div>
+    <input type="file" id="tvImgFile" accept="image/*" hidden>
+    <button class="btn btn-ghost btn-sm" id="btnTvImgPick" style="text-transform:none;letter-spacing:0;">⬆ Upload image</button>
+    <div class="helper">Landscape (16:9) pictures fill the TV best. Other shapes get black bars on the sides.</div>
+    <div class="error-text" id="errTvImg"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" id="btnTvImgCancel">Cancel</button><button class="btn btn-primary" id="btnTvImgShow">Show on TV</button></div>
+  </div>
+</div>
+
+<!-- TV Leaderboard: pick categories -->
+<div class="overlay" id="lbPickOverlay">
+  <div class="modal">
+    <h2>Leaderboard on TV</h2>
+    <div class="modal-sub">The TV fits 3 categories. Pick which ones to show (top 5 each).</div>
+    <div class="gen-list" id="lbPickList"></div>
+    <div class="gen-summary" id="lbPickCount"></div>
+    <div class="error-text" id="errLbPick"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" id="btnLbPickCancel">Cancel</button><button class="btn btn-primary" id="btnLbPickShow">Show on TV</button></div>
   </div>
 </div>
 
@@ -765,19 +893,82 @@ function battleTeamOf(p){
   return t === 1 || t === 2 ? t : 0;
 }
 function sideLabel(bk, n){ return isBattle(bk) ? battleNames(bk)[n - 1] : (n === 1 ? 'Team A' : 'Team B'); }
-/* meet score: one point per match won, credited to the winner's battle team */
+/* ---- Team Battle meet score ----
+   Each match won = that category's "meet points per win" (default 1), credited to the winner's team.
+   The TV scoreboard adds up EVERY Team Battle category, matched by team NAME, so a category that lists
+   the teams the other way round (Team 1 = Stackers) still credits the right club. */
+function battlePoints(bk){ const b = BUCKETS.find(x => x.key === bk); return b && b.winPoints ? b.winPoints : 1; }
+/* which team (1|2, inside the log's own category) won this logged match */
+function logWinnerTeam(l){
+  const w = l.winner === 'team2' ? (l.team2 || []) : (l.team1 || []);
+  const e = w[0], lp = e ? participants.find(x => x.id === (e.participantId || e.id)) : null;
+  return Number(e && e.battleTeam) || battleTeamOf(lp) || (l.winner === 'team2' ? 2 : 1);
+}
 function battleScoreFor(bk, sid){
+  const pts = battlePoints(bk);
   let p1 = 0, p2 = 0;
-  logs.filter(l => l.sessionId === sid && l.bucket === bk).forEach(l => {
-    const w = l.winner === 'team2' ? (l.team2 || []) : (l.team1 || []);
-    const t = Number(w[0] && w[0].battleTeam) || (l.winner === 'team2' ? 2 : 1);
-    if (t === 2) p2++; else p1++;
-  });
+  logs.filter(l => l.sessionId === sid && l.bucket === bk).forEach(l => { if (logWinnerTeam(l) === 2) p2 += pts; else p1 += pts; });
   return { p1, p2 };
 }
+function battleBuckets(){ return BUCKETS.filter(b => b.mode === 'battle'); }
+function normTeamName(s){ return String(s || '').trim().replace(/\s+/g, ' ').toLowerCase(); }
+function meetSide(bk, n){
+  const main = battleBuckets()[0];
+  if (!main || bk === main.key) return n;
+  const mn = battleNames(main.key).map(normTeamName), nm = normTeamName(battleNames(bk)[n - 1]);
+  if (nm === mn[0]) return 1;
+  if (nm === mn[1]) return 2;
+  return n;   // different names: fall back to the position (Team 1 / Team 2)
+}
+/* every Team Battle match of the session with the side of the meet it credits */
+function meetLogRows(sid){
+  const keys = new Set(battleBuckets().map(b => b.key));
+  return logs.filter(l => l.sessionId === sid && keys.has(l.bucket)).map(l => {
+    const t = logWinnerTeam(l), side = meetSide(l.bucket, t);
+    return { l, side, pts: battlePoints(l.bucket), winner: ((l.winner === 'team2' ? l.team2 : l.team1) || []).map(p => p.name).join(' & ') };
+  });
+}
+function meetScoreFor(sid){
+  let p1 = 0, p2 = 0;
+  meetLogRows(sid).forEach(r => { if (r.side === 2) p2 += r.pts; else p1 += r.pts; });
+  return { p1, p2 };
+}
+/* points in play: only the games that exist, i.e. already played + still in the queue / on a court,
+   each worth its category's points per win (e.g. 160 games × 1 + 4 games × 2 = 168, so 85 to win) */
+function meetTotalFor(sid){
+  let total = 0;
+  battleBuckets().forEach(b => {
+    const played = logs.filter(l => l.sessionId === sid && l.bucket === b.key).length;
+    const pending = queueMatches.filter(m => m.bucket === b.key && QUEUE_MATCH_STATUSES.includes(m.status)).length;
+    total += (played + pending) * battlePoints(b.key);
+  });
+  return total;
+}
 function battleBannerHtml(bk, sid){
-  const nn = battleNames(bk), sc = battleScoreFor(bk, sid);
-  return `<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:center;align-items:center;gap:16px;font-family:'Baloo 2';font-weight:800;font-size:20px;flex-wrap:wrap;"><span>${escapeHtml(nn[0])}</span><span style="color:var(--gold);font-size:26px;">${sc.p1} : ${sc.p2}</span><span>${escapeHtml(nn[1])}</span></div>`;
+  const nn = battleNames(bk), sc = battleScoreFor(bk, sid), pts = battlePoints(bk);
+  return `<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:center;align-items:center;gap:16px;font-family:'Baloo 2';font-weight:800;font-size:20px;flex-wrap:wrap;"><span>${escapeHtml(nn[0])}</span><span style="color:var(--gold);font-size:26px;">${sc.p1} : ${sc.p2}</span><span>${escapeHtml(nn[1])}</span><span style="font-family:Inter;font-size:12px;color:var(--muted);font-weight:600;">${pts} pt${pts === 1 ? '' : 's'} per win</span></div>`;
+}
+/* Leaderboard tab: the whole dual meet, category by category, with every match that was credited */
+function meetBreakdownHtml(sid){
+  const bbs = battleBuckets();
+  if (!bbs.length) return '';
+  const nn = battleNames(bbs[0].key), sc = meetScoreFor(sid), rows = meetLogRows(sid), total = meetTotalFor(sid);
+  const e = escapeHtml;
+  const per = bbs.map(b => {
+    const r = rows.filter(x => x.l.bucket === b.key), a = r.filter(x => x.side === 1), c = r.filter(x => x.side === 2), pts = battlePoints(b.key);
+    return `<tr><td><b>${e(b.label)}</b></td><td class="num">${pts}</td><td class="num">${a.length} win${a.length === 1 ? '' : 's'} = <b>${a.length * pts}</b></td><td class="num">${c.length} win${c.length === 1 ? '' : 's'} = <b>${c.length * pts}</b></td></tr>`;
+  }).join('');
+  const other = logs.filter(l => l.sessionId === sid && !bbs.some(b => b.key === l.bucket)).length;
+  const list = rows.slice().sort((x, y) => (Number(x.l.endedAt) || 0) - (Number(y.l.endedAt) || 0)).map(r =>
+    `<tr><td>${e(r.l.matchId || '')}</td><td>${e(logBucketName(r.l))}</td><td>${e(r.winner)}</td><td>${r.l.score1} – ${r.l.score2}</td><td><b>${e(nn[r.side - 1])}</b> +${r.pts}</td></tr>`).join('');
+  return `<div class="bucket-card" style="margin-bottom:18px;">
+    <div class="bucket-head"><h3>🏆 Dual meet · ${e(nn[0])} vs ${e(nn[1])}</h3><span class="count">${rows.length} match${rows.length === 1 ? '' : 'es'} counted · ${total} points in play · ${Math.floor(total / 2) + 1} to win</span></div>
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:center;align-items:center;gap:16px;font-family:'Baloo 2';font-weight:800;font-size:24px;flex-wrap:wrap;"><span>${e(nn[0])}</span><span style="color:var(--gold);font-size:30px;">${sc.p1} : ${sc.p2}</span><span>${e(nn[1])}</span></div>
+    <table class="lb-table"><thead><tr><th>Category</th><th class="num">Pts per win</th><th class="num">${e(nn[0])}</th><th class="num">${e(nn[1])}</th></tr></thead><tbody>${per}</tbody></table>
+    ${other ? `<div class="gen-note">${other} logged match${other === 1 ? '' : 'es'} this session ${other === 1 ? 'is' : 'are'} in categories that are not Team Battle, so ${other === 1 ? 'it does' : 'they do'} not count for the meet.</div>` : ''}
+    <details style="padding:10px 16px;"><summary style="cursor:pointer;font-weight:700;font-size:13px;">Show every counted match</summary>
+      <table class="lb-table" style="margin-top:8px;"><thead><tr><th>Match</th><th>Category</th><th>Winner</th><th>Score</th><th>Point to</th></tr></thead><tbody>${list || '<tr class="empty-row"><td colspan="5">No Team Battle matches logged yet.</td></tr>'}</tbody></table>
+    </details></div>`;
 }
 function battleSelectCell(b, p){
   const cur = battleTeamOf(p), nn = battleNames(b.key);
@@ -819,7 +1010,7 @@ function modeLabel(m){ return m === 'battle' ? 'Team Battle' : m === 'singles' ?
 function modeTagHtml(b){
   if (!b || !b.mode) return '';
   let h = `<span class="mode-tag">${modeLabel(b.mode)}</span>`;
-  if (b.mode === 'battle') { const nn = battleNames(b.key); h += `<span class="mode-tag">${escapeHtml(nn[0])} vs ${escapeHtml(nn[1])}</span>`; }
+  if (b.mode === 'battle') { const nn = battleNames(b.key), pts = battlePoints(b.key); h += `<span class="mode-tag">${escapeHtml(nn[0])} vs ${escapeHtml(nn[1])}</span><span class="mode-tag">${pts} pt${pts === 1 ? '' : 's'} per win</span>`; }
   if (bucketHasSpecificCourts(b)) { const l = b.courts.filter(c => c <= COURTS); h += `<span class="mode-tag">Court${l.length===1?'':'s'} ${l.join(', ')}</span>`; }
   return h;
 }
@@ -901,7 +1092,8 @@ db.collection('pkl-queue-buckets').onSnapshot(snap => {
       order: (x.order !== undefined && x.order !== null) ? Number(x.order) : (x.createdAtMs || 0),
       courts: (Array.isArray(x.courts) ? x.courts.map(Number).filter(c => c >= 1 && c <= MAX_COURTS) : []).sort((a,b) => a-b),
       pools: Array.isArray(x.pools) ? x.pools.filter(q => q && q.id).map(q => ({ id:String(q.id), name:String(q.name || 'Pool') })) : [],
-      teamNames: Array.isArray(x.teamNames) ? x.teamNames.slice(0, 2).map(n => String(n || '')) : [] };
+      teamNames: Array.isArray(x.teamNames) ? x.teamNames.slice(0, 2).map(n => String(n || '')) : [],
+      winPoints: Math.max(1, Math.floor(Number(x.winPoints)) || 1) };
   }).sort((a,b) => a.order - b.order || a.createdAtMs - b.createdAtMs);
   bucketsLoaded = true;
   Object.keys(suggestionState).forEach(k => { if (!BUCKETS.some(b => b.key === k)) delete suggestionState[k]; });
@@ -915,6 +1107,7 @@ db.collection('pkl-queue-buckets').onSnapshot(snap => {
   refreshGenList();
   scheduleLeaderboardPush();
   scheduleBattleSync();
+  if (typeof updateDisplayControls === 'function') updateDisplayControls();
 }, err => showToast('Categories sync error: ' + err.message, true));
 
 db.collection('pkl-queue-participants').onSnapshot(snap => {
@@ -933,6 +1126,8 @@ db.collection('pkl-queue-matches').onSnapshot(snap => {
   renderParticipants();
   refreshGenList();
   schedulePublicSync();
+  scheduleBattleSync();
+  if (battleBuckets().length) renderLeaderboard();
 }, err => showToast('Queue sync error: ' + err.message, true));
 
 db.collection('pkl-queue-logs').orderBy('completedAt','desc').limit(2000).onSnapshot(snap => {
@@ -1191,6 +1386,7 @@ function openBucketModal(id){
   const bn = b && b.mode === 'battle' ? battleNames(b.key) : ['', ''];
   document.getElementById('battleName1').value = bn[0];
   document.getElementById('battleName2').value = bn[1];
+  document.getElementById('battlePoints').value = b && b.mode === 'battle' ? battlePoints(b.key) : 1;
   toggleBattleNames();
   const allowed = b ? bucketCourts(b.key) : Array.from({ length: COURTS }, (_, i) => i + 1);
   document.getElementById('bucketCourts').innerHTML = Array.from({ length: COURTS }, (_, i) => i + 1).map(c =>
@@ -1218,12 +1414,14 @@ document.getElementById('btnBucketSave').addEventListener('click', async () => {
     if (!bnames[0] || !bnames[1]) { errEl.textContent = 'Enter the name of Team 1 and Team 2.'; return; }
     if (bnames[0].toLowerCase() === bnames[1].toLowerCase()) { errEl.textContent = 'Team 1 and Team 2 need different names.'; return; }
   }
+  const winPoints = Number(document.getElementById('battlePoints').value);
+  if (isBat && !(Number.isInteger(winPoints) && winPoints >= 1 && winPoints <= 99)) { errEl.textContent = 'Meet points per win must be a whole number from 1 to 99.'; return; }
   if (BUCKETS.some(b => b.key !== editBucketId && b.label.trim().toLowerCase() === name.toLowerCase())) { errEl.textContent = 'A category with this name already exists.'; return; }
   const btn = document.getElementById('btnBucketSave');
   btn.disabled = true;
   try {
-    if (editBucketId) { await db.collection('pkl-queue-buckets').doc(editBucketId).update({ name, courts, ...(isBat ? { teamNames: bnames } : {}) }); showToast('Category updated.'); }
-    else { await db.collection('pkl-queue-buckets').add({ name, mode, courts, ...(isBat ? { teamNames: bnames } : {}), order: Math.max(0, ...BUCKETS.map(b => b.order)) + 1000, createdAtMs: Date.now(), createdAt: firebase.firestore.FieldValue.serverTimestamp() }); showToast('Category added.'); }
+    if (editBucketId) { await db.collection('pkl-queue-buckets').doc(editBucketId).update({ name, courts, ...(isBat ? { teamNames: bnames, winPoints } : {}) }); showToast('Category updated.'); }
+    else { await db.collection('pkl-queue-buckets').add({ name, mode, courts, ...(isBat ? { teamNames: bnames, winPoints } : {}), order: Math.max(0, ...BUCKETS.map(b => b.order)) + 1000, createdAtMs: Date.now(), createdAt: firebase.firestore.FieldValue.serverTimestamp() }); showToast('Category added.'); }
     bucketOverlay.classList.remove('show');
   } catch (err) { errEl.textContent = 'Could not save: ' + err.message; }
   finally { btn.disabled = false; }
@@ -3106,25 +3304,30 @@ function leaderboardShown(){ return !!(displaySettings.leaderboard && displaySet
 function updateDisplayControls(){
   document.getElementById('chkDisplayQueue').checked = displaySettings.showQueue !== false;
   document.getElementById('btnShowLeaderboard').textContent = leaderboardShown() ? '🏆 Hide leaderboard' : '🏆 Show leaderboard';
+  document.getElementById('btnLbPick').style.display = BUCKETS.length > LB_TV_MAX ? '' : 'none';
+  document.getElementById('btnShowImage').textContent = imageShown() ? '🖼 Hide Image' : '🖼 Show Image';
+  document.getElementById('btnShowSponsors').textContent = sponsorsShown() ? '🎉 Hide Sponsors' : '🎉 Show Sponsors';
 }
+function imageShown(){ return !!(displaySettings.tvImage && displaySettings.tvImage.show); }
+function sponsorsShown(){ return !!(displaySettings.sponsorShow && displaySettings.sponsorShow.show); }
 /* Team Battle: the TV can't read logs or participants, so the admin app publishes the meet score here */
 let battleSyncTimer = null, displayLoaded = false;
 function currentBattle(){
-  const b = BUCKETS.find(x => x.mode === 'battle');   // the first Team Battle category drives the TV scoreboard
-  if (!b) return null;
-  const nn = battleNames(b.key), sid = sessionState.currentSessionId || null, sc = battleScoreFor(b.key, sid);
-  const live = participants.filter(p => p.bucket === b.key && !isDuplicate(p));
-  const n1 = live.filter(p => battleTeamOf(p) === 1).length, n2 = live.filter(p => battleTeamOf(p) === 2).length;
-  return { bucket:b.key, name1:nn[0], name2:nn[1], p1:sc.p1, p2:sc.p2, total:n1 * n2, sessionId:sid };
+  const bbs = battleBuckets();   // the first Team Battle category gives the team names; every Team Battle category adds to the score
+  if (!bbs.length) return null;
+  const main = bbs[0], nn = battleNames(main.key), sid = sessionState.currentSessionId || null, sc = meetScoreFor(sid);
+  const total = meetTotalFor(sid);
+  return { bucket:main.key, buckets: bbs.map(b => b.key).join(','), swap: bbs.filter(b => meetSide(b.key, 1) === 2).map(b => b.key).join(','),
+    name1:nn[0], name2:nn[1], p1:sc.p1, p2:sc.p2, total, totalIsPoints:true, sessionId:sid };
 }
 function scheduleBattleSync(){
   clearTimeout(battleSyncTimer);
   battleSyncTimer = setTimeout(async () => {
     if (!displayLoaded || !bucketsLoaded) return;
-    const want = currentBattle(), have = displaySettings.battle || null;
-    const same = (!want && !have) || (want && have && ['bucket','name1','name2','p1','p2','total','sessionId'].every(k => want[k] === have[k]));
+    const want = currentBattle(), have = displaySettings.meet || null;   // 'meet' (not the old 'battle' field) so an outdated admin left open can't fight over the TV score
+    const same = (!want && !have) || (want && have && ['bucket','buckets','swap','name1','name2','p1','p2','total','totalIsPoints','sessionId'].every(k => want[k] === have[k]));
     if (same) return;
-    try { await displayRef.set({ battle: want ? { ...want, updatedAt: Date.now() } : null }, { merge:true }); } catch (e) { /* best effort */ }
+    try { await displayRef.set({ meet: want ? { ...want, updatedAt: Date.now() } : null }, { merge:true }); } catch (e) { /* best effort */ }
   }, 900);
 }
 displayRef.onSnapshot(doc => { displaySettings = doc.exists ? doc.data() : {}; displayLoaded = true; updateDisplayControls(); scheduleBattleSync(); }, err => showToast('TV settings sync error: ' + err.message, true));
@@ -3132,13 +3335,139 @@ document.getElementById('chkDisplayQueue').addEventListener('change', async e =>
   try { await displayRef.set({ showQueue: e.target.checked }, { merge:true }); }
   catch (err) { showToast('Could not update the TV: ' + err.message, true); updateDisplayControls(); }
 });
-function buildDisplayLeaderboard(){
+/* The TV fits 3 leaderboard columns. With more than 3 categories the admin picks which ones (saved as leaderboard.bucketKeys). */
+const LB_TV_MAX = 3;
+function lbSelectedKeys(){
+  const saved = ((displaySettings.leaderboard && displaySettings.leaderboard.bucketKeys) || []).filter(k => BUCKETS.some(b => b.key === k));
+  return (saved.length ? saved : BUCKETS.map(b => b.key)).slice(0, LB_TV_MAX);
+}
+function buildDisplayLeaderboard(keys){
   const data = buildLeaderboard(sessionState.currentSessionId);
-  return BUCKETS.slice(0, 3).map(b => ({ name: b.label, rows: (data[b.key] || []).slice(0, 5).map(e => ({ rank:e.rank, name:e.name, w:e.w, l:e.l, pf:e.pf, pd:e.pd })) }));
+  return (keys || lbSelectedKeys()).map(k => BUCKETS.find(b => b.key === k)).filter(Boolean)
+    .map(b => ({ name: b.label, rows: (data[b.key] || []).slice(0, 5).map(e => ({ rank:e.rank, name:e.name, w:e.w, l:e.l, pf:e.pf, pd:e.pd })) }));
 }
-async function pushLeaderboard(show){
-  await displayRef.set({ leaderboard: { show, buckets: buildDisplayLeaderboard(), sessionName: sessionState.currentSessionName || '', updatedAt: Date.now() } }, { merge:true });
+async function pushLeaderboard(show, keys){
+  keys = keys || lbSelectedKeys();
+  await displayRef.set({ leaderboard: { show, bucketKeys: keys, buckets: buildDisplayLeaderboard(keys), sessionName: sessionState.currentSessionName || '', updatedAt: Date.now() } }, { merge:true });
 }
+/* ---- pick the categories for the TV leaderboard ---- */
+const lbPickOverlay = document.getElementById('lbPickOverlay');
+function lbPickRender(){
+  const checked = new Set([...document.querySelectorAll('#lbPickList input:checked')].map(i => i.value));
+  document.querySelectorAll('#lbPickList input').forEach(i => { i.disabled = !i.checked && checked.size >= LB_TV_MAX; i.closest('.gen-row').style.opacity = i.disabled ? '.45' : ''; });
+  document.getElementById('lbPickCount').textContent = `${checked.size} of ${LB_TV_MAX} selected`;
+  document.getElementById('btnLbPickShow').disabled = !checked.size;
+}
+function openLbPicker(){
+  const sel = new Set(lbSelectedKeys()), data = buildLeaderboard(sessionState.currentSessionId);
+  document.getElementById('lbPickList').innerHTML = BUCKETS.map(b => {
+    const n = (data[b.key] || []).length;
+    return `<label class="gen-row"><input type="checkbox" value="${b.key}" ${sel.has(b.key) ? 'checked' : ''}><span class="gen-name">${escapeHtml(b.label)}<span class="gen-meta">${modeLabel(b.mode)} · ${n ? n + ' ranked' : 'no results yet'}</span></span></label>`;
+  }).join('');
+  document.querySelectorAll('#lbPickList input').forEach(i => i.addEventListener('change', lbPickRender));
+  document.getElementById('btnLbPickShow').textContent = leaderboardShown() ? 'Update TV' : 'Show on TV';
+  document.getElementById('errLbPick').textContent = '';
+  lbPickRender();
+  lbPickOverlay.classList.add('show');
+}
+document.getElementById('btnLbPickCancel').addEventListener('click', () => lbPickOverlay.classList.remove('show'));
+lbPickOverlay.addEventListener('click', e => { if (e.target === lbPickOverlay) lbPickOverlay.classList.remove('show'); });
+document.getElementById('btnLbPick').addEventListener('click', () => { if (!BUCKETS.length) { showToast('Add a category first.', true); return; } openLbPicker(); });
+document.getElementById('btnLbPickShow').addEventListener('click', async () => {
+  const order = BUCKETS.map(b => b.key);
+  const keys = [...document.querySelectorAll('#lbPickList input:checked')].map(i => i.value).sort((a, b) => order.indexOf(a) - order.indexOf(b));
+  if (!keys.length) { document.getElementById('errLbPick').textContent = 'Pick at least one category.'; return; }
+  const btn = document.getElementById('btnLbPickShow'); btn.disabled = true;
+  try { await pushLeaderboard(true, keys); lbPickOverlay.classList.remove('show'); showToast('Leaderboard is showing on the TV.'); }
+  catch (err) { document.getElementById('errLbPick').textContent = 'Could not update the TV: ' + err.message; }
+  finally { btn.disabled = false; }
+});
+/* ---- Show Image: one uploaded picture, full screen on the TV until hidden ----
+   The picture lives in its own doc (pkl-queue-events/tvImage, no createdAt so the popup listener ignores it);
+   displaySettings.tvImage only carries show + version, so the TV downloads the picture only when it changes. */
+const tvImgRef = db.collection('pkl-queue-events').doc('tvImage');
+const tvImgOverlay = document.getElementById('tvImgOverlay');
+let tvImgSaved = null, tvImgPending = null;   // saved: {url, w, h, kb, updatedAt}; pending: newly picked, not saved yet
+tvImgRef.onSnapshot(d => { tvImgSaved = d.exists ? d.data() : null; if (tvImgOverlay.classList.contains('show') && !tvImgPending) tvImgPreview(tvImgSaved); }, () => {});
+function tvImgPreview(img){
+  document.getElementById('tvImgBox').classList.toggle('has', !!(img && img.url));
+  document.getElementById('tvImgPreview').src = (img && img.url) || '';
+  document.getElementById('tvImgMeta').textContent = img && img.url ? `${img.w}×${img.h} · ${img.kb} KB${img === tvImgPending ? ' · not saved yet' : ''}` : '';
+  document.getElementById('btnTvImgPick').textContent = img && img.url ? '⬆ Change image' : '⬆ Upload image';
+  document.getElementById('btnTvImgShow').disabled = !(img && img.url);
+}
+/* resize to TV size and compress so it fits in one Firestore document (< 1 MB) */
+function tvImgProcess(file){
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) return reject(new Error('Image files only.'));
+    const r = new FileReader();
+    r.onerror = () => reject(new Error('Could not read the file.'));
+    r.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Could not open this image.'));
+      img.onload = () => {
+        let w = img.naturalWidth || 1920, h = img.naturalHeight || 1080;
+        const fit = Math.min(1, 1920 / w, 1080 / h);
+        w = Math.max(1, Math.round(w * fit)); h = Math.max(1, Math.round(h * fit));
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        const g = c.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, w, h); g.drawImage(img, 0, 0, w, h);
+        let q = 0.85, out = c.toDataURL('image/webp', q);
+        const type = out.startsWith('data:image/webp') ? 'image/webp' : 'image/jpeg';
+        if (type === 'image/jpeg') out = c.toDataURL(type, q);
+        while (out.length > 850000 && q > 0.35) { q -= 0.1; out = c.toDataURL(type, q); }
+        if (out.length > 950000) return reject(new Error('Image is too big even after compressing. Try a smaller file.'));
+        resolve({ url: out, w, h, kb: Math.round(out.length * 0.75 / 1024) });
+      };
+      img.src = r.result;
+    };
+    r.readAsDataURL(file);
+  });
+}
+document.getElementById('btnShowImage').addEventListener('click', async () => {
+  if (imageShown()) {
+    const btn = document.getElementById('btnShowImage'); btn.disabled = true;
+    try { await displayRef.set({ tvImage: { ...displaySettings.tvImage, show: false } }, { merge:true }); showToast('Image hidden on the TV.'); }
+    catch (err) { showToast('Could not update the TV: ' + err.message, true); }
+    finally { btn.disabled = false; }
+    return;
+  }
+  tvImgPending = null; document.getElementById('errTvImg').textContent = '';
+  tvImgPreview(tvImgSaved);
+  tvImgOverlay.classList.add('show');
+});
+document.getElementById('btnTvImgPick').addEventListener('click', () => document.getElementById('tvImgFile').click());
+document.getElementById('tvImgFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  document.getElementById('errTvImg').textContent = '';
+  try { tvImgPending = await tvImgProcess(f); tvImgPreview(tvImgPending); }
+  catch (err) { document.getElementById('errTvImg').textContent = err.message; }
+});
+const tvImgClose = () => { tvImgPending = null; tvImgOverlay.classList.remove('show'); };
+document.getElementById('btnTvImgCancel').addEventListener('click', tvImgClose);
+tvImgOverlay.addEventListener('click', e => { if (e.target === tvImgOverlay) tvImgClose(); });
+document.getElementById('btnTvImgShow').addEventListener('click', async () => {
+  const btn = document.getElementById('btnTvImgShow'); btn.disabled = true;
+  try {
+    let ver = tvImgSaved && tvImgSaved.updatedAt;
+    if (tvImgPending) { ver = Date.now(); await tvImgRef.set({ ...tvImgPending, updatedAt: ver }); }
+    if (!ver) { document.getElementById('errTvImg').textContent = 'Upload an image first.'; return; }
+    await displayRef.set({ tvImage: { show: true, ver } }, { merge:true });
+    tvImgClose(); showToast('Image is showing on the TV.');
+  } catch (err) { document.getElementById('errTvImg').textContent = 'Could not update the TV: ' + err.message; }
+  finally { btn.disabled = false; }
+});
+
+/* ---- Show Sponsors: the TV plays the tvurl.html showcase once, then goes back to courts/queue ---- */
+document.getElementById('btnShowSponsors').addEventListener('click', async () => {
+  const btn = document.getElementById('btnShowSponsors'), on = sponsorsShown();
+  if (!on && !spData.sponsors.length) { showToast('Add a sponsor in Tab 5 first.', true); return; }
+  btn.disabled = true;
+  try {
+    await displayRef.set({ sponsorShow: on ? { show: false, playId: Number(displaySettings.sponsorShow.playId) || 0 } : { show: true, playId: Date.now() } }, { merge:true });
+    showToast(on ? 'Sponsors hidden on the TV.' : 'Sponsor showcase is playing on the TV.');
+  } catch (err) { showToast('Could not update the TV: ' + err.message, true); }
+  finally { btn.disabled = false; }
+});
 function scheduleLeaderboardPush(){
   if (!leaderboardShown()) return;
   clearTimeout(lbPushTimer);
@@ -3147,6 +3476,7 @@ function scheduleLeaderboardPush(){
 document.getElementById('btnShowLeaderboard').addEventListener('click', async () => {
   const show = !leaderboardShown();
   if (show && !BUCKETS.length) { showToast('Add a category first.', true); return; }
+  if (show && BUCKETS.length > LB_TV_MAX) { openLbPicker(); return; }   // more than 3 categories: choose which ones first
   try { await pushLeaderboard(show); showToast(show ? 'Leaderboard is showing on the TV.' : 'Leaderboard hidden.'); }
   catch (err) { showToast('Could not update the TV: ' + err.message, true); }
 });
@@ -4020,6 +4350,8 @@ function renderLeaderboard(){
   const tg = document.getElementById('lbViewToggle');
   if (tg) { tg.style.display = anyPools ? '' : 'none'; tg.querySelectorAll('button').forEach(bt => bt.classList.toggle('on', bt.dataset.v === lbView)); }
   const byPool = anyPools && lbView === 'pool';
+  const mb = document.getElementById('meetBreakdown');
+  if (mb) mb.innerHTML = meetBreakdownHtml(sid);
   const data = buildLeaderboard(sid, byPool);
   const medals = ['🥇','🥈','🥉'];
   const lbList = lbBuckets(sid);
@@ -4264,6 +4596,181 @@ document.getElementById('btnDsSave').addEventListener('click', async () => {
   } catch (err) { showToast('Could not save settings: ' + err.message, true); }
   finally { btn.disabled = false; }
 });
+
+/* ================= SPONSORS (Tab 5) =================
+   Same data as sponsor.html / tvurl.html:
+     sponsorShows/main                 -> display text settings
+     sponsorShows/main/sponsors/{id}   -> { name, type, logo, order, createdAt } */
+const SP_TYPES = ['major', 'minor', 'special'];
+const SP_DEFAULTS = { eventName:'', eyebrow:'With heartfelt thanks', introText:'This event would not be possible without the generous support of our sponsors.',
+  outroTitle:'Maraming Salamat!', outroText:'Thank you to everyone who helped make this event happen.', majorSeconds:6, minorSeconds:6, specialSeconds:7 };
+const SP_SET_KEYS = Object.keys(SP_DEFAULTS);
+const SP_LABEL = { major:'Major sponsors', minor:'Minor sponsors', special:'Special thanks' };
+const spShowRef = db.collection('sponsorShows').doc('main'), spRef = spShowRef.collection('sponsors');
+let spData = { settings: { ...SP_DEFAULTS }, sponsors: [] }, spRaw = { settings:null, sponsors:null };
+let spEditingId = null, spLogo = null, spSettingsLoaded = false;
+const $sp = id => document.getElementById(id);
+
+function spEmit(){
+  if (spRaw.settings === null || spRaw.sponsors === null) return;
+  const list = spRaw.sponsors.filter(x => x && x.name)
+    .map(x => ({ type:'minor', logo:null, order:0, ...x }))
+    .map(x => SP_TYPES.includes(x.type) ? x : { ...x, type:'minor' })
+    .sort((a, b) => SP_TYPES.indexOf(a.type) - SP_TYPES.indexOf(b.type) || (a.order - b.order) || ((a.createdAt || 0) - (b.createdAt || 0)));
+  spData = { settings: { ...SP_DEFAULTS, ...spRaw.settings }, sponsors: list };
+  if (!spSettingsLoaded) { SP_SET_KEYS.forEach(k => { $sp('spS_' + k).value = spData.settings[k] ?? ''; }); spSettingsLoaded = true; }
+  if (spEditingId && !list.some(s => s.id === spEditingId)) spResetForm();
+  spRender();
+}
+spShowRef.onSnapshot(d => { spRaw.settings = d.exists ? d.data() : {}; spEmit(); }, err => showToast('Sponsors sync error: ' + err.message, true));
+spRef.onSnapshot(snap => { spRaw.sponsors = snap.docs.map(d => ({ id:d.id, ...d.data() })); spEmit(); }, err => showToast('Sponsors sync error: ' + err.message, true));
+
+/* ---- logo: resize + compress, keeps transparency ---- */
+function spProcessLogo(file){
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) return reject(new Error('Image files lang ang puwede.'));
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Hindi mabasa ang file.'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Hindi mabuksan ang image na ito.'));
+      img.onload = () => {
+        const MAX = 800;
+        let w = img.naturalWidth || 800, h = img.naturalHeight || 400;
+        const sc = Math.min(1, MAX / Math.max(w, h));
+        w = Math.max(1, Math.round(w * sc)); h = Math.max(1, Math.round(h * sc));
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        let q = 0.9, out = c.toDataURL('image/webp', q);
+        if (!out.startsWith('data:image/webp')) out = c.toDataURL('image/png');
+        while (out.length > 600000 && q > 0.4) { q -= 0.15; out = c.toDataURL('image/webp', q); }
+        if (out.length > 900000) return reject(new Error('Masyadong malaki ang logo kahit na-compress na. Subukan ang mas maliit na file.'));
+        resolve({ url: out, w, h, kb: Math.round(out.length * 0.75 / 1024) });
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function spShowPreview(url, meta){
+  spLogo = url || null;
+  $sp('spPreviewImg').src = url || '';
+  $sp('spPreviewMeta').textContent = meta || '';
+  $sp('spPreview').classList.toggle('show', !!url);
+  $sp('spDrop').style.display = url ? 'none' : '';
+}
+async function spHandleFile(file){
+  if (!file) return;
+  try { const r = await spProcessLogo(file); spShowPreview(r.url, `${r.w}×${r.h} · ${r.kb} KB`); }
+  catch (e) { showToast(e.message, true); }
+}
+const spDrop = $sp('spDrop');
+spDrop.addEventListener('click', () => $sp('spFile').click());
+spDrop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $sp('spFile').click(); } });
+$sp('spFile').addEventListener('change', e => { spHandleFile(e.target.files[0]); e.target.value = ''; });
+['dragenter','dragover'].forEach(ev => spDrop.addEventListener(ev, e => { e.preventDefault(); spDrop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => spDrop.addEventListener(ev, e => { e.preventDefault(); spDrop.classList.remove('over'); }));
+spDrop.addEventListener('drop', e => spHandleFile(e.dataTransfer.files[0]));
+$sp('btnSpRemoveLogo').addEventListener('click', () => spShowPreview(null));
+
+/* ---- add / edit form ---- */
+const spName = $sp('spName');
+spName.addEventListener('input', () => { $sp('errSpName').textContent = ''; spName.style.borderColor = ''; });
+spName.addEventListener('keydown', e => { if (e.key === 'Enter') $sp('btnSpSave').click(); });
+function spMarkNameErr(){ $sp('errSpName').textContent = "Enter the sponsor's name."; spName.style.borderColor = 'var(--red)'; }
+const spGetType = () => document.querySelector('input[name=spType]:checked').value;
+const spSetType = t => { document.querySelector(`input[name=spType][value=${t}]`).checked = true; };
+function spResetForm(){
+  spEditingId = null; spName.value = ''; spShowPreview(null);
+  $sp('errSpName').textContent = ''; spName.style.borderColor = '';
+  $sp('spFormTitle').textContent = 'Add sponsor';
+  $sp('spFormSub').textContent = 'Shows on the TV the next time you press Show Sponsors.';
+  $sp('btnSpSave').textContent = 'Add sponsor';
+  $sp('btnSpCancel').style.display = 'none';
+  spRender();
+}
+function spStartEdit(sp){
+  spEditingId = sp.id; spName.value = sp.name; spSetType(sp.type);
+  spShowPreview(sp.logo || null, sp.logo ? 'Current logo' : '');
+  $sp('spFormTitle').textContent = 'Edit sponsor';
+  $sp('spFormSub').textContent = 'Editing: ' + sp.name;
+  $sp('btnSpSave').textContent = 'Save changes';
+  $sp('btnSpCancel').style.display = '';
+  spRender(); spName.focus();
+  if (innerWidth < 900) spName.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+$sp('btnSpCancel').addEventListener('click', spResetForm);
+$sp('btnSpSave').addEventListener('click', async () => {
+  const name = spName.value.trim();
+  if (!name) { spMarkNameErr(); spName.focus(); return; }
+  const btn = $sp('btnSpSave'), label = btn.textContent, type = spGetType();
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    if (spEditingId) {
+      const cur = spData.sponsors.find(x => x.id === spEditingId);
+      const patch = { name, type, logo: spLogo || null };
+      if (cur && cur.type !== type) patch.order = Date.now();
+      await spRef.doc(spEditingId).update(patch);
+      showToast('Saved ' + name);
+    } else {
+      await spRef.add({ name, type, logo: spLogo || null, order: Date.now(), createdAt: Date.now() });
+      showToast('Added ' + name);
+    }
+    spResetForm(); spSetType(type); spName.focus();
+  } catch (err) { showToast('Hindi na-save: ' + (err.code || err.message), true); btn.textContent = label; }
+  finally { btn.disabled = false; }
+});
+
+/* ---- list ---- */
+function spEl(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+async function spSwap(a, b){
+  try { await Promise.all([ spRef.doc(a.id).update({ order: b.order }), spRef.doc(b.id).update({ order: a.order === b.order ? a.order + 1 : a.order }) ]); }
+  catch (e) { showToast('Could not reorder: ' + e.message, true); }
+}
+async function spDelete(sp){
+  if (!confirm(`Delete ${sp.name}? Mawawala ito sa TV showcase at hindi na maibabalik.`)) return;
+  try { await spRef.doc(sp.id).delete(); showToast('Deleted ' + sp.name); if (spEditingId === sp.id) spResetForm(); }
+  catch (err) { showToast('Hindi na-delete: ' + (err.code || err.message), true); }
+}
+function spRender(){
+  const list = $sp('spList'); if (!list) return;
+  list.innerHTML = '';
+  SP_TYPES.forEach(t => {
+    const items = spData.sponsors.filter(s => s.type === t);
+    const wrap = spEl('div', 'sp-tier');
+    const h = spEl('div', 'sp-tier-h'); h.append(spEl('h4', null, SP_LABEL[t]), spEl('span', 'sp-pill', items.length)); wrap.append(h);
+    if (!items.length) wrap.append(spEl('div', 'sp-empty', t === 'special' ? 'Wala pang nasa Special Thanks.' : `Wala pang ${t === 'major' ? 'Major' : 'Minor'} sponsor. Idagdag gamit ang form.`));
+    items.forEach((sp, i) => {
+      const row = spEl('div', 'sp-row' + (sp.id === spEditingId ? ' editing' : ''));
+      const th = spEl('div', 'sp-thumb');
+      if (sp.logo) { const im = spEl('img'); im.src = sp.logo; im.alt = ''; th.append(im); }
+      else th.append(spEl('span', null, sp.name.trim().slice(0, 2).toUpperCase()));
+      const tools = spEl('div', 'sp-tools');
+      const mk = (cls, txt, title, fn) => { const b = spEl('button', cls, txt); b.type = 'button'; if (title) { b.title = title; b.setAttribute('aria-label', title); } b.addEventListener('click', fn); return b; };
+      const up = mk('btn-icon', '↑', 'Move ' + sp.name + ' up', () => spSwap(sp, items[i - 1]));
+      const dn = mk('btn-icon', '↓', 'Move ' + sp.name + ' down', () => spSwap(sp, items[i + 1]));
+      up.disabled = i === 0; dn.disabled = i === items.length - 1;
+      tools.append(up, dn, mk('btn btn-ghost btn-sm', 'Edit', '', () => spStartEdit(sp)), mk('btn btn-ghost btn-sm sp-del', 'Delete', '', () => spDelete(sp)));
+      row.append(th, spEl('div', 'sp-nm', sp.name), tools);
+      wrap.append(row);
+    });
+    list.append(wrap);
+  });
+}
+
+/* ---- display text ---- */
+$sp('btnSpSettingsSave').addEventListener('click', async () => {
+  const patch = {};
+  SP_SET_KEYS.forEach(k => {
+    const v = $sp('spS_' + k).value;
+    patch[k] = k.endsWith('Seconds') ? Math.min(30, Math.max(2, parseFloat(v) || SP_DEFAULTS[k])) : v.trim();
+  });
+  const btn = $sp('btnSpSettingsSave'); btn.disabled = true;
+  try { await spShowRef.set(patch, { merge:true }); SP_SET_KEYS.forEach(k => { $sp('spS_' + k).value = patch[k]; }); showToast('Display text saved'); }
+  catch (err) { showToast('Hindi na-save: ' + (err.code || err.message), true); }
+  finally { btn.disabled = false; }
+});
+spRender();
 
 /* ================= INIT ================= */
 renderMatchupBuckets();
