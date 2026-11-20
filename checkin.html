@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#2f332e">
+<title>Player check-in · PickleManage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#2f332e; --navy-deep:#222622;
+    --green:#4f9d2d; --green-bg:#e8f3e1; --green-ink:#2f6a16;
+    --t1:#3992b9; --t1-bg:#e6f2f8; --t2:#bb1421; --t2-bg:#f9e5e7;
+    --amber:#b86e00; --amber-bg:#fff2dc;
+    --bg:#ececec; --surface:#fff; --surface-2:#f7f7f5;
+    --text:#262a26; --muted:#6a706a; --border:#dcdddb;
+    --radius:12px; --shadow:0 4px 14px rgba(38,42,38,.07);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.4}
+  h1,h2,h3{font-family:'Baloo 2',system-ui,sans-serif;margin:0;line-height:1.1}
+  button{font:inherit;color:inherit}
+  button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--t1);outline-offset:2px}
+
+  /* ---------- gate ---------- */
+  #gate{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:50;padding:24px;text-align:center}
+  .spin{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  #gateBack{display:none;padding:9px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-weight:600}
+
+  /* ---------- top bar ---------- */
+  header.top{background:linear-gradient(135deg,var(--navy),var(--navy-deep));color:#fff;padding:12px clamp(12px,3vw,28px);display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:10}
+  .brand{display:flex;align-items:center;gap:10px;min-width:0}
+  .brand img{width:38px;height:38px;border-radius:8px;object-fit:cover;background:#fff}
+  .brand h1{font-size:21px;font-weight:700}
+  .brand .sub{font-size:12px;color:#c3cdc3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
+  .search{flex:1 1 260px;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:0 10px;min-width:200px}
+  .search label{font-size:12px;color:#c3cdc3;white-space:nowrap}
+  .search input{flex:1;min-width:0;background:transparent;border:0;color:#fff;font:inherit;padding:10px 0;outline:none}
+  .search input::placeholder{color:#9aa49a}
+  .search .clr{background:none;border:0;color:#c3cdc3;cursor:pointer;padding:6px;font-size:16px;line-height:1}
+  .top-right{display:flex;align-items:center;gap:12px;margin-left:auto}
+  .live{display:flex;align-items:center;gap:6px;font-size:12px;color:#c3cdc3}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+  .dot.off{background:#9aa49a}
+  .user{font-size:12px;color:#c3cdc3;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .btn-ghost{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer}
+  .btn-ghost:hover{background:rgba(255,255,255,.18)}
+
+  .notice{margin:12px clamp(12px,3vw,28px) 0;padding:10px 14px;border-radius:10px;background:var(--amber-bg);color:#6b4200;border:1px solid #f1d3a1;font-size:13px}
+
+  /* ---------- teams ---------- */
+  main{padding:12px clamp(12px,3vw,28px) 40px}
+  .teams{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+  @media (max-width:720px){.teams{grid-template-columns:1fr}}
+  .team{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:clip}
+  .team-head{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;position:sticky;top:var(--hdr,62px);background:var(--surface);z-index:5}
+  .team[data-side="1"] .team-head{border-top:4px solid var(--t1)}
+  .team[data-side="2"] .team-head{border-top:4px solid var(--t2)}
+  .team-head .tag{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+  .team-head h2{font-size:22px;font-weight:700}
+  .count{margin-left:auto;text-align:right}
+  .count b{font-family:'Baloo 2',system-ui,sans-serif;font-size:26px;line-height:1}
+  .count span{display:block;font-size:11px;color:var(--muted)}
+  .bar{height:4px;background:var(--surface-2)}
+  .bar i{display:block;height:100%;background:var(--green);width:0;transition:width .25s ease}
+  .team-body{padding:8px}
+  .empty{padding:28px 14px;text-align:center;color:var(--muted)}
+  .empty b{display:block;color:var(--text);margin-bottom:4px}
+
+  /* ---------- cascading buckets ---------- */
+  .bucket{border:1px solid var(--border);border-radius:10px;margin:6px 0;background:var(--surface)}
+  .bucket.lvl2{margin:6px 0 6px 0;background:var(--surface-2)}
+  .bhead{width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;background:none;border:0;cursor:pointer;text-align:left;border-radius:10px;min-height:44px}
+  .bhead:hover{background:rgba(0,0,0,.025)}
+  .chev{width:16px;flex:none;color:var(--muted);transition:transform .15s ease}
+  .bhead[aria-expanded="true"] .chev{transform:rotate(90deg)}
+  .bname{font-weight:700;font-size:15px}
+  .lvl2 .bname{font-size:14px;font-weight:600}
+  .bcount{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums;font-size:13px;padding:2px 9px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border)}
+  .bcount.full{background:var(--green-bg);border-color:#c5e2b5;color:var(--green-ink)}
+  .bbody{padding:0 10px 10px}
+  .bbody[hidden]{display:none}
+
+  /* ---------- entries + chips ---------- */
+  .entries{display:flex;flex-wrap:wrap;gap:8px}
+  .entry{display:flex;flex-wrap:wrap;gap:4px;padding:4px;border:1px dashed var(--border);border-radius:12px;background:var(--surface)}
+  .chip{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:7px 12px;min-height:44px;justify-content:center;border-radius:9px;border:1px solid var(--border);background:var(--surface-2);cursor:pointer;text-align:left;transition:background-color .15s ease,border-color .15s ease}
+  .chip:hover{border-color:#b9bcb8}
+  .chip .nm{font-weight:600;font-size:14px}
+  .chip .meta{font-size:11px;color:var(--muted);display:flex;gap:6px;align-items:center}
+  .chip.in{background:var(--green-bg);border-color:#9fcf87}
+  .chip.in .nm{color:var(--green-ink)}
+  .chip.in .meta{color:var(--green-ink)}
+  .chip.hit{box-shadow:0 0 0 2px var(--t1)}
+  .pay{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding:1px 6px;border-radius:5px}
+  .pay.cash{background:#d6ecca;color:var(--green-ink)}
+  .pay.gcash{background:var(--t1-bg);color:#1f5f7c}
+  .pay.unpaid{background:var(--amber-bg);color:var(--amber)}
+  .note-dot{font-size:11px}
+
+  .unassigned{margin-top:14px}
+  .unassigned .team-head{border-top:4px solid var(--muted);position:static}
+
+  /* ---------- modal ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(20,23,20,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:40;opacity:0;pointer-events:none;transition:opacity .15s ease}
+  .overlay.show{opacity:1;pointer-events:auto}
+  .modal{background:var(--surface);border-radius:14px;width:min(440px,100%);max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.25);transform:translateY(8px);transition:transform .15s ease}
+  .overlay.show .modal{transform:none}
+  .m-head{padding:16px 18px 12px;border-bottom:1px solid var(--border)}
+  .m-head h3{font-size:24px;font-weight:700}
+  .m-sub{color:var(--muted);font-size:13px;margin-top:2px}
+  .m-status{margin-top:10px;font-size:13px;padding:8px 10px;border-radius:8px;background:var(--surface-2)}
+  .m-status.in{background:var(--green-bg);color:var(--green-ink)}
+  .m-body{padding:14px 18px}
+  .lbl{display:block;font-weight:600;font-size:13px;margin:0 0 6px}
+  .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
+  .seg button{padding:11px 8px;border-radius:9px;border:1px solid var(--border);background:var(--surface-2);cursor:pointer;font-weight:600;min-height:44px}
+  .seg button[aria-pressed="true"][data-pay="cash"]{background:var(--green);border-color:var(--green);color:#fff}
+  .seg button[aria-pressed="true"][data-pay="gcash"]{background:var(--t1);border-color:var(--t1);color:#fff}
+  .seg button[aria-pressed="true"][data-pay="unpaid"]{background:var(--amber);border-color:var(--amber);color:#fff}
+  textarea{width:100%;min-height:64px;resize:vertical;border:1px solid var(--border);border-radius:9px;padding:9px 10px;font:inherit;background:var(--surface)}
+  .m-foot{padding:12px 18px 16px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;border-top:1px solid var(--border)}
+  .btn{padding:11px 16px;border-radius:9px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-weight:600;min-height:44px}
+  .btn.primary{background:var(--green);border-color:var(--green);color:#fff}
+  .btn.primary:hover{background:#43881f}
+  .btn.danger{color:var(--t2);border-color:#e8b9be;margin-right:auto}
+  .btn:disabled{opacity:.55;cursor:default}
+
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;z-index:60;max-width:calc(100% - 32px)}
+  .toast.show{opacity:1;transform:translateX(-50%)}
+  .toast.err{background:var(--t2)}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation-duration:1ms!important}}
+</style>
+</head>
+<body>
+
+<div id="gate" role="status" aria-live="polite">
+  <div class="spin" id="gateSpin"></div>
+  <div id="gateMsg">Checking your account…</div>
+  <button id="gateBack" type="button">Go to log in</button>
+</div>
+
+<header class="top">
+  <div class="brand">
+    <img src="logo.png" alt="" onerror="this.style.display='none'">
+    <div>
+      <h1>Player check-in</h1>
+      <div class="sub" id="sessTxt">Loading session…</div>
+    </div>
+  </div>
+  <div class="search">
+    <label for="q">Search</label>
+    <input id="q" type="search" placeholder="Player name" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button class="clr" id="qClear" type="button" aria-label="Clear search" hidden>✕</button>
+  </div>
+  <div class="top-right">
+    <div class="live"><span class="dot off" id="liveDot"></span><span id="liveTxt">Connecting…</span></div>
+    <span class="user" id="userTxt"></span>
+    <button class="btn-ghost" id="btnLogout" type="button">Log out</button>
+  </div>
+</header>
+
+<div class="notice" id="notice" hidden></div>
+
+<main>
+  <div class="teams" id="teams">
+    <section class="team" data-side="1" aria-labelledby="t1Name">
+      <div class="team-head">
+        <div><div class="tag">Team 1</div><h2 id="t1Name">Team 1</h2></div>
+        <div class="count"><b id="t1Count">0/0</b><span>checked in</span></div>
+      </div>
+      <div class="bar"><i id="t1Bar"></i></div>
+      <div class="team-body" id="t1Body"></div>
+    </section>
+    <section class="team" data-side="2" aria-labelledby="t2Name">
+      <div class="team-head">
+        <div><div class="tag">Team 2</div><h2 id="t2Name">Team 2</h2></div>
+        <div class="count"><b id="t2Count">0/0</b><span>checked in</span></div>
+      </div>
+      <div class="bar"><i id="t2Bar"></i></div>
+      <div class="team-body" id="t2Body"></div>
+    </section>
+  </div>
+  <section class="team unassigned" id="unSec" hidden aria-labelledby="unName">
+    <div class="team-head">
+      <div><div class="tag">Needs a team</div><h2 id="unName">No team yet</h2></div>
+      <div class="count"><b id="unCount">0/0</b><span>checked in</span></div>
+    </div>
+    <div class="team-body" id="unBody"></div>
+  </section>
+</main>
+
+<div class="overlay" id="ov" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mName">
+    <div class="m-head">
+      <h3 id="mName">Player</h3>
+      <div class="m-sub" id="mSub"></div>
+      <div class="m-status" id="mStatus"></div>
+    </div>
+    <div class="m-body">
+      <span class="lbl" id="payLbl">Payment</span>
+      <div class="seg" role="group" aria-labelledby="payLbl">
+        <button type="button" data-pay="cash" aria-pressed="false">Cash</button>
+        <button type="button" data-pay="gcash" aria-pressed="false">GCash</button>
+        <button type="button" data-pay="unpaid" aria-pressed="false">Unpaid</button>
+      </div>
+      <label class="lbl" for="mNotes">Notes</label>
+      <textarea id="mNotes" maxlength="300" placeholder="Optional"></textarea>
+    </div>
+    <div class="m-foot">
+      <button class="btn danger" id="mUndo" type="button" hidden>Undo check-in</button>
+      <button class="btn" id="mCancel" type="button">Cancel</button>
+      <button class="btn primary" id="mSave" type="button">Check in</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+(function(){
+  'use strict';
+  const SUPER_EMAIL = 'ton.quinton@gmail.com';
+  const COL = 'pkl-checkin';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+  const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const fmtTime = ms => ms ? new Date(ms).toLocaleTimeString([], { hour:'numeric', minute:'2-digit' }) : '';
+  const PAY_LABEL = { cash:'Cash', gcash:'GCash', unpaid:'Unpaid' };
+
+  firebase.initializeApp(window.FIREBASE_CONFIG);
+  const auth = firebase.auth(), db = firebase.firestore();
+  try { db.settings({ experimentalAutoDetectLongPolling: true, merge: true }); } catch (e) {}
+
+  /* ================= auth gate (same rules as index.html) ================= */
+  let started = false, bouncing = false, unsubProfile = null, me = '';
+  function gateMsg(t, failed){ $('gate').style.display = 'flex'; $('gateMsg').textContent = t; $('gateSpin').style.display = failed ? 'none' : ''; $('gateBack').style.display = failed ? '' : 'none'; }
+  function bounce(reason){ if (bouncing) return; bouncing = true; auth.signOut().catch(() => {}).then(() => location.replace('login.html' + (reason ? '?reason=' + reason : ''))); }
+  function isGoogleSuper(u){ return !!u && (u.email || '').toLowerCase() === SUPER_EMAIL && u.emailVerified === true && u.providerData.some(p => p.providerId === 'google.com'); }
+  function licenseOk(d){ return !!d && d.active === true && !(d.validUntil && d.validUntil.toMillis && d.validUntil.toMillis() < Date.now()); }
+  $('gateBack').addEventListener('click', () => location.replace('login.html'));
+  $('btnLogout').addEventListener('click', () => { if (!confirm('Log out of PickleManage?')) return; bouncing = true; auth.signOut().catch(() => {}).then(() => location.replace('login.html')); });
+  auth.onAuthStateChanged(user => {
+    if (bouncing) return;
+    if (!user) { location.replace('login.html'); return; }
+    if (isGoogleSuper(user)) return begin(user, { displayName:'Superadmin' });
+    if (unsubProfile) unsubProfile();
+    unsubProfile = db.collection('pm-users').doc(user.uid).onSnapshot(s => {
+      if (!s.exists && s.metadata.fromCache) return gateMsg('Waiting for a connection to verify your license…');
+      const d = s.exists ? s.data() : null;
+      if (!licenseOk(d)) return bounce(d && d.active === true ? 'expired' : 'license');
+      begin(user, d);
+    }, err => { if (err && err.code === 'permission-denied') bounce('license'); else gateMsg("Can't verify your account right now. Check your connection and refresh.", true); });
+  });
+  function begin(user, prof){
+    if (started) return; started = true;
+    me = (prof && (prof.displayName || prof.username)) || user.displayName || user.email || '';
+    $('userTxt').textContent = me;
+    $('gate').style.display = 'none';
+    startData();
+  }
+
+  /* ================= data ================= */
+  let buckets = [], parts = [], checks = {}, sid = null, sessName = '', q = '';
+  let gotB = false, gotP = false, unsubC = null;
+  let collapsed = new Set();
+  try { collapsed = new Set(JSON.parse(localStorage.getItem('pm-checkin-collapsed') || '[]')); } catch (e) {}
+  const saveCollapsed = () => { try { localStorage.setItem('pm-checkin-collapsed', JSON.stringify([...collapsed])); } catch (e) {} };
+
+  const syncHdr = () => document.documentElement.style.setProperty('--hdr', document.querySelector('header.top').offsetHeight + 'px');
+  window.addEventListener('resize', syncHdr); syncHdr();
+
+  function setLive(ok, t){ $('liveDot').classList.toggle('off', !ok); $('liveTxt').textContent = t; }
+  function fail(what){ return err => { setLive(false, 'Offline'); toast(`Couldn't load ${what}: ${err && err.code === 'permission-denied' ? 'no permission' : (err.message || err)}`, true); }; }
+
+  function startData(){
+    db.collection('pkl-queue-buckets').onSnapshot(snap => {
+      buckets = snap.docs.map(d => { const x = d.data(); return {
+        key: d.id, label: x.name || 'Category', mode: x.mode,
+        order: (x.order !== undefined && x.order !== null) ? Number(x.order) : (x.createdAtMs || 0), createdAtMs: x.createdAtMs || 0,
+        teamNames: Array.isArray(x.teamNames) ? x.teamNames.slice(0, 2).map(n => String(n || '')) : [] }; })
+        .sort((a, b) => a.order - b.order || a.createdAtMs - b.createdAtMs);
+      gotB = true; render();
+    }, fail('categories'));
+    db.collection('pkl-queue-participants').onSnapshot(snap => {
+      parts = snap.docs.map(d => ({ id: d.id, ...d.data() })); gotP = true; setLive(true, 'Live'); render();
+    }, fail('players'));
+    db.collection('pkl-queue-session').doc('state').onSnapshot(s => {
+      const x = s.exists ? s.data() : {};
+      const nid = x.currentSessionId || null; sessName = [x.currentSessionName, x.currentSessionDate].filter(Boolean).join(' · ');
+      $('sessTxt').textContent = nid ? (sessName || 'Current session') : 'No active session';
+      if (nid !== sid) { sid = nid; watchChecks(); }
+      render();
+    }, fail('session'));
+  }
+  function watchChecks(){
+    if (unsubC) { unsubC(); unsubC = null; }
+    checks = {};
+    if (!sid) return;
+    unsubC = db.collection(COL).where('sessionId', '==', sid).onSnapshot(snap => {
+      checks = {}; snap.docs.forEach(d => { checks[d.id] = d.data(); }); render();
+    }, fail('check-ins'));
+  }
+
+  /* ================= model ================= */
+  function splitNames(n){
+    const out = String(n || '').split(/\s+(?:and|&)\s+|\s*[\/+]\s*|\s*,\s*(?=\S)/i).map(s => s.trim()).filter(Boolean);
+    return out.length ? out : [String(n || '').trim() || '(no name)'];
+  }
+  const keyOf = (pid, i) => `${sid || 'nosession'}__${pid}__${i}`;
+  function splitCat(label){
+    const i = label.indexOf('|');
+    return i < 0 ? [label.trim(), ''] : [label.slice(0, i).trim(), label.slice(i + 1).trim()];
+  }
+  function teamNames(){
+    const main = buckets.find(b => b.mode === 'battle' && (b.teamNames[0] || b.teamNames[1])) || {};
+    const n = main.teamNames || [];
+    return [n[0] || 'Team 1', n[1] || 'Team 2'];
+  }
+  // players per side -> [{ group, sub, bucket, entries:[{ pid, players:[{key,name}] }] }]
+  function build(){
+    const battle = buckets.filter(b => b.mode === 'battle'), bk = new Map(battle.map(b => [b.key, b]));
+    const sides = { 1: [], 2: [], 0: [] };
+    battle.forEach(b => {
+      [1, 2, 0].forEach(side => {
+        const ents = parts.filter(p => p.bucket === b.key && (side ? Number(p.battleTeam) === side : ![1, 2].includes(Number(p.battleTeam))))
+          .sort((a, c) => String(a.name || '').localeCompare(String(c.name || '')))
+          .map(p => ({ pid: p.id, players: splitNames(p.name).map((nm, i) => ({ key: keyOf(p.id, i), name: nm, pid: p.id, idx: i, entry: p.name, bucket: b.label, side })) }));
+        if (ents.length) { const [g, s] = splitCat(b.label); sides[side].push({ group: g, sub: s, bucket: b, entries: ents }); }
+      });
+    });
+    return { sides, hasBattle: battle.length > 0 };
+  }
+  const isIn = k => !!(checks[k] && checks[k].checkedIn);
+
+  /* ================= render ================= */
+  function matches(pl, toks){ if (!toks.length) return true; const n = norm(pl.name); return toks.every(t => n.includes(t)); }
+  function chipHtml(pl, hit){
+    const c = checks[pl.key] || {}, inn = !!c.checkedIn, pay = c.payment || '';
+    const meta = inn ? `<span>✓ ${esc(fmtTime(c.checkedInAtMs))}</span>${pay ? `<span class="pay ${pay}">${PAY_LABEL[pay]}</span>` : ''}` : (pay && pay !== 'unpaid' ? `<span class="pay ${pay}">${PAY_LABEL[pay]}</span>` : '<span>Not here yet</span>');
+    const note = c.notes ? '<span class="note-dot" title="Has a note">📝</span>' : '';
+    return `<button type="button" class="chip${inn ? ' in' : ''}${hit ? ' hit' : ''}" data-k="${esc(pl.key)}" aria-label="${esc(pl.name)}, ${inn ? 'checked in at ' + esc(fmtTime(c.checkedInAtMs)) : 'not checked in'}"><span class="nm">${esc(pl.name)}</span><span class="meta">${meta}${note}</span></button>`;
+  }
+  function countOf(list){ let a = 0, t = 0; list.forEach(pl => { t++; if (isIn(pl.key)) a++; }); return [a, t]; }
+  function bucketBtn(id, name, a, t, open, lvl){
+    return `<button type="button" class="bhead" data-col="${esc(id)}" aria-expanded="${open}"><svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bname">${esc(name)}</span><span class="bcount${t && a === t ? ' full' : ''}">${a}/${t}</span></button>`;
+  }
+  function renderSide(groups, side, toks){
+    // cascade: group (e.g. "Mens") -> sub (e.g. "Novice") -> entries -> chips
+    const order = [], byG = new Map();
+    groups.forEach(x => { if (!byG.has(x.group)) { byG.set(x.group, []); order.push(x.group); } byG.get(x.group).push(x); });
+    let html = '', all = [], shownAny = false;
+    order.forEach(g => {
+      const items = byG.get(g), gPlayers = [];
+      let inner = '', gShown = false;
+      items.forEach(it => {
+        const pls = it.entries.flatMap(e => e.players); gPlayers.push(...pls);
+        const vis = it.entries.filter(e => e.players.some(p => matches(p, toks)));
+        if (!vis.length) return;
+        gShown = true;
+        const [a, t] = countOf(pls);
+        const chips = `<div class="entries">${vis.map(e => `<div class="entry">${e.players.map(p => chipHtml(p, toks.length > 0 && matches(p, toks))).join('')}</div>`).join('')}</div>`;
+        if (it.sub) {
+          const id = `${side}|${it.bucket.key}`, open = toks.length > 0 || !collapsed.has(id);
+          inner += `<div class="bucket lvl2">${bucketBtn(id, it.sub, a, t, open)}<div class="bbody"${open ? '' : ' hidden'}>${chips}</div></div>`;
+        } else inner += chips;
+      });
+      all.push(...gPlayers);
+      if (!gShown) return;
+      shownAny = true;
+      const [a, t] = countOf(gPlayers), id = `${side}|g|${g}`, open = toks.length > 0 || !collapsed.has(id);
+      html += `<div class="bucket">${bucketBtn(id, g, a, t, open)}<div class="bbody"${open ? '' : ' hidden'}>${inner}</div></div>`;
+    });
+    if (!groups.length) html = '<div class="empty"><b>No players on this team yet</b>Assign players to this team in PickleManage.</div>';
+    else if (!shownAny) html = '<div class="empty"><b>No match on this team</b>Try another spelling.</div>';
+    return { html, count: countOf(all), shown: shownAny };
+  }
+  function render(){
+    if (!gotB || !gotP) return;
+    const { sides, hasBattle } = build(), names = teamNames(), toks = norm(q).split(' ').filter(Boolean);
+    $('t1Name').textContent = names[0]; $('t2Name').textContent = names[1];
+    const note = [];
+    if (!hasBattle) note.push('No Team Battle category found. Set a category to "Team Battle (Dual Meet)" in PickleManage so players show here.');
+    if (!sid) note.push('There is no active session, so check-ins can’t be saved yet. Start a session in PickleManage first.');
+    $('notice').hidden = !note.length; $('notice').textContent = note.join(' ');
+    [1, 2].forEach(s => {
+      const r = renderSide(sides[s], String(s), toks);
+      $('t' + s + 'Body').innerHTML = r.html;
+      $('t' + s + 'Count').textContent = `${r.count[0]}/${r.count[1]}`;
+      $('t' + s + 'Bar').style.width = r.count[1] ? (100 * r.count[0] / r.count[1]) + '%' : '0';
+    });
+    const ur = sides[0].length ? renderSide(sides[0], '0', toks) : null;
+    $('unSec').hidden = !ur || (toks.length > 0 && !ur.shown);
+    if (ur) { $('unBody').innerHTML = ur.html; $('unCount').textContent = `${ur.count[0]}/${ur.count[1]}`; }
+    if (modalKey) refreshModalStatus();
+  }
+
+  /* ================= interactions ================= */
+  document.addEventListener('click', e => {
+    const h = e.target.closest('.bhead');
+    if (h) {
+      const id = h.dataset.col, open = h.getAttribute('aria-expanded') === 'true';
+      h.setAttribute('aria-expanded', String(!open)); h.nextElementSibling.hidden = open;
+      if (!q) { open ? collapsed.add(id) : collapsed.delete(id); saveCollapsed(); }
+      return;
+    }
+    const c = e.target.closest('.chip');
+    if (c) openModal(c.dataset.k, c);
+  });
+  let qt = null;
+  $('q').addEventListener('input', () => { clearTimeout(qt); qt = setTimeout(() => { q = $('q').value.trim(); $('qClear').hidden = !q; render(); }, 120); });
+  $('qClear').addEventListener('click', () => { $('q').value = ''; q = ''; $('qClear').hidden = true; render(); $('q').focus(); });
+  document.addEventListener('keydown', e => { if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA' && !modalKey) { e.preventDefault(); $('q').focus(); } });
+
+  /* ================= modal ================= */
+  let modalKey = null, modalPl = null, pay = 'unpaid', lastFocus = null, busy = false;
+  function findPlayer(k){
+    const { sides } = build();
+    for (const s of [1, 2, 0]) for (const g of sides[s]) for (const e of g.entries) for (const p of e.players) if (p.key === k) return { ...p, partners: e.players.filter(x => x.key !== k).map(x => x.name) };
+    return null;
+  }
+  function setPay(v){ pay = v; document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pay === v))); }
+  function refreshModalStatus(){
+    const c = checks[modalKey] || {}, inn = !!c.checkedIn;
+    $('mStatus').className = 'm-status' + (inn ? ' in' : '');
+    $('mStatus').textContent = inn ? `Checked in at ${fmtTime(c.checkedInAtMs)}${c.checkedInBy ? ' by ' + c.checkedInBy : ''}` : 'Not checked in yet';
+    $('mUndo').hidden = !inn;
+    $('mSave').textContent = inn ? 'Save changes' : 'Check in';
+  }
+  function openModal(k, from){
+    const pl = findPlayer(k); if (!pl) return;
+    modalKey = k; modalPl = pl; lastFocus = from || document.activeElement;
+    const c = checks[k] || {}, names = teamNames();
+    $('mName').textContent = pl.name;
+    $('mSub').textContent = [pl.bucket, pl.side ? names[pl.side - 1] : 'No team yet', pl.partners.length ? 'with ' + pl.partners.join(', ') : ''].filter(Boolean).join(' · ');
+    setPay(c.payment || 'unpaid');
+    $('mNotes').value = c.notes || '';
+    refreshModalStatus();
+    $('ov').classList.add('show'); $('ov').setAttribute('aria-hidden', 'false');
+    setTimeout(() => (document.querySelector('.seg button[aria-pressed="true"]') || $('mSave')).focus(), 30);
+  }
+  function closeModal(){
+    $('ov').classList.remove('show'); $('ov').setAttribute('aria-hidden', 'true');
+    modalKey = null; modalPl = null;
+    if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+    else if (lastFocus && lastFocus.dataset && lastFocus.dataset.k) { const el = document.querySelector(`.chip[data-k="${CSS.escape(lastFocus.dataset.k)}"]`); if (el) el.focus(); }
+  }
+  document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => setPay(b.dataset.pay)));
+  $('mCancel').addEventListener('click', closeModal);
+  $('ov').addEventListener('mousedown', e => { if (e.target === $('ov')) closeModal(); });
+  document.addEventListener('keydown', e => {
+    if (!modalKey) return;
+    if (e.key === 'Escape') { e.preventDefault(); closeModal(); return; }
+    if (e.key === 'Tab') { // keep focus inside the modal
+      const f = [...document.querySelectorAll('.modal button:not([hidden]), .modal textarea')].filter(x => x.offsetParent !== null);
+      if (!f.length) return; const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+
+  async function write(data, okMsg){
+    if (!sid) return toast('No active session. Start a session in PickleManage first.', true);
+    if (busy) return; busy = true; $('mSave').disabled = $('mUndo').disabled = true;
+    const pl = modalPl;
+    try {
+      await db.collection(COL).doc(modalKey).set({
+        sessionId: sid, participantId: pl.pid, index: pl.idx, name: pl.name, entryName: pl.entry || '', category: pl.bucket, team: pl.side || 0,
+        payment: pay, notes: $('mNotes').value.trim(), updatedBy: me, updatedAtMs: Date.now(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(), ...data
+      }, { merge: true });
+      toast(okMsg); closeModal();
+    } catch (err) {
+      toast(err && err.code === 'permission-denied' ? 'Couldn’t save: your account has no permission to write check-ins.' : 'Couldn’t save. Check your connection and try again.', true);
+    } finally { busy = false; $('mSave').disabled = $('mUndo').disabled = false; }
+  }
+  $('mSave').addEventListener('click', () => {
+    const c = checks[modalKey] || {};
+    if (c.checkedIn) write({}, `Saved ${modalPl.name}`);
+    else write({ checkedIn: true, checkedInAtMs: Date.now(), checkedInBy: me }, `${modalPl.name} checked in`);
+  });
+  $('mUndo').addEventListener('click', () => {
+    if (!confirm(`Undo check-in for ${modalPl.name}?`)) return;
+    write({ checkedIn: false, checkedInAtMs: null, checkedInBy: null }, `Undid check-in for ${modalPl.name}`);
+  });
+
+  let tt = null;
+  function toast(msg, err){ const t = $('toast'); t.textContent = msg; t.classList.toggle('err', !!err); t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), err ? 4500 : 2200); }
+
+})();
+</script>
+</body>
+</html>
