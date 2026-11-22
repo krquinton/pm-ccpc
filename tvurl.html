@@ -105,6 +105,34 @@
   #footer .ev{display:flex;align-items:center;gap:14px}
   #footer .ev::before{content:"";width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--ball-hi),var(--ball) 50%,var(--ball-lo))}
   #footer .ev:empty::before{display:none}
+  /* ?theme=mindoro — Mindoro Pickleball Org. Cup 2026: black-green, neon mint, white type; the ball stays optic yellow */
+  body.th-mindoro{--line:rgba(46,245,154,.24);--mint:#2ef59a;--mint-glow:rgba(46,245,154,.55);--ink:#062014}
+  body.th-mindoro #stage{background:
+    repeating-linear-gradient(125deg,transparent 0 130px,rgba(46,245,154,.05) 130px 142px,transparent 142px 290px),
+    radial-gradient(1200px 700px at 50% 45%,#0c2e1c 0%,#04100a 60%,#020604 100%)}
+  body.th-mindoro .glow.a{background:#0f7a45}
+  body.th-mindoro .glow.b{background:#13a560}
+  body.th-mindoro .glow.c{background:rgba(46,245,154,.35)}
+  body.th-mindoro #court .surf{fill:rgba(46,245,154,.045)}
+  body.th-mindoro #court .kit{fill:rgba(46,245,154,.04)}
+  body.th-mindoro #court path.net{stroke:rgba(46,245,154,.45)}
+  body.th-mindoro .eyebrow,body.th-mindoro .hl,body.th-mindoro .sec-head .t,body.th-mindoro .badge,body.th-mindoro .tier-title .hl{color:var(--mint);text-shadow:0 0 24px var(--mint-glow)}
+  body.th-mindoro .headline{text-shadow:0 0 28px rgba(46,245,154,.25)}
+  /* the title is revealed with a clip-path, so it gets padding: the glow stays inside the clip instead of being cut into a box */
+  body.th-mindoro .tier-title{padding:.18em .35em;margin:-.18em -.35em;text-shadow:0 0 30px rgba(255,255,255,.12)}
+  body.th-mindoro .outro-title{text-shadow:0 0 30px rgba(46,245,154,.3)}
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  body.th-mindoro .tier-eyebrow{letter-spacing:.5em;color:rgba(255,255,255,.85)}
+  body.th-mindoro .streak{background:linear-gradient(90deg,rgba(46,245,154,0),rgba(46,245,154,.95));box-shadow:0 0 18px var(--mint-glow)}
+  body.th-mindoro .sec-head .rule{background:var(--mint);box-shadow:0 0 14px var(--mint-glow)}
+  body.th-mindoro .page-dots i.on,body.th-mindoro .ncard.nologo::after,body.th-mindoro .mcard.nologo .bar,body.th-mindoro .titem .dot{background:var(--mint);box-shadow:0 0 12px var(--mint-glow)}
+  body.th-mindoro .chip{border-color:rgba(46,245,154,.55);box-shadow:0 0 22px rgba(46,245,154,.2)}
+  body.th-mindoro .mcard{box-shadow:0 0 0 5px var(--mint),0 0 70px rgba(46,245,154,.45),0 40px 90px rgba(0,0,0,.6)}
+  body.th-mindoro .ncard{box-shadow:0 0 0 3px rgba(46,245,154,.85),0 0 40px rgba(46,245,154,.3),0 24px 50px rgba(0,0,0,.5)}
+  body.th-mindoro .sheen{background:linear-gradient(105deg,transparent 35%,rgba(46,245,154,.3) 48%,rgba(255,255,255,0) 60%)}
+  body.th-mindoro .titem .lg{box-shadow:0 0 0 2px rgba(46,245,154,.7)}
+  body.th-mindoro #footer{color:rgba(134,199,165,.8)}
+  body.th-mindoro .vignette{background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.7) 100%)}
   #status{position:absolute;left:50%;bottom:120px;transform:translateX(-50%);font-size:22px;color:rgba(255,255,255,.55);z-index:30;text-align:center}
 </style>
 </head>
@@ -142,6 +170,7 @@
   const courtLines = [...document.querySelectorAll('#court path:not(.net)')];
   const net = document.querySelector('#court .net');
   const params = new URLSearchParams(location.search);
+  if (params.get('theme') === 'mindoro') document.body.classList.add('th-mindoro');   // mpo-display.html
   // ?once=1 (used by display.html "Show Sponsors"): play one loop, then tell the parent page it's done
   const ONCE = params.get('once') === '1';
   let doneSent = false;

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OBS overlay — PickleManage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* OBS Browser Source: 1920 × 1080. Background is transparent (or #00ff00 when Tab 7 says Green screen). */
+*{box-sizing:border-box;margin:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:transparent;font-family:Inter,sans-serif;color:#fff}
+body.green{background:#00ff00}
+body.preview{transform-origin:0 0}
+.box{position:absolute;width:820px;transition:opacity .5s,transform .5s;filter:drop-shadow(0 12px 30px rgba(0,0,0,.45))}
+body.green .box{filter:none}
+.box.hide{opacity:0;transform:translateY(16px)}
+.pos-bl{left:64px;bottom:64px} .pos-br{right:64px;bottom:64px} .pos-tl{left:64px;top:64px} .pos-tr{right:64px;top:64px}
+
+.top{display:flex;align-items:center;gap:14px;background:#0f1410;border-radius:14px 14px 0 0;padding:10px 20px}
+.top .lg{width:40px;height:40px;border-radius:8px;object-fit:contain;flex:none}
+.top .t{flex:1;min-width:0}
+.top .t b{display:block;font:700 22px Oswald,sans-serif;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .t small{display:block;font:600 15px Inter,sans-serif;color:#9fb09a;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.clk{font:700 30px Oswald,sans-serif;letter-spacing:.04em;padding:2px 12px;border-radius:8px;background:rgba(255,255,255,.08);font-variant-numeric:tabular-nums;white-space:nowrap}
+.clk:empty{display:none}
+.clk.warm{color:#4fb4ff} .clk.w1{color:#ffc43d} .clk.w2{color:#ff8a1f} .clk.fin,.clk.over{color:#ff4f4f} .clk.to{color:#c792ff} .clk.pz{color:#9fb09a}
+.clk small{font:700 14px Inter,sans-serif;letter-spacing:.12em;margin-right:8px;vertical-align:4px}
+.call{font:700 30px Oswald,sans-serif;color:#ffc43d;letter-spacing:.06em;white-space:nowrap}
+.call:empty{display:none}
+
+.row{display:flex;align-items:center;height:96px;background:rgba(15,20,16,.94)}
+.row + .row{border-top:1px solid rgba(255,255,255,.08);border-radius:0 0 14px 14px}
+body.green .row{background:#0f1410}
+.bar{width:12px;height:100%;background:var(--c);flex:none}
+.row + .row .bar{border-radius:0 0 0 14px}
+.nm{flex:1;min-width:0;padding:0 18px 0 22px;font:700 36px Oswald,sans-serif;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tag{font:700 15px Inter,sans-serif;letter-spacing:.12em;color:#c792ff;margin-right:6px;white-space:nowrap}
+.srv{width:20px;height:20px;border-radius:50%;margin:0 20px;flex:none}
+.srv.on{background:#ffc43d;box-shadow:0 0 18px #ffc43d}
+.sc{width:124px;height:100%;display:grid;place-items:center;background:var(--c);font:700 72px Oswald,sans-serif;flex:none;font-variant-numeric:tabular-nums}
+.row + .row .sc{border-radius:0 0 14px 0}
+.box.noscore .sc,.box.noscore .srv{display:none}
+.box.noscore .row + .row .nm{border-radius:0 0 14px 0}
+
+/* winner banner */
+.win .k{background:#ffc43d;color:#1d1600;font:700 22px Oswald,sans-serif;letter-spacing:.3em;padding:10px 22px;border-radius:16px 16px 0 0}
+.win .b{display:flex;align-items:center;background:rgba(15,20,16,.96);height:120px;border-radius:0 0 16px 16px;overflow:hidden}
+body.green .win .b{background:#0f1410}
+.win .n{flex:1;min-width:0;padding:0 22px;font:700 38px Oswald,sans-serif;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.win .n small{display:block;font:600 16px Inter,sans-serif;color:#9fb09a;letter-spacing:.04em;text-transform:none}
+.win .s{font:700 64px Oswald,sans-serif;padding:0 28px;white-space:nowrap}
+#st{position:fixed;left:10px;top:8px;font:600 13px Inter,sans-serif;color:#ff8a8a;background:rgba(0,0,0,.6);padding:4px 10px;border-radius:8px;display:none}
+</style>
+</head>
+<body>
+<div class="box hide" id="bug">
+  <div class="top"><img class="lg" id="lg" alt="" hidden><div class="t"><b id="title"></b><small id="sub"></small></div><div class="clk" id="clk"></div><div class="call" id="call"></div></div>
+  <div class="row" id="rowA"><div class="bar"></div><div class="nm" id="nA"></div><span class="tag" id="tagA"></span><div class="srv" id="sA"></div><div class="sc" id="cA"></div></div>
+  <div class="row" id="rowB"><div class="bar"></div><div class="nm" id="nB"></div><span class="tag" id="tagB"></span><div class="srv" id="sB"></div><div class="sc" id="cB"></div></div>
+</div>
+<div class="box win hide" id="win"><div class="k">WINNER</div><div class="b"><div class="bar" id="wBar"></div><div class="n" id="wN"></div><div class="s" id="wS"></div></div></div>
+<div id="st"></div>
+
+<script src="game-timer.js"></script>
+<script src="umpire-logic.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+/* One court's score bug for OBS. Reads only (no login needed): the match on the court, the umpire's
+   pm-umpire doc (score, serve, pauses), settings (Tab 7 look, TV title/logo, game timer) and winner events. */
+const P = new URLSearchParams(location.search), COURT = Math.max(1, Math.min(5, Number(P.get('court')) || 1));
+firebase.initializeApp(window.FIREBASE_CONFIG);
+const db = firebase.firestore();
+try { db.settings({ experimentalAutoDetectLongPolling: true, merge: true }); } catch (e) {}
+const $ = id => document.getElementById(id), GT = window.GameTimer, U = window.UmpireLogic;
+let ds = {}, logo = null, buckets = {}, match = null, live = null, sessionName = '', winTimer = 0;
+
+if (P.get('preview') === '1') { document.body.classList.add('preview'); const fitP = () => document.body.style.transform = `scale(${innerWidth / 1920})`; addEventListener('resize', fitP); fitP(); }
+
+function look(){ return Object.assign({ bg:'transparent', colorA:'#1f6fd6', colorB:'#e5484d', pos:'bl' }, ds.obs || {}); }
+const names = t => (t || []).map(p => p.name).join(' / ');
+
+db.collection('pkl-queue-events').doc('displaySettings').onSnapshot(d => { ds = d.exists ? d.data() : {}; paint(); }, err);
+db.collection('pkl-queue-events').doc('tvLogo').onSnapshot(d => { logo = d.exists ? d.data() : null; paint(); }, err);
+db.collection('pkl-queue-session').doc('state').onSnapshot(d => { sessionName = (d.exists && d.data().currentSessionName) || ''; paint(); }, err);
+db.collection('pkl-queue-buckets').onSnapshot(s => { buckets = {}; s.forEach(d => { buckets[d.id] = d.data().name || ''; }); paint(); }, err);
+db.collection('pkl-queue-matches').where('court', '==', COURT).onSnapshot(s => {
+  const ms = s.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(m => m.status === 'assigned' || m.status === 'playing');
+  match = ms[0] || null; paint();
+}, err);
+db.collection('pm-umpire').doc(String(COURT)).onSnapshot(d => { live = d.exists ? d.data() : null; paint(); }, err);
+/* winner banner: a new 'winner' event for this court */
+let seen = null;
+db.collection('pkl-queue-events').where('court', '==', COURT).onSnapshot(s => {
+  const docs = s.docs.map(d => Object.assign({ id: d.id }, d.data()));
+  if (seen === null) { seen = new Set(docs.map(d => d.id)); return; }      // ignore old results on load
+  docs.forEach(e => {
+    if (seen.has(e.id)) return; seen.add(e.id);
+    const c = e.createdAt, at = c && c.toMillis ? c.toMillis() : c && c.seconds ? c.seconds * 1000 : Date.now();
+    if (e.type === 'winner' && Date.now() - at < 60000) showWinner(e);      // only fresh results
+  });
+}, err);
+function err(e){ $('st').textContent = 'Connection problem: ' + (e && (e.code || e.message)); $('st').style.display = 'block'; }
+
+function liveFor(m){ return live && m && live.matchDocId === m.id ? live : null; }
+
+function paint(){
+  const L = look();
+  document.body.classList.toggle('green', L.bg === 'green');
+  ['bug','win'].forEach(id => { $(id).classList.remove('pos-bl','pos-br','pos-tl','pos-tr'); $(id).classList.add('pos-' + (L.pos || 'bl')); });
+  document.documentElement.style.setProperty('--a', L.colorA); document.documentElement.style.setProperty('--b', L.colorB);
+  $('rowA').style.setProperty('--c', L.colorA); $('rowB').style.setProperty('--c', L.colorB);
+  const th = ds.tvHeader || {};
+  $('title').textContent = (th.title || '').trim() || (th.sub || '').trim() || sessionName || 'PickleManage';
+  if (logo && logo.url) { $('lg').src = logo.url; $('lg').hidden = false; } else $('lg').hidden = true;
+  const bug = $('bug');
+  if (!match || winTimer) { bug.classList.add('hide'); return; }
+  $('sub').textContent = ['Court ' + COURT, buckets[match.bucket] || ''].filter(Boolean).join(' · ');
+  $('nA').textContent = names(match.team1); $('nB').textContent = names(match.team2);
+  const u = liveFor(match), mob = ds.mobile || {}, scoring = !!(u && u.started && mob.enabled && match.status === 'playing');
+  bug.classList.toggle('noscore', !scoring);
+  if (scoring) {
+    $('cA').textContent = u.s1; $('cB').textContent = u.s2;
+    $('sA').classList.toggle('on', u.serving === 1); $('sB').classList.toggle('on', u.serving === 2);
+    $('call').textContent = U.call(u);
+  } else $('call').textContent = '';
+  bug.classList.remove('hide');
+  tick();
+}
+function tick(){
+  if (!match) return;
+  const cfg = GT.normalize(ds.gameTimer), u = liveFor(match), ck = GT.clockFor(match, cfg, Date.now(), u), c = $('clk');
+  c.className = 'clk'; $('tagA').textContent = ''; $('tagB').textContent = '';
+  if (ck.phase === 'warmup') { c.classList.add('warm'); c.innerHTML = '<small>WARM-UP</small>' + GT.formatClock(ck.secs); }
+  else if (ck.phase === 'ready') { c.classList.add('warm'); c.textContent = 'READY'; }
+  else if (ck.phase === 'playing' && ck.paused) {
+    if (ck.paused === 'timeout') { c.classList.add('to'); c.innerHTML = '<small>TIMEOUT</small>' + GT.formatClock(ck.pauseLeft); $(ck.pauseTeam === 2 ? 'tagB' : 'tagA').textContent = 'TIMEOUT'; }
+    else { c.classList.add('pz'); c.innerHTML = '<small>PAUSED</small>' + GT.formatClock(ck.secs); }
+  }
+  else if (ck.phase === 'playing') {
+    const lv = cfg.enabled ? { warn1:'w1', warn2:'w2', final:'fin', over:'over' }[ck.level] : '';
+    if (lv) c.classList.add(lv);
+    c.textContent = GT.formatClock(ck.secs);
+  } else c.textContent = '';
+}
+setInterval(tick, 1000);
+
+function showWinner(e){
+  const L = look(), w = e.winner === 'team2' ? 2 : 1;
+  $('wBar').style.background = w === 1 ? L.colorA : L.colorB;
+  $('wN').innerHTML = `${esc(((w === 1 ? e.team1 : e.team2) || []).join(' / '))}<small>${esc(['Court ' + COURT, buckets[e.bucket] || ''].filter(Boolean).join(' · '))}</small>`;
+  $('wS').textContent = `${e.score1}–${e.score2}`;
+  clearTimeout(winTimer); $('bug').classList.add('hide'); $('win').classList.remove('hide');
+  winTimer = setTimeout(() => { $('win').classList.add('hide'); winTimer = 0; paint(); }, 12000);
+}
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])); }
+</script>
+</body>
+</html>

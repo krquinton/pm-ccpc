@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<!-- mpo-display.html: same as display.html, locked to the Mindoro Pickleball Org. Cup 2026 theme (sponsors too). Keep in step with display.html. -->
+<html lang="en" data-theme="mindoro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mindoro Pickleball Org. Cup 2026 — Display</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="game-timer.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+/* Themes. New tokens drive the courts/queue; the short legacy names (--sf, --t, --m, …) keep the popups, leaderboard and scoreboard matching. */
+:root,html[data-theme="dark"]{
+  --bg:#191c19;--card:#232823;--card-2:#2c322c;--edge:transparent;--name:#f4f7f1;--dim:#93a08f;--amp:#6b7768;--numc:#f4f7f1;
+  --accent:#6cc144;--on-accent:#10210a;--accent-glow:rgba(108,193,68,.4);--glow:none;
+  --warm:#4fb4ff;--w1:#ffc43d;--w2:#ff8a1f;--fin:#ff4f4f;--track:rgba(255,255,255,.08);--open:rgba(147,160,143,.3);
+  --head:linear-gradient(135deg,#2f332e 0%,#222622 100%);--headsub:#9fd47f;
+  --sf:#232823;--in:#2c322c;--t:#f4f7f1;--m:#93a08f;--bd:#353c35;--a:#6cc144;--at:#10210a;--chip:#2c322c;--c1:#3992b9;--c2:#ff6600;--sh:0 10px 30px rgba(0,0,0,.45)}
+html[data-theme="light"]{
+  --bg:#eef1eb;--card:#fff;--card-2:#f1f4ee;--edge:#dfe5da;--name:#162016;--dim:#677363;--amp:#9aa596;--numc:#162016;
+  --accent:#4f9d2d;--on-accent:#fff;--accent-glow:rgba(79,157,45,.3);--glow:0 2px 10px rgba(22,32,22,.05);
+  --warm:#1f86d6;--w1:#d99a00;--w2:#e66a00;--fin:#d92b2b;--track:rgba(0,0,0,.07);--open:rgba(103,115,99,.35);
+  --head:linear-gradient(135deg,#2f332e 0%,#222622 100%);--headsub:#9fd47f;
+  --sf:#fff;--in:#f1f4ee;--t:#162016;--m:#677363;--bd:#dfe5da;--a:#4f9d2d;--at:#fff;--chip:#fff;--sh:0 8px 24px rgba(38,42,38,.1)}
+/* Mindoro Pickleball Org. Cup: black-green, neon mint glow, white names */
+html[data-theme="mindoro"]{
+  --bg:#040a07;--card:rgba(8,26,17,.88);--card-2:rgba(18,58,38,.55);--edge:rgba(52,232,150,.35);--name:#ffffff;--dim:#86c7a5;--amp:#3f8a63;--numc:#7dffc0;
+  --accent:#2ef59a;--on-accent:#03140b;--accent-glow:rgba(46,245,154,.45);--glow:0 0 0 1px rgba(52,232,150,.08),0 0 2.4vh rgba(46,245,154,.12);
+  --warm:#4fc3ff;--w1:#ffd23d;--w2:#ff8a1f;--fin:#ff4d4d;--track:rgba(46,245,154,.12);--open:rgba(46,245,154,.28);
+  --head:linear-gradient(180deg,#07150e 0%,#030805 100%);--headsub:#2ef59a;
+  --sf:#071a10;--in:#0c2418;--t:#fff;--m:#86c7a5;--bd:#1d5c3e;--a:#2ef59a;--at:#03140b;--chip:#0c2418;--c1:#4fc3ff;--c2:#ff8a1f;--sh:0 0 30px rgba(46,245,154,.15)}
+html[data-theme="mindoro"] body{background:
+  repeating-linear-gradient(125deg,transparent 0 7vw,rgba(46,245,154,.035) 7vw 7.6vw,transparent 7.6vw 15vw),
+  radial-gradient(120% 90% at 50% 120%,#0b3a22 0%,transparent 60%),#040a07}
+html[data-theme="mindoro"] header.top{border-bottom:1px solid rgba(46,245,154,.35);box-shadow:0 0 4vh rgba(46,245,154,.18)}
+html[data-theme="mindoro"] header.top h1{letter-spacing:.04em;text-transform:uppercase;font-stretch:125%}
+html[data-theme="mindoro"] .crt .num{text-shadow:0 0 2vh rgba(46,245,154,.55)}
+html[data-theme="mindoro"] .crt .clock b{text-shadow:0 0 2.2vh currentColor}
+html[data-theme="mindoro"] .rows .crt.warm .num{text-shadow:none}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--t);font-family:'Inter',system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+h1,h3{font-family:'Baloo 2',system-ui,sans-serif;margin:0}
+#o{flex:1;min-height:0;display:flex;flex-direction:column}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:1vh 1.2vw;box-shadow:var(--sh)}
+.s{color:var(--m)}
+
+/* ---------- header / scoreboard ---------- */
+header.top{display:block;text-align:center;padding:8px 2.5vw 22px;flex:none;color:#fff;position:relative;background:var(--head);box-shadow:var(--sh)}
+/* plain header (no dual meet): short, left aligned, clock on the right */
+header.top.plain{display:flex;align-items:center;gap:1.3vw;text-align:left;height:9vh;padding:0 2vw;font-family:Archivo,'Inter',sans-serif}
+header.top.plain .logo{position:static;transform:none;height:6.4vh;max-width:14vw}
+header.top.plain h1{font-family:Archivo,'Inter',sans-serif;font-weight:800;font-stretch:110%;font-size:3.6vh;line-height:1}
+header.top.plain .sub{color:var(--headsub);font-size:2.1vh;font-weight:600;margin-top:.4vh}
+header.top.plain .now{margin-left:auto;font-weight:700;font-stretch:115%;font-size:3.3vh;color:rgba(255,255,255,.6);font-variant-numeric:tabular-nums;padding-right:2.4vw}
+header.top h1{font-size:clamp(20px,3vw,44px);color:#fff;line-height:1.05;font-weight:800}
+header.top .sub{color:var(--headsub);font-weight:700;font-size:clamp(11px,1.3vw,20px);margin-top:2px}
+header.top .logo{position:absolute;left:1.5vw;top:50%;transform:translateY(-50%);max-height:calc(100% - 14px);height:clamp(40px,9vh,90px);max-width:16vw;object-fit:contain;border-radius:8px}
+.sc{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:2vw;margin-top:2px;position:relative;z-index:1}
+.tm{display:flex;align-items:center;gap:1vw;min-width:0}
+.tm.r{flex-direction:row-reverse;text-align:right}
+.tm b{font:800 clamp(18px,2.6vw,40px)/1.05 'Baloo 2',sans-serif;border-bottom:4px solid;padding-bottom:2px;overflow-wrap:anywhere}
+.n{font:800 clamp(52px,10vh,130px)/.9 'Baloo 2',sans-serif;white-space:nowrap}
+.n em{font-style:normal;opacity:.5;padding:0 .1em}
+.tug{position:relative;height:clamp(22px,3.4vh,40px);background:#fff;border-radius:99px;margin:8px 0 0;z-index:1}
+.tug i{position:absolute;top:0;bottom:0;transition:width .8s}
+.f1{left:0;border-radius:99px 0 0 99px;background:var(--c1)}
+.f2{right:0;border-radius:0 99px 99px 0;background:var(--c2)}
+.lead{margin-top:clamp(12px,2vh,22px);font:700 clamp(14px,1.8vw,26px) 'Baloo 2',sans-serif;color:#cfe9c3;position:relative;z-index:1}
+
+/* ================= courts + queue (redesign: names first) =================
+   One family (Archivo): semi-condensed for names so long names stay big, wide for numbers and clocks. */
+.main{flex:1;min-height:0;display:grid;gap:1.1vw;padding:1.6vh 1.6vw;font-family:Archivo,'Inter',sans-serif;font-stretch:87%;font-variant-numeric:tabular-nums}
+.main.rows{grid-template-columns:minmax(0,1.75fr) minmax(0,1fr)}
+.main.split{grid-template-columns:minmax(0,1fr) minmax(0,.82fr) minmax(0,1fr)}
+.main.noq{grid-template-columns:minmax(0,1fr)}
+.main.split.noq{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.col{display:grid;gap:1.2vh;min-height:0}
+
+.crt{position:relative;background:var(--card);border:1px solid var(--edge);border-radius:1.6vh;overflow:hidden;min-height:0;box-shadow:var(--glow)}
+.crt .num{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--card-2);font-weight:900;font-stretch:125%;line-height:1;color:var(--numc)}
+.crt .num small{font-size:1.5vh;font-weight:600;font-stretch:100%;color:var(--dim);margin-bottom:.3vh}
+.crt .team{font-weight:700;line-height:1.04;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--name)}
+.crt .team.i1,.crt .team.i2,.qi .t.i1,.qi .t.i2{padding-left:.35em;border-left:.16em solid var(--c1)}
+.crt .team.i2,.qi .t.i2{border-left-color:var(--c2)}
+.amp{color:var(--amp);font-weight:500;padding:0 .14em}
+.crt .clock b{display:block;font-weight:800;font-stretch:118%;line-height:1;color:var(--name)}
+.crt .clock span{display:block;color:var(--dim);font-size:1.9vh;font-weight:600;margin-top:.5vh}
+.crt .prog{position:absolute;right:0;bottom:0;height:.8vh;background:var(--track)}
+.crt .prog i{position:absolute;inset:0 auto 0 0;width:0;background:var(--accent);transition:width 1s linear,background .6s}
+.crt .open-txt{color:var(--dim);font-size:3vh;font-weight:500;padding:0 1.8vw}
+
+/* live score from the umpire app (Tab 6 → Scores on the TV: score, serve, or both) */
+.crt .tline{display:flex;align-items:center;gap:.5em;min-width:0}
+.crt .tline .team{flex:1;min-width:0}
+.crt .lsc{flex:none;min-width:2.3ch;text-align:right;font-weight:900;font-stretch:118%;line-height:1;color:var(--name);font-variant-numeric:tabular-nums lining-nums}
+.crt .lsc.ahead{color:var(--accent)}
+.crt .ball{flex:none;width:.42em;height:.42em;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f4ffa6,#d4f22c 55%,#93b00a);box-shadow:0 0 .5em rgba(212,242,44,.6);visibility:hidden}
+.crt .ball.on{visibility:visible}
+.rows .crt .tline{font-size:var(--nsz,5.3vh)}
+.rows .crt .tline .team{font-size:1em}
+.rows .crt .lsc{font-size:calc(var(--nsz,4.5vh) * 1.3)}   /* fixed: same size on every court, whatever the names do */
+.split .crt .tblock{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:.9vw}
+.split .crt .tblock .ball{font-size:4.6vh}
+.split .crt .tblock .names{min-width:0;display:flex;flex-direction:column;gap:.4vh}
+.split .crt .tblock .lsc{font-size:9vh}
+/* rows (1, 2, 3 or 5 courts): number | names | clock */
+.rows .crt{display:grid;grid-template-columns:11vh minmax(0,1fr) auto;align-items:center}
+.rows .crt .num{height:100%;font-size:7vh}
+.rows .crt .teams{padding:0 1.8vw;min-width:0;display:flex;flex-direction:column;gap:.5vh}
+.rows .crt .team{font-size:var(--nsz,5.3vh)}
+.rows .crt .clock{padding:0 1.6vw 0 .8vw;text-align:right;width:15vw;min-width:0}
+.rows .crt .clock b{font-size:var(--csz,6.6vh)}
+.rows .crt .prog{left:11vh}
+.rows .crt .vs{display:none}
+
+/* split (4 courts): tall cards, one player per line */
+.split .crt{display:flex;flex-direction:column}
+.split .crt .chead{display:flex;align-items:center;justify-content:space-between;padding:1.4vh 1.4vw 0 0}
+.split .crt .num{flex-direction:row;gap:.6vw;align-items:baseline;background:transparent;font-size:6vh;padding-left:1.4vw}
+.split .crt .num small{font-size:2vh}
+.split .crt .clock{text-align:right}
+.split .crt .clock b{font-size:6vh}
+.split .crt .teams{flex:1;display:flex;flex-direction:column;justify-content:center;gap:.4vh;padding:0 1.4vw 2.2vh;min-width:0}
+.split .crt .team{font-size:4.6vh}
+.split .crt .vs{display:flex;align-items:center;gap:.8vw;color:var(--dim);font-size:1.8vh;font-weight:700;margin:.8vh 0}
+.split .crt .vs::before,.split .crt .vs::after{content:'';flex:1;height:1px;background:var(--track)}
+.split .crt .prog{left:0}
+.split .crt .open-txt{flex:1;display:flex;align-items:center;justify-content:center;font-size:3.4vh}
+
+/* timer states */
+.crt.w1 .clock b{color:var(--w1)} .crt.w1 .prog i{background:var(--w1)}
+.crt.w2 .clock b{color:var(--w2)} .crt.w2 .prog i{background:var(--w2)}
+.crt.fin .clock b,.crt.over .clock b{color:var(--fin)}
+.crt.fin .prog i,.crt.over .prog i{background:var(--fin)}
+.crt.fin .clock b{animation:beat 1s ease-in-out infinite}
+.crt.over{box-shadow:inset 0 0 0 .3vh var(--fin)}
+.crt.to .clock b{color:#c792ff} .crt.to .prog i{background:#c792ff}
+.crt.pz .clock b{color:var(--dim)}
+.crt .clock span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crt.warm .clock b{color:var(--warm)} .crt.warm .prog i{background:var(--warm)}
+.rows .crt.warm .num{background:var(--warm);color:#fff}
+.rows .crt.warm .num small{color:rgba(255,255,255,.85)}
+.split .crt.warm .num{color:var(--warm)}
+.crt.open{background:transparent;border:.25vh dashed var(--open);box-shadow:none}
+.crt.open .num{background:transparent;color:var(--dim)}
+
+/* the one big motion: a match lands on a court */
+.crt.called{animation:call 3.4s ease-out}
+.rows .crt.called .num{animation:callnum 3.4s ease-out}
+.split .crt.called .num{animation:callnumtxt 3.4s ease-out}
+.crt.called .team{animation:slidein .7s cubic-bezier(.2,.8,.2,1) both}
+.crt.called .team:nth-of-type(2){animation-delay:.08s}
+.crt.called .team:nth-of-type(3){animation-delay:.16s}
+.crt.called .team:nth-of-type(4){animation-delay:.24s}
+@keyframes call{0%,45%{box-shadow:0 0 0 .5vh var(--accent),0 0 6vh var(--accent-glow)}100%{box-shadow:var(--glow)}}
+@keyframes callnum{0%,60%{background:var(--accent);color:var(--on-accent)}}
+@keyframes callnumtxt{0%,60%{color:var(--accent)}}
+@keyframes slidein{from{opacity:0;transform:translateX(-3vw)}to{opacity:1;transform:none}}
+@keyframes beat{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* up next */
+.next{display:flex;flex-direction:column;min-height:0;gap:1vh}
+.next h2{font-weight:800;font-stretch:110%;font-size:3vh;color:var(--dim);padding:.2vh .3vw 0;display:flex;justify-content:space-between;align-items:baseline;margin:0}
+.next h2 em{font-style:normal;font-weight:600;font-size:2.3vh}
+.q{display:flex;flex-direction:column;gap:1vh;min-height:0;overflow:hidden}
+.qi{display:grid;grid-template-columns:4.8vh minmax(0,1fr) auto;gap:1vw;align-items:center;background:var(--card);border:1px solid var(--edge);border-radius:1.4vh;padding:1.3vh 1.1vw;flex:none}
+.qi .qpos{font-weight:900;font-stretch:125%;font-size:3.4vh;color:var(--dim);text-align:center}
+.qi .who{min-width:0}
+.qi .cat{font-size:1.7vh;font-weight:600;color:var(--dim);margin-bottom:.2vh;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qi .t{font-weight:700;font-size:3.4vh;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--name)}
+.qi .eta{color:var(--dim);font-size:2.2vh;font-weight:700;font-stretch:110%;white-space:nowrap}
+.qi.first{background:var(--accent);border-color:var(--accent);padding:1.9vh 1.1vw;box-shadow:0 0 3vh var(--accent-glow)}
+.qi.first .t,.qi.first .qpos,.qi.first .eta,.qi.first .cat,.qi.first .amp{color:var(--on-accent)}
+.qi.first .qpos,.qi.first .eta,.qi.first .cat,.qi.first .amp{opacity:.7}
+.qi.first .t{font-size:3.8vh}
+.qi.hold{opacity:.45}
+.split .qi{grid-template-columns:4.8vh minmax(0,1fr);row-gap:.3vh}
+.split .qi .eta{grid-column:2;font-size:2vh}
+.q-empty{color:var(--dim);font-size:2.6vh;padding:2vh .4vw}
+
+@media (prefers-reduced-motion: reduce){.crt,.crt *,.qi{animation:none!important;transition:none!important}}
+
+/* ---------- popups ---------- */
+.ov{position:fixed;inset:0;background:rgba(10,13,10,.88);display:none;align-items:center;justify-content:center;z-index:80;padding:3vh 3vw}
+.ov.show{display:flex}
+.ov.lb{z-index:70;flex-direction:column}
+.pop{background:var(--sf);border:3px solid var(--a);border-radius:28px;padding:clamp(30px,4vw,60px) clamp(40px,6vw,90px);text-align:center;box-shadow:0 30px 90px rgba(0,0,0,.6);max-width:92vw}
+.pop .k{font:800 min(5vh,3vw) 'Baloo 2',sans-serif;color:var(--a);text-transform:uppercase;letter-spacing:2px;margin-bottom:16px}
+.pop .cb{font-size:min(4.6vh,2.8vw);color:var(--m);margin-bottom:18px;font-weight:600}
+.pop .tb2{font:800 min(8.5vh,5.4vw)/1.25 'Baloo 2',sans-serif}
+.pop .sb{font:800 min(13vh,8vw) 'Baloo 2',sans-serif;color:var(--a);margin-top:14px}
+.pop .wn{font:800 min(10vh,6vw) 'Baloo 2',sans-serif;color:#3ecb7c;margin-top:6px}
+.lb-title{font:800 min(7vh,4.2vw) 'Baloo 2',sans-serif;color:var(--a);text-transform:uppercase;letter-spacing:.12em;line-height:1;margin-bottom:.8vh;text-align:center}
+.lb-sub{font:700 min(3vh,1.8vw) 'Baloo 2',sans-serif;color:var(--m);margin-bottom:3vh;text-align:center}
+.lb-cols{display:grid;gap:2vw;width:100%;flex:1;min-height:0}
+.lb-col{background:var(--sf);border:.4vh solid var(--bd);border-radius:2vh;padding:2vh 1.6vw;display:flex;flex-direction:column;min-width:0}
+.lb-col h3{margin:0 0 1.6vh;font-size:min(5vh,2.8vw);color:var(--a);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb-row{display:flex;align-items:center;gap:1vw;flex:1;min-height:0;border-top:.2vh solid var(--bd)}
+.lb-row:first-of-type{border-top:none}
+.lb-rank{font:800 min(6vh,3.4vw) 'Baloo 2',sans-serif;color:var(--a);width:3.4vw;text-align:center;flex-shrink:0}
+.lb-name{flex:1;min-width:0;font:800 min(4.8vh,2.7vw) 'Baloo 2',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb-stat{font:800 min(3.4vh,1.9vw)/1.1 'Baloo 2',sans-serif;color:var(--m);text-align:right;flex-shrink:0}
+.lb-stat b{color:var(--t);font-size:1.25em}
+.lb-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--m);font:700 min(4vh,2.2vw) 'Baloo 2',sans-serif}
+
+/* static image (admin: "Show Image") — covers courts and popups until hidden; sponsors play on top of it */
+#imgOv{position:fixed;inset:0;z-index:94;background:#000;display:none;align-items:center;justify-content:center}
+#imgOv.show{display:flex}
+#imgOv img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+
+/* sponsor showcase (admin: "Show Sponsors") — covers everything, popups included, until it finishes */
+#spOv{position:fixed;inset:0;z-index:95;background:#000;display:none}
+#spOv.show{display:block}
+#spOv iframe{width:100%;height:100%;border:0;display:block}
+
+/* theme switch */
+.tg{position:fixed;right:8px;top:8px;width:40px;height:22px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:14px;cursor:pointer;z-index:90;opacity:.6}
+.tg .kn{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#6cc144;transition:transform .2s;font-size:9px;display:flex;align-items:center;justify-content:center}
+html[data-theme="light"] .tg .kn{transform:translateX(18px);background:#3992b9}
+html[data-theme="mindoro"] .tg .kn{transform:translateX(9px);background:#2ef59a}
+
+@media(max-width:800px){
+  body{overflow:auto}html,body{height:auto}
+  .main,.main.q,.main.st{grid-template-columns:1fr}
+  .col{grid-template-rows:none}
+  .sc{grid-template-columns:1fr}
+  .tm,.tm.r{flex-direction:row;justify-content:center;text-align:left}
+}
+</style>
+</head>
+<body>
+<div id="o"></div>
+<div class="tg" id="tg" style="display:none"><div class="kn" id="tk"></div></div>
+
+<div id="imgOv"><img id="imgTv" alt=""></div>
+<div id="spOv"></div>
+<div class="ov lb" id="lbOv"><div class="lb-title">🏆 Leaderboard</div><div class="lb-sub" id="lbSub"></div><div class="lb-cols" id="lbCols"></div></div>
+<div class="ov" id="callOv"><div class="pop"><div class="k">📣 Calling players</div><div class="cb" id="callCourt"></div><div class="tb2" id="callTeams"></div></div></div>
+<div class="ov" id="winOv"><div class="pop"><div class="k">🏆 Match result</div><div class="cb" id="winCourt"></div><div class="tb2" id="winTeams"></div><div class="sb" id="winScore"></div><div class="wn" id="winName"></div></div></div>
+
+<script>
+/* ================= Firebase ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyB4IiCCQHtGeIT44n71oGlKk7PIOSWxfg8",
+  authDomain: "ccpc-1943f.firebaseapp.com",
+  databaseURL: "https://ccpc-1943f-default-rtdb.firebaseio.com",
+  projectId: "ccpc-1943f",
+  storageBucket: "ccpc-1943f.firebasestorage.app",
+  messagingSenderId: "904942754236",
+  appId: "1:904942754236:web:aecbec51d5cd0b745b33b9"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+/* ================= helpers ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nm = a => (a || []).map(p => esc(p.name)).join(' &amp; ');
+const fmt = sec => { sec = Math.max(0, Math.floor(sec)); const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60), s = sec%60, p = n => String(n).padStart(2,'0'); return h ? `${h}:${p(m)}:${p(s)}` : `${p(m)}:${p(s)}`; };
+
+/* Themes: dark, light, mindoro. The admin can pin one (📺 TV header → TV theme); otherwise the corner switch cycles them on this TV. */
+const THEMES = ['dark','light','mindoro'], THEME_ICON = { dark:'🌙', light:'☀️', mindoro:'🏆' };
+let localTheme = THEMES.includes(localStorage.getItem('pkl-tv-theme')) ? localStorage.getItem('pkl-tv-theme') : 'dark';
+function applyTheme(){
+  let pinned = '';
+  try { if (ds.tvHeader && THEMES.includes(ds.tvHeader.theme)) pinned = ds.tvHeader.theme; } catch (e) { /* settings not loaded yet */ }
+  const t = 'mindoro';   // mpo-display.html: always the Mindoro Pickleball Org. Cup theme
+  document.documentElement.setAttribute('data-theme', t); $('#tk').textContent = THEME_ICON[t];
+  $('#tg').title = pinned ? 'Theme is set from the admin (TV header)' : 'Change theme';
+}
+applyTheme();
+$('#tg').addEventListener('click', () => { localTheme = THEMES[(THEMES.indexOf(localTheme) + 1) % THEMES.length]; localStorage.setItem('pkl-tv-theme', localTheme); applyTheme(); });
+
+/* ================= live data ================= */
+let ms = [], bk = {}, bkCourts = {}, ses = {}, ds = {}, tvLogo = null, prevOn = null, umpLive = {};
+let COURTS = Number(localStorage.getItem('pkl-tv-courts')) || 4;
+if (COURTS < 1 || COURTS > 5) COURTS = 4;
+
+db.collection('pkl-queue-matches').onSnapshot(snap => {
+  ms = snap.docs.map(d => ({ id:d.id, ...d.data() })).sort((a,b) => (a.order || 0) - (b.order || 0));
+  R();
+}, err => console.error(err));
+db.collection('pkl-queue-buckets').onSnapshot(snap => {
+  bk = {}; bkCourts = {}; snap.docs.forEach(d => { bk[d.id] = d.data().name || ''; bkCourts[d.id] = Array.isArray(d.data().courts) ? d.data().courts.map(Number) : []; });
+  R();
+}, err => console.error(err));
+db.collection('pkl-queue-session').doc('state').onSnapshot(doc => {
+  ses = doc.exists ? doc.data() : {};
+  const cc = Number(ses.courtCount), n = (cc >= 1 && cc <= 5) ? Math.floor(cc) : 4;
+  if (n !== COURTS) { COURTS = n; localStorage.setItem('pkl-tv-courts', String(n)); }
+  R();
+}, err => console.error(err));
+/* The admin app publishes the meet score (and the show-queue / leaderboard switches) here */
+db.collection('pkl-queue-events').doc('displaySettings').onSnapshot(doc => {
+  ds = doc.exists ? doc.data() : {};
+  applyTheme(); R(); renderLB(); renderSponsors(); renderImage();
+}, err => console.error(err));
+
+/* ================= render ================= */
+function R(){
+  /* 'meet' = current admin; 'battle' = written by an outdated admin, ignored once 'meet' exists */
+  const bt = ('meet' in ds ? ds.meet : ds.battle) || null, n = COURTS, showQ = ds.showQueue !== false;
+  const bset = new Set(bt ? String(bt.buckets || bt.bucket || '').split(',').filter(Boolean) : []);
+  const swp = new Set(bt ? String(bt.swap || '').split(',').filter(Boolean) : []);
+  const isB = m => bset.has(m.bucket);
+  const cls = (m, n) => 'i' + (swp.has(m.bucket) ? 3 - n : n);   // a category that lists the teams the other way round keeps each club's colour
+  const on = ms.filter(m => m.status === 'playing' || m.status === 'assigned');
+  const q = ms.filter(m => m.status === 'waiting' || m.status === 'onhold');
+  const sessionName = ses.currentSessionName || '';
+
+  let head;
+  if (bt) {
+    const p1 = Number(bt.p1) || 0, p2 = Number(bt.p2) || 0;
+    /* new admin: total = meet points in play (points per win × matches, all Team Battle categories); old admin: count games */
+    const N = bt.totalIsPoints ? Math.max(Number(bt.total) || 0, p1 + p2) : Math.max(Number(bt.total) || 0, ms.length + p1 + p2), W = Math.floor(N / 2) + 1;
+    const fin = N && (p1 >= W || p2 >= W);
+    const allDone = N && p1 + p2 >= N;
+    const lead = !N ? 'Waiting for matches'
+      : fin ? `${esc(p1 >= W ? bt.name1 : bt.name2)} wins the meet!`
+      : (allDone && p1 === p2) ? 'The meet ends in a tie'
+      : p1 === p2 ? `Tied · ${W} points to win`
+      : `${esc(p1 > p2 ? bt.name1 : bt.name2)} leads by ${Math.abs(p1 - p2)} · ${W} points to win`;
+    head = `<h1>Dual Meet: ${esc(bt.name1)} vs ${esc(bt.name2)}</h1>${sessionName ? `<div class="sub">${esc(sessionName)}</div>` : ''}
+      <div class="sc"><div class="tm"><b style="border-color:var(--c1)">${esc(bt.name1)}</b></div>
+        <div class="n"><span style="color:var(--c1)">${p1}</span><em>:</em><span style="color:var(--c2)">${p2}</span></div>
+        <div class="tm r"><b style="border-color:var(--c2)">${esc(bt.name2)}</b></div></div>
+      <div class="tug"><i class="f1" style="width:${N ? p1 / N * 100 : 0}%"></i><i class="f2" style="width:${N ? p2 / N * 100 : 0}%"></i></div>
+      <div class="lead">${lead}</div>`;
+    document.title = `${bt.name1} vs ${bt.name2} — PickleManage`;
+  } else {
+    const th = ds.tvHeader || {}, title = (th.title || '').trim() || 'Mindoro Pickleball Org. Cup 2026', sub = (th.sub || '').trim() || sessionName;
+    head = `<div><h1>${esc(title)}</h1>${sub ? `<div class="sub">${esc(sub)}</div>` : ''}</div><div class="now" id="nowClk"></div>`;
+    document.title = sub ? `${sub} — ${title}` : title;
+  }
+
+  /* a match newly on a court gets the "called" moment (not on first load) */
+  const called = new Set();
+  const onNow = {}; on.forEach(m => { onNow[m.court] = m.id; });
+  if (prevOn) Object.keys(onNow).forEach(c => { if (prevOn[c] !== onNow[c]) called.add(onNow[c]); });
+  prevOn = onNow;
+
+  const cfg = tvTimer(), split = n === 4;
+  const pair = a => (a || []).map(p => esc(p.name)).join('<span class="amp">&amp;</span>');
+  const court = c => {
+    const m = on.find(x => x.court === c), num = `<div class="num"><small>Court</small>${c}</div>`;
+    if (!m) return split
+      ? `<div class="crt open"><div class="chead">${num}</div><div class="open-txt">Open</div></div>`
+      : `<div class="crt open">${num}<div class="open-txt">Open</div><div></div></div>`;
+    const tb = isB(m), t1 = tb ? ' ' + cls(m, 1) : '', t2 = tb ? ' ' + cls(m, 2) : '';
+    const clock = `<div class="clock" data-mid="${m.id}"><b></b><span></span></div>`, prog = `<div class="prog"><i></i></div>`;
+    const c0 = called.has(m.id) ? ' called' : '';
+    /* live score (umpire app): shown when Tab 6 says so and the game is on */
+    const tvMode = (ds.mobile && ds.mobile.enabled && (ds.mobile.tvScores || 'both')) || 'off', U0 = umpLive[String(c)];
+    const L = U0 && U0.matchDocId === m.id && U0.started && m.status === 'playing' ? U0 : null;
+    const showSc = !!L && (tvMode === 'score' || tvMode === 'both'), showSv = !!L && (tvMode === 'serve' || tvMode === 'both');
+    const sc = k => showSc ? `<div class="lsc${(k === 1 ? L.s1 > L.s2 : L.s2 > L.s1) ? ' ahead' : ''}">${k === 1 ? L.s1 : L.s2}</div>` : '';
+    const ballOf = k => showSv || showSc ? `<i class="ball${showSv && L.serving === k ? ' on' : ''}"></i>` : '';
+    if (!split) return `<div class="crt${c0}" data-mid="${m.id}">${num}<div class="teams"><div class="tline">${ballOf(1)}<div class="team${t1}">${pair(m.team1)}</div>${sc(1)}</div><div class="tline">${ballOf(2)}<div class="team${t2}">${pair(m.team2)}</div>${sc(2)}</div></div>${clock}${prog}</div>`;
+    const one = (p, k) => `<div class="team${k}">${esc(p.name)}</div>`;
+    const block = (k, ps, cl) => `<div class="tblock">${ballOf(k)}<div class="names">${(ps || []).map(p => one(p, cl)).join('')}</div>${sc(k)}</div>`;
+    return `<div class="crt${c0}" data-mid="${m.id}"><div class="chead">${num}${clock}</div><div class="teams">${block(1, m.team1, t1)}<div class="vs">vs</div>${block(2, m.team2, t2)}</div>${prog}</div>`;
+  };
+
+  /* estimated start (admin: TV header → Show estimated time), time only */
+  const showEta = cfg.enabled && !!(ds.tvHeader && ds.tvHeader.showEta);
+  const est = showEta ? GameTimer.estimateStarts({ courts: Array.from({ length:n }, (_, i) => i + 1), active: on, queue: q, cfg, now: Date.now(),
+    allowsCourt: (b, c) => { const l = (bkCourts[b] || []).filter(x => x <= n); return !l.length || l.includes(c); } }) : {};
+  const etaTxt = m => {
+    if (m.status === 'onhold') return 'On hold';
+    const e = est[m.id]; if (!e) return '';
+    const mins = Math.round((e.startAt - Date.now()) / 60000);
+    return mins < 1 ? 'Now' : `~${mins} min`;
+  };
+  const queue = showQ ? `<aside class="next"><h2>Up next <em>${q.length} waiting</em></h2><div class="q" id="ql">${q.map((m, k) => {
+      const tb = isB(m), eta = showEta || m.status === 'onhold' ? etaTxt(m) : '';
+      return `<div class="qi${k === 0 && m.status !== 'onhold' ? ' first' : ''}${m.status === 'onhold' ? ' hold' : ''}"><div class="qpos">${k + 1}</div>
+        <div class="who">${Object.keys(bk).length > 1 && bk[m.bucket] ? `<div class="cat">${esc(bk[m.bucket])}</div>` : ''}<div class="t${tb ? ' ' + cls(m, 1) : ''}">${pair(m.team1)}</div><div class="t${tb ? ' ' + cls(m, 2) : ''}">${pair(m.team2)}</div></div>${eta ? `<div class="eta">${eta}</div>` : '<div></div>'}</div>`;
+    }).join('') || '<div class="q-empty">Queue is empty</div>'}</div></aside>` : '';
+
+  const rowsSz = { 1:['10vh','14vh'], 2:['7.4vh','10vh'], 3:['5.8vh','8vh'], 5:['4.5vh','6.6vh'] }[n] || ['4.5vh','6.6vh'];   // one name size per layout
+  const body = split
+    ? `<div class="main split${showQ ? '' : ' noq'}"><div class="col" style="grid-template-rows:repeat(2,minmax(0,1fr))">${court(1)}${court(2)}</div>${queue}<div class="col" style="grid-template-rows:repeat(2,minmax(0,1fr))">${court(3)}${court(4)}</div></div>`
+    : `<div class="main rows${showQ ? '' : ' noq'}" style="--nsz:${rowsSz[0]};--csz:${rowsSz[1]}"><div class="col" style="grid-template-rows:repeat(${n},minmax(0,1fr))">${Array.from({ length:n }, (_, i) => court(i + 1)).join('')}</div>${queue}</div>`;
+
+  $('#o').innerHTML = `<header class="top${bt ? '' : ' plain'}">${tvLogo && tvLogo.url ? `<img class="logo" alt="" src="${tvLogo.url}">` : ''}${head}</header>${body}`;
+  fitNames(); fitQ(); tick();
+}
+function tvTimer(){ return GameTimer.normalize(ds.gameTimer); }
+/* clocks + progress line, every second, computed here from warmupEndsAt / startedAt */
+let lastPh = {};
+function tick(){
+  const cfg = tvTimer(), now = Date.now(), G = cfg.gameMin * 60, F = GameTimer.formatClock;
+  let rerender = false;
+  document.querySelectorAll('.crt[data-mid]').forEach(row => {
+    const id = row.dataset.mid, m = ms.find(x => x.id === id), ul = m && umpLive[String(m.court)], live = ul && ul.matchDocId === id ? ul : undefined;
+    const ck = m ? GameTimer.clockFor(m, cfg, now, live) : { phase:'none' };
+    if (lastPh[id] && lastPh[id] !== ck.phase) rerender = true;
+    lastPh[id] = ck.phase;
+    const b = row.querySelector('.clock b'), sp = row.querySelector('.clock span'), bar = row.querySelector('.prog i');
+    ['w1','w2','fin','over','warm','to','pz'].forEach(c => row.classList.remove(c));
+    if (ck.phase === 'warmup') {
+      row.classList.add('warm'); b.textContent = F(ck.secs); sp.textContent = 'Warm-up';
+      bar.style.width = Math.max(0, 100 - ck.secs / Math.max(1, cfg.warmupSec) * 100) + '%';
+    } else if (ck.phase === 'ready') {
+      row.classList.add('warm'); b.textContent = 'Ready'; sp.textContent = 'Warm-up done'; bar.style.width = '100%';
+    } else if (ck.phase === 'playing' && ck.paused) {
+      /* umpire called a timeout or paused: the game timer stands still */
+      const who = (ck.pauseTeam === 2 ? m.team2 : m.team1 || []).map(p => p.name).join(' & ');
+      if (ck.paused === 'timeout') { row.classList.add('to'); b.textContent = F(ck.pauseLeft); sp.textContent = 'Timeout · ' + who; }
+      else { row.classList.add('pz'); b.textContent = F(ck.secs); sp.textContent = 'Paused'; }
+      bar.style.width = cfg.enabled ? Math.min(100, ck.secs / G * 100) + '%' : '0%';
+    } else if (ck.phase === 'playing') {
+      const lv = cfg.enabled ? ck.level : 'normal';
+      if (lv !== 'normal') row.classList.add(lv === 'warn1' ? 'w1' : lv === 'warn2' ? 'w2' : lv === 'final' ? 'fin' : 'over');
+      b.textContent = F(ck.secs);                       // keeps counting past the game length; red = over
+      sp.textContent = cfg.enabled ? 'of ' + F(G) : 'Playing';
+      bar.style.width = cfg.enabled ? Math.min(100, ck.secs / G * 100) + '%' : '0%';
+    } else { b.textContent = ''; sp.textContent = 'Waiting to start'; bar.style.width = '0%'; }
+  });
+  const nc = document.getElementById('nowClk');
+  if (nc) nc.textContent = new Date().toLocaleTimeString([], { hour:'numeric', minute:'2-digit' });
+  if (rerender) R();
+}
+setInterval(tick, 1000);
+/* names: one size for every court (set by the layout); a name that doesn't fit is cut with … */
+function fitNames(){}
+/* the queue shows as many items as fit; the rest are hidden */
+function fitQ(){
+  const l = document.getElementById('ql'); if (!l) return;
+  const kids = [...l.children]; kids.forEach(k => k.style.display = '');
+  const H = l.clientHeight;
+  kids.forEach(k => { if (k.offsetTop - l.offsetTop + k.offsetHeight > H + 1) k.style.display = 'none'; });
+}
+addEventListener('resize', () => { fitNames(); fitQ(); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { fitNames(); fitQ(); });
+
+/* ================= leaderboard popup (admin: "Show leaderboard") ================= */
+function renderLB(){
+  const ov = $('#lbOv'), lb = ds.leaderboard;
+  if (!lb || !lb.show) { ov.classList.remove('show'); return; }
+  const buckets = (lb.buckets || []).slice(0, 3);
+  $('#lbSub').textContent = (lb.sessionName ? lb.sessionName + ' · ' : '') + 'Top 5 per category';
+  const cols = $('#lbCols');
+  cols.style.gridTemplateColumns = `repeat(${Math.max(1, buckets.length)}, 1fr)`;
+  cols.innerHTML = buckets.map(b => `<div class="lb-col"><h3>${esc(b.name)}</h3>${(b.rows && b.rows.length)
+    ? b.rows.map(r => `<div class="lb-row"><div class="lb-rank">${r.rank}</div><div class="lb-name">${esc(r.name)}</div><div class="lb-stat"><b>${r.w}</b> W<br>${r.pf} pts</div></div>`).join('')
+    : '<div class="lb-empty">No results yet</div>'}</div>`).join('');
+  ov.classList.add('show');
+}
+
+/* ================= static image (admin: "Show Image") ================= */
+let tvImg = null;
+/* live scores from the umpire app (open collection pm-umpire, one doc per court) */
+db.collection('pm-umpire').onSnapshot(snap => { umpLive = {}; snap.forEach(d => { umpLive[d.id] = d.data(); }); R(); }, err => console.warn(err));
+/* TV header logo (uploaded in the admin: 📺 TV header) */
+db.collection('pkl-queue-events').doc('tvLogo').onSnapshot(d => { tvLogo = d.exists ? d.data() : null; R(); }, err => console.error(err));
+db.collection('pkl-queue-events').doc('tvImage').onSnapshot(d => { tvImg = d.exists ? d.data() : null; renderImage(); }, err => console.error(err));
+function renderImage(){
+  const s = ds.tvImage || {}, ov = $('#imgOv'), im = $('#imgTv');
+  const on = !!(s.show && tvImg && tvImg.url);
+  if (on && im.getAttribute('src') !== tvImg.url) im.src = tvImg.url;
+  ov.classList.toggle('show', on);
+}
+
+/* ================= sponsor showcase (admin: "Show Sponsors") =================
+   Plays tvurl.html once over everything, then hides itself and tells the admin it's done. */
+const SP_DONE_KEY = 'pkl-tv-sponsor-done';
+let spPlaying = 0;
+function stopSponsors(){ spPlaying = 0; const ov = $('#spOv'); ov.classList.remove('show'); ov.innerHTML = ''; }
+function renderSponsors(){
+  const s = ds.sponsorShow || {}, id = Number(s.playId) || 0;
+  if (!s.show || !id) { if (spPlaying) stopSponsors(); return; }
+  if (id === spPlaying) return;
+  if (String(id) === localStorage.getItem(SP_DONE_KEY)) return;   // this TV already played it (e.g. page was reloaded)
+  if (Date.now() - id > 30 * 60 * 1000) return;                     // left on from long ago
+  spPlaying = id;
+  const ov = $('#spOv'), f = document.createElement('iframe');
+  f.src = 'tvurl.html?once=1&theme=mindoro&t=' + id; f.allow = 'autoplay; fullscreen';
+  ov.innerHTML = ''; ov.appendChild(f); ov.classList.add('show');
+}
+addEventListener('message', e => {
+  const f = document.querySelector('#spOv iframe');
+  if (!f || e.source !== f.contentWindow || !e.data || e.data.type !== 'sponsorShowDone') return;
+  const id = spPlaying; if (!id) return;
+  try { localStorage.setItem(SP_DONE_KEY, String(id)); } catch (err) {}
+  stopSponsors();
+  /* flip the admin button back to "Show Sponsors" (only if no newer showcase was started) */
+  const ref = db.collection('pkl-queue-events').doc('displaySettings');
+  db.runTransaction(async t => {
+    const d = await t.get(ref), cur = ((d.exists && d.data()) || {}).sponsorShow || {};
+    if (cur.show && Number(cur.playId) === id) t.set(ref, { sponsorShow: { show: false, playId: id } }, { merge: true });
+  }).catch(err => console.warn('Could not reset Show Sponsors:', err.message));
+});
+
+/* ================= call / winner popups ================= */
+let evReady = false, lastEv = null;
+db.collection('pkl-queue-events').orderBy('createdAt', 'desc').limit(1).onSnapshot(snap => {
+  if (snap.empty) { evReady = true; return; }
+  const doc = snap.docs[0], d = doc.data();
+  if (!d.createdAt) return;                       // server timestamp still pending
+  if (!evReady) { evReady = true; lastEv = doc.id; return; }
+  if (doc.id === lastEv) return;
+  lastEv = doc.id;
+  if (Date.now() - d.createdAt.toMillis() > 15000) return;
+  if (d.type === 'call') {
+    $('#callCourt').textContent = `Court ${d.court}`;
+    $('#callTeams').innerHTML = `${esc(d.team1.join(' & '))}<br><span style="color:var(--m);font-size:.6em;">vs</span><br>${esc(d.team2.join(' & '))}`;
+    const ov = $('#callOv'); ov.classList.add('show'); setTimeout(() => ov.classList.remove('show'), 5000);
+  } else if (d.type === 'winner') {
+    const t1 = d.team1.join(' & '), t2 = d.team2.join(' & ');
+    $('#winCourt').textContent = `Court ${d.court}`;
+    $('#winTeams').innerHTML = `${esc(t1)} <span style="color:var(--m);font-size:.5em;">vs</span> ${esc(t2)}`;
+    $('#winScore').textContent = `${d.score1} – ${d.score2}`;
+    $('#winName').textContent = d.winner === 'team1' ? t1 : t2;
+    const ov = $('#winOv'); ov.classList.add('show'); setTimeout(() => ov.classList.remove('show'), 5000);
+  }
+}, err => console.error(err));
+
+R();
+</script>
+</body>
+</html>

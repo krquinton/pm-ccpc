@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#191c19">
+<title>Umpire — PickleManage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#191c19;--card:#232823;--card-2:#2c322c;--name:#f4f7f1;--dim:#93a08f;--amp:#6b7768;--accent:#6cc144;--on-accent:#10210a;
+  --serve:#ffc43d;--warm:#4fb4ff;--w1:#ffc43d;--w2:#ff8a1f;--fin:#ff4f4f;--line:rgba(255,255,255,.08);--err:#ff6b6b}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg)}
+body{color:var(--name);font-family:Archivo,system-ui,sans-serif;font-stretch:90%;font-variant-numeric:tabular-nums;overscroll-behavior:none}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--warm);outline-offset:2px}
+.app{max-width:520px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.screen{flex:1;display:none;flex-direction:column;min-height:0}
+.screen.on{display:flex}
+
+/* top bar */
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px 6px}
+.bar .ct{font-weight:900;font-stretch:120%;font-size:24px;line-height:1.05}
+.bar .ct small{display:block;font-size:11px;font-weight:600;color:var(--dim);font-stretch:100%}
+.bar .r{display:flex;align-items:center;gap:8px}
+.mode{border:1px solid var(--line);border-radius:20px;padding:2px 10px;font-size:12px;font-weight:600;color:var(--dim)}
+.iconbtn{border:0;background:transparent;color:var(--dim);font-size:13px;font-weight:700;padding:6px 4px}
+.cat{padding:0 18px;color:var(--dim);font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* centred messages: login, off, no match */
+.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px 28px;text-align:center}
+.center h1{font-weight:900;font-stretch:120%;font-size:34px;line-height:1.05}
+.center .sub{color:var(--dim);font-size:15px;line-height:1.45;max-width:320px}
+.center .big{font-weight:800;font-size:26px;line-height:1.15}
+.login{width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px;text-align:left;margin-top:6px}
+.login label{font-size:13px;font-weight:700;color:var(--dim)}
+.login input{width:100%;height:52px;border-radius:14px;border:1px solid var(--card-2);background:var(--card);color:var(--name);font:700 20px Archivo,sans-serif;padding:0 14px}
+.login input.pin{letter-spacing:.4em}
+.err{color:var(--err);font-size:14px;font-weight:600;min-height:18px}
+
+/* clocks */
+.tmr{margin:10px 18px 0;border-radius:18px;background:var(--card);padding:10px 14px 14px;display:flex;align-items:baseline;justify-content:center;gap:10px;position:relative;overflow:hidden}
+.tmr b{font-weight:900;font-stretch:118%;font-size:clamp(52px,17vw,72px);line-height:1}
+.tmr span{font-size:14px;font-weight:700;color:var(--dim)}
+.tmr .p{position:absolute;left:0;right:0;bottom:0;height:6px;background:var(--line)}
+.tmr .p i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent);transition:width 1s linear}
+.tmr.warm b{color:var(--warm)} .tmr.warm .p i{background:var(--warm)}
+.tmr.w1 b{color:var(--w1)} .tmr.w1 .p i{background:var(--w1)}
+.tmr.w2 b{color:var(--w2)} .tmr.w2 .p i{background:var(--w2)}
+.tmr.fin b,.tmr.over b{color:var(--fin)} .tmr.fin .p i,.tmr.over .p i{background:var(--fin)}
+.tmr.fin b{animation:beat 1s ease-in-out infinite}
+.tmr.ready b{color:var(--accent)}
+
+/* score call card */
+.call{margin:10px 18px 0;border-radius:18px;background:var(--name);color:#121612;text-align:center;padding:8px 12px 10px}
+.call small{display:block;font-size:12px;font-weight:700;color:#5d6a59}
+.call b{display:block;font-weight:900;font-stretch:118%;font-size:clamp(40px,13vw,54px);line-height:1.05;letter-spacing:.02em}
+.call.off{opacity:.45}
+
+/* first server picker */
+.pick{margin:10px 18px 0;background:var(--card);border-radius:18px;padding:12px}
+.pick h3{font-size:15px;font-weight:800;margin-bottom:8px}
+.pick .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pick button{min-width:0;border:2px solid var(--card-2);background:var(--card-2);color:var(--name);border-radius:12px;padding:10px;font-size:14px;font-weight:700;text-align:left;line-height:1.25}
+.pick button div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pick button.on{border-color:var(--serve)}
+.pick button.on::before{content:'Serves first';display:block;font-size:11px;font-weight:800;color:var(--serve);margin-bottom:2px}
+
+/* team panels: identical sizes; names cut with … */
+.teams{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 18px 0;min-height:250px}
+.tm{background:var(--card);border-radius:18px;display:flex;flex-direction:column;padding:12px;min-height:0;min-width:0;border:2px solid transparent}
+.tm .side{font-size:11px;font-weight:700;color:var(--dim);margin-bottom:4px}
+.tm .who{font-weight:700;font-size:18px;line-height:1.22}
+.tm .who div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tm .sc{flex:1;display:flex;align-items:center;justify-content:center;font-weight:900;font-stretch:110%;font-size:clamp(64px,21vw,96px);line-height:1;font-variant-numeric:tabular-nums lining-nums}
+.tm .srv{height:30px;display:flex;align-items:center;justify-content:center;border-radius:10px;font-size:13px;font-weight:800;color:transparent}
+.tm.serving{border-color:var(--serve)}
+.tm.serving .srv{background:var(--serve);color:#1d1600}
+.tm .won{margin-top:10px;height:clamp(72px,12vh,96px);border:0;border-radius:14px;background:var(--accent);color:var(--on-accent);font-size:18px;font-weight:800;touch-action:manipulation}
+.tm .won:active{transform:scale(.97)}
+.teams.locked .won{background:var(--card-2);color:var(--amp);pointer-events:none}
+.teams.locked .sc{color:var(--amp)}
+
+.tools{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 18px 0}
+.tools button{height:46px;border:0;border-radius:12px;background:var(--card-2);color:var(--name);font-size:14px;font-weight:700}
+.tools button:disabled{opacity:.4}
+.foot{padding:10px 18px 16px;display:flex;flex-direction:column;gap:8px}
+.btn{height:56px;border-radius:16px;border:0;font-size:18px;font-weight:800;color:var(--name);background:var(--card-2)}
+.btn.go{background:var(--warm);color:#fff}
+.btn.go.pulse{animation:pulse 1.1s ease-in-out infinite}
+.btn.pri{background:var(--accent);color:var(--on-accent)}
+.btn.ghost{background:transparent;color:var(--dim);height:44px;font-size:15px}
+.btn:disabled{opacity:.5}
+.hint{color:var(--dim);font-size:12.5px;text-align:center;min-height:16px}
+
+/* sheets */
+.dim{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;z-index:10}
+.sheet{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:520px;background:var(--card);border-radius:26px 26px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));display:none;flex-direction:column;gap:14px;z-index:11}
+.sheet.on,.dim.on{display:flex}
+.dim.on{display:block}
+.sheet h2{font-weight:800;font-size:22px}
+.sheet .sub{color:var(--dim);font-size:13px;margin-top:-8px;line-height:1.4}
+.res{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;background:var(--card-2);border-radius:16px;padding:14px}
+.res .n{font-size:14px;font-weight:700;line-height:1.3;overflow-wrap:anywhere}
+.res .n.r{text-align:right}
+.res .s{font-weight:900;font-stretch:120%;font-size:38px;white-space:nowrap}
+.res .s em{font-style:normal;color:var(--dim);padding:0 6px}
+.win{font-size:15px;color:var(--dim)} .win b{color:var(--accent)}
+.hold{position:relative;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none}
+.hold i{position:absolute;inset:0 auto 0 0;width:0;background:rgba(0,0,0,.18)}
+.hold span{position:relative}
+.adj{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.adj .col{background:var(--card-2);border-radius:14px;padding:10px;min-width:0}
+.adj .col .n{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px}
+.step{display:flex;align-items:center;justify-content:space-between}
+.step button{width:46px;height:46px;border-radius:12px;border:0;background:var(--bg);color:var(--name);font-size:22px;font-weight:800}
+.step b{font-weight:900;font-size:34px;font-stretch:110%}
+.row{display:flex;gap:8px;align-items:center}
+.row label{font-size:13px;color:var(--dim);font-weight:700;width:76px;flex:none}
+.seg{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:0}
+.seg button{height:42px;border-radius:10px;border:2px solid var(--card-2);background:var(--card-2);color:var(--name);font-size:14px;font-weight:700;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 8px}
+.seg button.on{border-color:var(--serve);color:var(--serve)}
+
+/* before the game: compact panels (no Won rally yet) so Start stays on screen */
+.game.pre .teams{min-height:0;flex:none}
+.game.pre .tm .won{display:none}
+.game.pre .tm .sc{font-size:44px;padding:6px 0}
+.game.pre .tmr b{font-size:clamp(44px,14vw,60px)}
+/* coin toss */
+.pick .ph{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.pick .ph h3{margin:0}
+.tossbtn{border:0;border-radius:10px;background:var(--card-2);color:var(--name);font-size:13px;font-weight:800;padding:8px 10px}
+.tossres{display:none;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.pick.tossing .opts,.pick.result .opts{display:none}
+.pick.tossing .tossres,.pick.result .tossres{display:flex}
+.coin{width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff6c4,#f3c63b 55%,#b88a0a);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;color:#6b4c00;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.pick.tossing .coin{animation:flip .25s linear infinite}
+@keyframes flip{0%{transform:rotateY(0)}50%{transform:rotateY(90deg) scale(.95)}100%{transform:rotateY(180deg)}}
+.tossres .w{font-size:16px;font-weight:800;min-height:20px}
+.tossres .w b{color:var(--serve)}
+.choice{display:none;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+.pick.result .choice{display:grid}
+.choice button{height:44px;border-radius:12px;border:0;background:var(--card-2);color:var(--name);font-size:16px;font-weight:800}
+.choice button.pri{background:var(--accent);color:var(--on-accent)}
+
+/* feedback after each tap */
+.game{position:relative}
+.cue{position:absolute;left:18px;right:18px;z-index:5;border-radius:14px;padding:10px 14px;text-align:center;font-weight:900;font-size:21px;line-height:1.15;box-shadow:0 10px 30px rgba(0,0,0,.5);
+  background:var(--serve);color:#1d1600;opacity:0;transform:translateY(-8px) scale(.96);transition:opacity .15s,transform .15s;pointer-events:none}
+.cue small{display:block;font-size:12.5px;font-weight:700;opacity:.75}
+.cue.show{opacity:1;transform:none}
+.cue.point{background:var(--accent);color:var(--on-accent)}
+.cue.undo{background:var(--card-2);color:var(--name)}
+.tm.flash{animation:flash .7s ease-out}
+@keyframes flash{0%{box-shadow:0 0 0 5px var(--serve),0 0 34px rgba(255,196,61,.6)}100%{box-shadow:0 0 0 0 transparent}}
+.tm.pop .sc{animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(1.35)}100%{transform:scale(1)}}
+.call.bump{animation:pop .3s ease-out}
+
+/* pause / timeout */
+.tmr.to b{color:#c792ff} .tmr.to .p i{background:#c792ff}
+.tmr.pz b{color:var(--dim)}
+.plabel{margin:8px 18px 0;text-align:center;font-weight:800;font-size:14px;color:#c792ff;display:none}
+.plabel.on{display:block}
+.btn.resume{background:#c792ff;color:#1b0b2e}
+.opt{display:flex;justify-content:space-between;align-items:center;gap:10px;height:54px;border-radius:14px;border:0;background:var(--card-2);color:var(--name);font-size:16px;font-weight:700;padding:0 14px;width:100%;text-align:left}
+.opt span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.opt small{color:var(--dim);font-size:13px;flex:none}
+.opt:disabled{opacity:.4}
+.opt.danger{color:#ff8b8b}
+.row2{display:grid;grid-template-columns:1fr 2fr;gap:8px}
+.toast{position:fixed;left:50%;top:14px;transform:translateX(-50%) translateY(-120%);background:var(--name);color:#121612;font-weight:700;font-size:14px;padding:10px 16px;border-radius:12px;z-index:20;transition:transform .25s;max-width:90vw;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--err);color:#fff}
+@keyframes pulse{50%{opacity:.6}}
+@keyframes beat{0%,100%{opacity:1}50%{opacity:.4}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <section class="screen on" id="scLoading"><div class="center"><div class="sub">Connecting…</div></div></section>
+
+  <section class="screen" id="scOff"><div class="center"><h1>Umpire</h1><div class="big">Mobile Companion is off</div><div class="sub">Ask the admin to turn it on in Tab 6 · Mobile Companion.</div></div></section>
+
+  <section class="screen" id="scLogin">
+    <div class="center">
+      <h1>Umpire sign in</h1>
+      <div class="sub">Use your court's username and PIN from the admin.</div>
+      <form class="login" id="loginForm" autocomplete="off">
+        <div><label for="inUser">Username</label><input id="inUser" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="court1"></div>
+        <div><label for="inPin">PIN</label><input id="inPin" class="pin" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••"></div>
+        <div class="err" id="loginErr"></div>
+        <button class="btn pri" type="submit">Sign in</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="screen" id="scIdle">
+    <div class="bar"><div class="ct"><small>Umpire</small><span class="ctName"></span></div><div class="r"><button class="iconbtn" data-signout>Sign out</button></div></div>
+    <div class="center"><div class="big" id="idleBig">No match yet</div><div class="sub" id="idleSub"></div></div>
+  </section>
+
+  <section class="screen game" id="scGame">
+    <div class="bar"><div class="ct"><small>Umpire</small><span class="ctName"></span></div><div class="r"><span class="mode" id="modeTag"></span><button class="iconbtn" id="bMute" aria-label="Sound on or off">🔔</button><button class="iconbtn" data-signout>Sign out</button></div></div>
+    <div class="cat" id="catLine"></div>
+    <div class="tmr" id="tmr"><b id="tmrNum">00:00</b><span id="tmrSub"></span><div class="p"><i id="tmrBar"></i></div></div>
+    <div class="plabel" id="plabel"></div>
+    <div class="pick" id="pick">
+      <div class="ph"><h3>Who serves first?</h3><button type="button" class="tossbtn" id="bToss">🪙 Toss coin</button></div>
+      <div class="opts"><button type="button" data-first="1"></button><button type="button" data-first="2"></button></div>
+      <div class="tossres"><div class="coin" id="coin">?</div><div class="w" id="tossW">Tossing…</div>
+        <div class="choice"><button type="button" class="pri" data-choose="serve">Serve</button><button type="button" data-choose="receive">Receive</button></div></div>
+    </div>
+    <div class="call" id="call"><small>Score call</small><b id="callNum">0-0-2</b></div>
+    <div class="cue" id="cue"></div>
+    <div class="teams" id="teams">
+      <div class="tm" data-t="1"><div class="side"></div><div class="who"></div><div class="sc">0</div><div class="srv"></div><button class="won" type="button">Won rally</button></div>
+      <div class="tm" data-t="2"><div class="side"></div><div class="who"></div><div class="sc">0</div><div class="srv"></div><button class="won" type="button">Won rally</button></div>
+    </div>
+    <div class="tools" id="tools"><button type="button" id="bUndo">↶ Undo</button><button type="button" id="bFlip">⇄ Flip sides</button><button type="button" id="bAdjust">✎ Adjust</button></div>
+    <div class="foot">
+      <button class="btn go" type="button" id="bStart">▶ Start game now</button>
+      <button class="btn resume" type="button" id="bResume">▶ Resume game</button>
+      <div class="row2" id="playRow"><button class="btn" type="button" id="bPause">⏸ Pause</button><button class="btn" type="button" id="bEnd">End match</button></div>
+      <div class="hint" id="hint"></div>
+    </div>
+  </section>
+</div>
+
+<div class="dim" id="dim"></div>
+<div class="sheet" id="endSheet">
+  <h2>End match?</h2>
+  <div class="res"><div class="n" id="endN1"></div><div class="s" id="endS"></div><div class="n r" id="endN2"></div></div>
+  <div class="win" id="endWin"></div>
+  <button class="btn pri hold" type="button" id="bRecord"><i></i><span>Hold to record result</span></button>
+  <button class="btn ghost" type="button" id="bKeep">Keep playing</button>
+</div>
+<div class="sheet" id="adjSheet">
+  <h2>Adjust score</h2>
+  <div class="sub">For fixing a mistake. Undo also brings back the score before this change.</div>
+  <div class="adj">
+    <div class="col"><div class="n" id="adjN1"></div><div class="step"><button type="button" data-adj="s1" data-d="-1" aria-label="Minus">−</button><b id="adjS1">0</b><button type="button" data-adj="s1" data-d="1" aria-label="Plus">+</button></div></div>
+    <div class="col"><div class="n" id="adjN2"></div><div class="step"><button type="button" data-adj="s2" data-d="-1" aria-label="Minus">−</button><b id="adjS2">0</b><button type="button" data-adj="s2" data-d="1" aria-label="Plus">+</button></div></div>
+  </div>
+  <div class="row"><label>Serving</label><div class="seg" id="adjServing"><button type="button" data-v="1"></button><button type="button" data-v="2"></button></div></div>
+  <div class="row" id="adjNumRow"><label>Server</label><div class="seg" id="adjNum"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button></div></div>
+  <button class="btn pri" type="button" id="bAdjSave">Save changes</button>
+  <button class="btn ghost" type="button" id="bAdjCancel">Cancel</button>
+</div>
+<div class="sheet" id="pauseSheet">
+  <h2>Pause the game</h2>
+  <div class="sub">The game timer stops until you resume.</div>
+  <button class="opt" type="button" data-to="1"><span></span><small></small></button>
+  <button class="opt" type="button" data-to="2"><span></span><small></small></button>
+  <button class="opt" type="button" id="bPausePlain"><span>⏸ Pause (no countdown)</span></button>
+  <button class="opt danger hold" type="button" id="bReset"><i></i><span>↺ Hold to reset the game timer to 00:00</span></button>
+  <button class="btn ghost" type="button" id="bPauseCancel">Cancel</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="game-timer.js"></script>
+<script src="umpire-logic.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+/* Umpire app. Reads the match on this court (pkl-queue-*, read-only for us) and writes only pm-umpire/{court}.
+   The admin page (index.html) starts the game on startReq and records the result on endReq. */
+firebase.initializeApp(window.FIREBASE_CONFIG);
+const db = firebase.firestore();
+try { db.settings({ experimentalAutoDetectLongPolling: true, merge: true }); } catch (e) {}
+const $ = id => document.getElementById(id);
+const U = window.UmpireLogic, GT = window.GameTimer;
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const SESSION_KEY = 'pm-umpire-session';
+
+let ds = null, logins = null, sessionState = {}, match = null, ud = null, udLoaded = false, buckets = {};
+let me = (() => { try { return JSON.parse(localStorage.getItem(SESSION_KEY)) || null; } catch (e) { return null; } })();
+let unsubMatch = null, unsubUd = null, watchedCourt = null, endSentAt = 0, lastMatchId = null;
+
+function toast(msg, err){ const t = $('toast'); t.textContent = msg; t.classList.toggle('err', !!err); t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), err ? 4000 : 2200); }
+function mobile(){ return Object.assign({ enabled:false, scoring:'sideout', tvScores:'both', pauseEnabled:false, timeoutSec:60, timeoutsPerTeam:2 }, (ds && ds.mobile) || {}); }
+function timerCfg(){ return GT.normalize(ds && ds.gameTimer); }
+function show(id){ document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id)); }
+function saveMe(v){ me = v; try { v ? localStorage.setItem(SESSION_KEY, JSON.stringify(v)) : localStorage.removeItem(SESSION_KEY); } catch (e) {} }
+const udRef = () => db.collection('pm-umpire').doc(String(me.court));
+const flipKey = () => 'pm-umpire-flip-' + (me ? me.court : '');
+let flipped = false;
+
+/* ---------- data ---------- */
+db.collection('pkl-queue-events').doc('displaySettings').onSnapshot(d => { ds = d.exists ? d.data() : {}; route(); }, err => console.error(err));
+db.collection('pkl-queue-events').doc('umpireLogins').onSnapshot(d => { logins = (d.exists && d.data().courts) || {}; route(); }, err => console.error(err));
+db.collection('pkl-queue-buckets').onSnapshot(snap => { buckets = {}; snap.forEach(d => { buckets[d.id] = d.data().name || ''; }); if (match) paint(); }, err => console.error(err));
+db.collection('pkl-queue-session').doc('state').onSnapshot(d => { sessionState = d.exists ? d.data() : {}; route(); }, err => console.error(err));
+
+function watchCourt(court){
+  if (watchedCourt === court) return;
+  if (unsubMatch) unsubMatch(); if (unsubUd) unsubUd();
+  unsubMatch = unsubUd = null; watchedCourt = court; match = null; ud = null; udLoaded = false;
+  if (!court) return;
+  flipped = localStorage.getItem(flipKey()) === '1';
+  unsubMatch = db.collection('pkl-queue-matches').where('court', '==', court).onSnapshot(snap => {
+    const ms = snap.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(m => m.status === 'assigned' || m.status === 'playing');
+    match = ms[0] || null; route();
+  }, err => console.error(err));
+  unsubUd = db.collection('pm-umpire').doc(String(court)).onSnapshot(d => { ud = d.exists ? d.data() : null; udLoaded = true; route(); }, err => console.error(err));
+}
+
+/* ---------- which screen ---------- */
+function signedInOk(){
+  if (!me || !logins) return false;
+  const L = logins[me.court];
+  return !!L && L.ver === me.ver && me.court <= (Number(sessionState.courtCount) || 5);
+}
+function route(){
+  if (!ds || !logins) return show('scLoading');
+  if (!mobile().enabled) { watchCourt(null); return show('scOff'); }
+  if (me && !signedInOk()) { saveMe(null); toast('You were signed out by the admin.'); }
+  if (!me) { watchCourt(null); return show('scLogin'); }
+  watchCourt(me.court);
+  document.querySelectorAll('.ctName').forEach(e => e.textContent = 'Court ' + me.court);
+  if (!match) {
+    if (lastMatchId && endSentAt) { toast('Result recorded. Court is free.'); endSentAt = 0; closeSheets(); }
+    lastMatchId = null;
+    $('idleBig').textContent = 'No match yet';
+    $('idleSub').textContent = `Players will show here when the admin adds a match to Court ${me.court}.`;
+    return show('scIdle');
+  }
+  lastMatchId = match.id;
+  if (udLoaded) syncDoc();
+  show('scGame'); paint();
+}
+
+/* keep pm-umpire/{court} pointing at the match on this court */
+let syncing = false;
+function freshDoc(firstServe){
+  const st = U.initState(mobile().scoring, firstServe || 1);
+  return Object.assign(st, { court: me.court, matchDocId: match.id, ver: me.ver, started: false, startReq: null, endReq: null, processing: null, pause: null, pausedMs: 0, timeouts: {}, lastSeen: Date.now(), updatedAt: Date.now() });
+}
+function write(next){
+  ud = Object.assign({}, ud || {}, next, { updatedAt: Date.now(), lastSeen: Date.now() });
+  paint();
+  return udRef().set(ud).catch(err => toast('Could not save. Check the connection. (' + err.message + ')', true));
+}
+function syncDoc(){
+  if (syncing || !match) return;
+  if (!ud || ud.matchDocId !== match.id) { syncing = true; write(freshDoc(1)).finally(() => { syncing = false; }); return; }
+  /* the game started: lock the scoring mode and unlock scoring */
+  if (match.status === 'playing' && !ud.started) {
+    const st = U.initState(mobile().scoring, ud.firstServe || 1);
+    write(Object.assign(st, { started: true, startReq: null, pause: null, pausedMs: 0, timeouts: {} }));
+  }
+}
+
+/* the pm-umpire doc for the match on this court, or null */
+function scoringDoc(){ return ud && match && ud.matchDocId === match.id ? ud : null; }
+
+/* ---------- feedback: banner, flash, vibrate, sound ---------- */
+let muted = localStorage.getItem('pm-umpire-mute') === '1', actx = null;
+function beep(kind){
+  if (muted) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const tones = { point:[[880, .09]], server:[[660, .12]], side:[[520, .1], [780, .14]], undo:[[330, .08]] }[kind] || [[600, .08]];
+    let t = actx.currentTime;
+    tones.forEach(([f, d]) => { const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = f; o.type = 'sine';
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.25, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+      o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + d + .02); t += d + .03; });
+  } catch (e) {}
+}
+function buzz(p){ try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+function cueShow(big, small, kind){
+  const c = $('cue'), call = $('call');
+  c.style.top = (call.offsetTop - 4) + 'px';
+  c.className = 'cue ' + (kind || ''); c.innerHTML = (small ? `<small>${esc(small)}</small>` : '') + esc(big);
+  void c.offsetWidth; c.classList.add('show');
+  clearTimeout(cueShow.t); cueShow.t = setTimeout(() => c.classList.remove('show'), 1500);
+}
+function flashTeam(t, pop){
+  const el = $('teams').querySelector(`.tm[data-t="${t}"]`); if (!el) return;
+  el.classList.remove('flash', 'pop'); void el.offsetWidth; el.classList.add('flash'); if (pop) el.classList.add('pop');
+  $('call').classList.remove('bump'); void $('call').offsetWidth; $('call').classList.add('bump');
+}
+function feedback(before, after, winner){
+  const nameOf = t => pairText(t === 1 ? match.team1 : match.team2);
+  const scored = after.s1 !== before.s1 ? 1 : after.s2 !== before.s2 ? 2 : 0;
+  if (scored) {
+    const serveMoved = after.serving !== before.serving;
+    cueShow(`+1 · ${nameOf(scored)}`, serveMoved ? `${nameOf(scored)} won the rally and serve now` : `${nameOf(scored)} won the rally`, 'point');
+    flashTeam(scored, true); beep('point'); buzz(20);
+  } else if (after.serving !== before.serving) {
+    cueShow(`Side out → ${nameOf(after.serving)}`, `${nameOf(winner)} won the rally`); flashTeam(after.serving); beep('side'); buzz([30, 40, 30]);
+  } else if (after.num !== before.num) {
+    cueShow(`Server ${after.num}`, `${nameOf(winner)} won the rally · ${nameOf(after.serving)} keep the serve`); flashTeam(after.serving); beep('server'); buzz([25, 30, 25]);
+  }
+}
+$('bMute').addEventListener('click', () => { muted = !muted; localStorage.setItem('pm-umpire-mute', muted ? '1' : '0'); $('bMute').textContent = muted ? '🔕' : '🔔'; if (!muted) beep('point'); });
+$('bMute').textContent = muted ? '🔕' : '🔔';
+
+/* ---------- painting ---------- */
+const pairLines = t => (t || []).map(p => `<div>${esc(p.name)}</div>`).join('');
+const pairText = t => (t || []).map(p => p.name).join(' & ');
+function paint(){
+  if (!match) return;
+  const cfg = timerCfg(), playing = match.status === 'playing', st = ud && ud.matchDocId === match.id ? ud : freshDoc(1);
+  const paused = !!(scoringDoc() && scoringDoc().pause && GT.pauseInfo(scoringDoc(), Date.now()).kind);
+  const scoring = playing && st.started && !paused, endWaiting = !!(ud && ud.endReq);
+  $('modeTag').textContent = (scoring ? st.mode : mobile().scoring) === 'rally' ? 'Rally' : 'Side-out';
+  $('catLine').textContent = [buckets[match.bucket] || '', match.matchId || ''].filter(Boolean).join(' · ');
+  /* panels, in the umpire's left/right order */
+  const order = flipped ? [2, 1] : [1, 2];
+  const panels = [...$('teams').children];
+  panels.forEach((el, i) => {
+    const t = order[i];
+    el.dataset.t = t;
+    el.querySelector('.side').textContent = i === 0 ? 'Left side' : 'Right side';
+    el.querySelector('.who').innerHTML = pairLines(t === 1 ? match.team1 : match.team2);
+    el.querySelector('.sc').textContent = t === 1 ? st.s1 : st.s2;
+    const serving = st.serving === t;
+    el.classList.toggle('serving', serving);
+    el.querySelector('.srv').textContent = serving ? (st.mode === 'rally' ? '▶ Serving' : `▶ Serving · ${st.num}`) : '';
+  });
+  $('teams').classList.toggle('locked', !scoring || endWaiting);
+  $('callNum').textContent = U.call(st);
+  $('call').classList.toggle('off', !scoring);
+  /* first server: only before the game starts */
+  $('pick').style.display = playing ? 'none' : '';
+  const pb = $('pick').querySelectorAll('.opts button');
+  pb[0].innerHTML = pairLines(match.team1); pb[1].innerHTML = pairLines(match.team2);
+  pb.forEach(b => b.classList.toggle('on', Number(b.dataset.first) === (st.firstServe || 1)));
+  $('scGame').classList.toggle('pre', !playing);
+  /* tools: before the game = Toss + Flip; during = Undo + Flip + Adjust */
+  $('bUndo').style.display = playing ? '' : 'none';
+  $('bAdjust').style.display = playing ? '' : 'none';
+  $('tools').style.gridTemplateColumns = playing ? '1fr 1fr 1fr' : '1fr';
+  $('bUndo').disabled = !scoring || endWaiting || !(st.hist && st.hist.length);
+  $('bAdjust').disabled = !scoring || endWaiting;
+  $('bStart').style.display = playing ? 'none' : '';
+  $('bResume').style.display = playing && paused ? '' : 'none';
+  $('playRow').style.display = playing && !paused ? '' : 'none';
+  $('playRow').style.gridTemplateColumns = mobile().pauseEnabled ? '1fr 2fr' : '1fr';
+  $('bPause').style.display = mobile().pauseEnabled ? '' : 'none';
+  $('bPause').disabled = !scoring || endWaiting;
+  $('bEnd').disabled = !scoring || endWaiting;
+  tick();
+}
+function tick(){
+  if (!match) return;
+  const cfg = timerCfg(), live = scoringDoc(), ck = GT.clockFor(match, cfg, Date.now(), live), T = $('tmr');
+  T.className = 'tmr';
+  let num = '', sub = '', pct = 0;
+  /* a timeout that ran out: resume (once) */
+  if (live && live.pause && live.pause.kind === 'timeout' && Date.now() >= live.pause.until && !tick.resuming) {
+    tick.resuming = true; write(U.resume(ud, live.pause.until)).finally(() => { tick.resuming = false; }); cueShow('Timeout over', 'Back to the game', 'point'); beep('side');
+  }
+  const pl = $('plabel');
+  pl.classList.toggle('on', !!(ck.paused));
+  if (ck.phase === 'warmup') { T.classList.add('warm'); num = GT.formatClock(ck.secs); sub = 'Warm-up'; pct = 100 - ck.secs / Math.max(1, cfg.warmupSec) * 100; }
+  else if (ck.phase === 'ready') { T.classList.add('ready'); num = 'Ready'; sub = 'Warm-up done'; pct = 100; }
+  else if (ck.phase === 'playing' && ck.paused) {
+    const who = ck.pauseTeam === 2 ? pairText(match.team2) : pairText(match.team1);
+    if (ck.paused === 'timeout') { T.classList.add('to'); num = GT.formatClock(ck.pauseLeft); sub = 'Timeout'; pct = 100 - ck.pauseLeft / Math.max(1, mobile().timeoutSec) * 100;
+      pl.textContent = `Timeout · ${who} · game timer stopped at ${GT.formatClock(ck.secs)}`; }
+    else { T.classList.add('pz'); num = GT.formatClock(ck.secs); sub = 'Paused'; pct = 0; pl.textContent = 'Game paused · the timer is stopped'; }
+  }
+  else if (ck.phase === 'playing') {
+    num = GT.formatClock(ck.secs);
+    if (cfg.enabled) { sub = 'of ' + GT.formatClock(cfg.gameMin * 60); pct = Math.min(100, ck.secs / (cfg.gameMin * 60) * 100);
+      const lv = { warn1:'w1', warn2:'w2', final:'fin', over:'over' }[ck.level]; if (lv) T.classList.add(lv); }
+    else sub = 'Playing';
+  } else { num = '--:--'; sub = 'Waiting to start'; }
+  $('tmrNum').textContent = num; $('tmrSub').textContent = sub; $('tmrBar').style.width = Math.max(0, pct) + '%';
+  /* start button + hint */
+  const starting = !!(ud && ud.startReq) && match.status === 'assigned';
+  $('bStart').disabled = starting;
+  $('bStart').textContent = starting ? 'Starting…' : (ck.phase === 'ready' ? '▶ Start game' : '▶ Start game now');
+  $('bStart').classList.toggle('pulse', ck.phase === 'ready' && !starting);
+  let hint = '';
+  if (match.status === 'assigned') {
+    if (starting && Date.now() - ud.startReq > 10000) hint = 'Waiting for the admin page to start the game.';
+    else if (ck.phase === 'warmup') hint = cfg.autoStart ? 'Starts on its own when the warm-up ends' : 'Press Start game when the warm-up ends';
+    else if (ck.phase === 'none') hint = 'Press Start game when the players are ready';
+  } else if (ud && ud.endReq) {
+    hint = Date.now() - (ud.endReq.at || 0) > 10000 ? 'Result sent — waiting for the admin page.' : 'Recording the result…';
+  }
+  if (ck.paused === 'timeout') hint = 'Resumes on its own at 0:00';
+  $('hint').textContent = hint;
+  if (!!ck.paused !== !!tick.wasPaused) { tick.wasPaused = !!ck.paused; paint(); }
+}
+setInterval(tick, 1000);
+
+/* ---------- actions ---------- */
+$('loginForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const u = $('inUser').value.trim().toLowerCase(), pin = $('inPin').value.trim();
+  const courts = Number(sessionState.courtCount) || 5;
+  const hit = Object.entries(logins || {}).find(([k, L]) => Number(k) <= courts && (L.username || '').toLowerCase() === u && String(L.pin) === pin);
+  if (!hit) { $('loginErr').textContent = 'Username or PIN is wrong.'; return; }
+  $('loginErr').textContent = ''; $('inPin').value = '';
+  saveMe({ court: Number(hit[0]), ver: hit[1].ver, username: hit[1].username });
+  route();
+});
+document.querySelectorAll('[data-signout]').forEach(b => b.addEventListener('click', () => {
+  if (!confirm('Sign out of this court?')) return;
+  saveMe(null); closeSheets(); route();
+}));
+$('pick').querySelectorAll('.opts button').forEach(b => b.addEventListener('click', () => {
+  if (!match || match.status !== 'assigned') return;
+  write(freshDoc(Number(b.dataset.first)));
+}));
+/* coin toss: random winner, then the winner chooses Serve or Receive */
+let tossWinner = 0;
+$('bToss').addEventListener('click', () => {
+  if (!match || match.status !== 'assigned') return;
+  const pk = $('pick'); pk.classList.remove('result'); pk.classList.add('tossing');
+  $('coin').textContent = '?'; $('tossW').textContent = 'Tossing…'; buzz(15);
+  const r = new Uint8Array(1); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(r) : (r[0] = Math.random() * 256);
+  tossWinner = (r[0] % 2) + 1;
+  setTimeout(() => {
+    pk.classList.remove('tossing'); pk.classList.add('result');
+    $('coin').textContent = tossWinner === 1 ? 'A' : 'B';
+    $('tossW').innerHTML = `Toss won by <b>${esc(pairText(tossWinner === 1 ? match.team1 : match.team2))}</b>`;
+    beep('side');
+  }, 1300);
+});
+document.querySelectorAll('[data-choose]').forEach(b => b.addEventListener('click', () => {
+  if (!tossWinner || !match) return;
+  const first = b.dataset.choose === 'serve' ? tossWinner : (tossWinner === 1 ? 2 : 1);
+  write(freshDoc(first));
+  $('pick').classList.remove('result', 'tossing');
+  cueShow(`${pairText(first === 1 ? match.team1 : match.team2)} serve first`, 'Coin toss', 'point');
+  $('bToss').textContent = '🪙 Toss again'; tossWinner = 0;
+}));
+$('bStart').addEventListener('click', () => { if (match && match.status === 'assigned') write({ startReq: Date.now() }); });
+$('teams').querySelectorAll('.won').forEach(b => b.addEventListener('click', () => {
+  if (!ud || !ud.started || ud.endReq) return;
+  if (ud.pause && GT.pauseInfo(ud, Date.now()).kind) return;
+  const t = Number(b.closest('.tm').dataset.t), before = ud, after = U.rally(ud, t);
+  write(after);
+  feedback(before, after, t);
+}));
+$('bUndo').addEventListener('click', () => { if (ud && ud.started && !ud.endReq) { write(U.undo(ud)); cueShow('Undone', 'Back to ' + U.call(U.undo(ud)), 'undo'); beep('undo'); } });
+$('bFlip').addEventListener('click', () => { flipped = !flipped; localStorage.setItem(flipKey(), flipped ? '1' : '0'); paint(); });
+
+/* sheets */
+function openSheet(id){ $('dim').classList.add('on'); $(id).classList.add('on'); }
+function closeSheets(){ $('dim').classList.remove('on'); document.querySelectorAll('.sheet').forEach(s => s.classList.remove('on')); holdReset(); }
+$('dim').addEventListener('click', closeSheets);
+
+/* adjust (manual override) */
+let adj = null;
+function paintAdj(){
+  $('adjS1').textContent = adj.s1; $('adjS2').textContent = adj.s2;
+  $('adjServing').querySelectorAll('button').forEach(b => b.classList.toggle('on', Number(b.dataset.v) === adj.serving));
+  $('adjNum').querySelectorAll('button').forEach(b => b.classList.toggle('on', Number(b.dataset.v) === adj.num));
+  $('adjNumRow').style.display = ud.mode === 'rally' ? 'none' : '';
+}
+$('bAdjust').addEventListener('click', () => {
+  if (!ud || !ud.started || ud.endReq) return;
+  adj = { s1: ud.s1, s2: ud.s2, serving: ud.serving, num: ud.num };
+  $('adjN1').textContent = pairText(match.team1); $('adjN2').textContent = pairText(match.team2);
+  const sb = $('adjServing').querySelectorAll('button');
+  sb[0].textContent = pairText(match.team1); sb[1].textContent = pairText(match.team2);
+  paintAdj(); openSheet('adjSheet');
+});
+document.querySelectorAll('[data-adj]').forEach(b => b.addEventListener('click', () => { adj[b.dataset.adj] = Math.max(0, adj[b.dataset.adj] + Number(b.dataset.d)); paintAdj(); }));
+$('adjServing').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { adj.serving = Number(b.dataset.v); paintAdj(); }));
+$('adjNum').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { adj.num = Number(b.dataset.v); paintAdj(); }));
+$('bAdjSave').addEventListener('click', () => { write(U.adjust(ud, adj)); closeSheets(); toast('Score updated.'); });
+$('bAdjCancel').addEventListener('click', closeSheets);
+
+/* end match: confirmation + press-and-hold (1.5 s) */
+$('bEnd').addEventListener('click', () => {
+  if (!ud || !ud.started) return;
+  if (!U.canEnd(ud)) { toast("The score is tied. A match can't end on a tie.", true); return; }
+  const w = ud.s1 > ud.s2 ? match.team1 : match.team2;
+  $('endN1').textContent = pairText(match.team1); $('endN2').textContent = pairText(match.team2);
+  $('endS').innerHTML = `${ud.s1}<em>–</em>${ud.s2}`;
+  $('endWin').innerHTML = `Winner: <b>${esc(pairText(w))}</b>`;
+  openSheet('endSheet');
+});
+$('bKeep').addEventListener('click', closeSheets);
+const HOLD_MS = 1500;
+let holdStart = 0, holdRaf = 0;
+function holdReset(){ cancelAnimationFrame(holdRaf); holdStart = 0; $('bRecord').querySelector('i').style.width = '0'; $('bRecord').querySelector('span').textContent = 'Hold to record result'; }
+function holdStep(){
+  if (!holdStart) return;
+  const p = Math.min(1, (performance.now() - holdStart) / HOLD_MS);
+  $('bRecord').querySelector('i').style.width = (p * 100) + '%';
+  if (p >= 1) { holdStart = 0; record(); return; }
+  holdRaf = requestAnimationFrame(holdStep);
+}
+const rec = $('bRecord');
+rec.addEventListener('pointerdown', e => { e.preventDefault(); rec.setPointerCapture && rec.setPointerCapture(e.pointerId); holdStart = performance.now(); rec.querySelector('span').textContent = 'Keep holding…'; holdRaf = requestAnimationFrame(holdStep); });
+['pointerup','pointercancel','pointerleave'].forEach(ev => rec.addEventListener(ev, () => { if (holdStart) holdReset(); }));
+rec.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && !holdStart) { e.preventDefault(); holdStart = performance.now(); holdRaf = requestAnimationFrame(holdStep); } });
+rec.addEventListener('keyup', () => { if (holdStart) holdReset(); });
+rec.addEventListener('contextmenu', e => e.preventDefault());
+function record(){
+  if (!ud || !U.canEnd(ud)) return closeSheets();
+  endSentAt = Date.now();
+  write({ endReq: { s1: ud.s1, s2: ud.s2, at: Date.now() } });
+  closeSheets(); toast('Result sent.');
+}
+
+/* press-and-hold helper (Reset game timer) */
+function makeHold(btn, label, done){
+  let st = 0, raf = 0;
+  const bar = btn.querySelector('i'), txt = btn.querySelector('span');
+  const reset = () => { cancelAnimationFrame(raf); st = 0; bar.style.width = '0'; txt.textContent = label; };
+  const step = () => { if (!st) return; const p = Math.min(1, (performance.now() - st) / HOLD_MS); bar.style.width = (p * 100) + '%'; if (p >= 1) { st = 0; reset(); done(); return; } raf = requestAnimationFrame(step); };
+  btn.addEventListener('pointerdown', e => { e.preventDefault(); st = performance.now(); txt.textContent = 'Keep holding…'; raf = requestAnimationFrame(step); });
+  ['pointerup','pointercancel','pointerleave'].forEach(ev => btn.addEventListener(ev, () => { if (st) reset(); }));
+  btn.addEventListener('contextmenu', e => e.preventDefault());
+  return reset;
+}
+
+/* pause / timeouts / reset (Tab 6 turns these on) */
+$('bPause').addEventListener('click', () => {
+  if (!ud || !ud.started || !mobile().pauseEnabled) return;
+  const per = Number(mobile().timeoutsPerTeam) || 0;
+  document.querySelectorAll('#pauseSheet [data-to]').forEach(b => {
+    const t = Number(b.dataset.to), left = U.timeoutsLeft(ud, t, per);
+    b.querySelector('span').textContent = `⏱ Timeout · ${pairText(t === 1 ? match.team1 : match.team2)}`;
+    b.querySelector('small').textContent = `${left} of ${per} left`;
+    b.disabled = left <= 0;
+  });
+  openSheet('pauseSheet');
+});
+document.querySelectorAll('#pauseSheet [data-to]').forEach(b => b.addEventListener('click', () => {
+  const t = Number(b.dataset.to), m = mobile();
+  write(U.startTimeout(ud, t, Date.now(), Number(m.timeoutSec) || 60, Number(m.timeoutsPerTeam) || 0));
+  closeSheets(); cueShow(`Timeout · ${pairText(t === 1 ? match.team1 : match.team2)}`, `${m.timeoutSec} seconds`, ''); beep('side'); buzz([40, 40, 40]);
+}));
+$('bPausePlain').addEventListener('click', () => { write(U.startPause(ud, Date.now())); closeSheets(); cueShow('Game paused', 'The timer is stopped', 'undo'); beep('server'); });
+$('bPauseCancel').addEventListener('click', closeSheets);
+makeHold($('bReset'), '↺ Hold to reset the game timer to 00:00', () => {
+  if (!ud || !match || !match.startedAt) return;
+  write(U.resetClock(ud, Number(match.startedAt), Date.now())); closeSheets(); cueShow('Timer reset', 'Game timer is back to 00:00', 'point'); beep('point');
+});
+$('bResume').addEventListener('click', () => { if (ud && ud.pause) { write(U.resume(ud, Date.now())); cueShow('Game resumed', '', 'point'); beep('point'); buzz(20); } });
+
+/* heartbeat, so Tab 6 shows this phone as signed in */
+setInterval(() => { if (me && signedInOk() && mobile().enabled && udLoaded && ud && match && ud.matchDocId === match.id) udRef().set({ lastSeen: Date.now(), ver: me.ver }, { merge:true }).catch(() => {}); }, 20000);
+/* also beat when there is no match, so the admin sees the phone */
+setInterval(() => { if (me && signedInOk() && mobile().enabled && !match) udRef().set({ court: me.court, lastSeen: Date.now(), ver: me.ver }, { merge:true }).catch(() => {}); }, 20000);
+</script>
+</body>
+</html>

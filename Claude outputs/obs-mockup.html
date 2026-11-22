@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>OBS overlay — mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{background:#e9ebe7;font-family:Inter,sans-serif;color:#1d211d;padding:24px}
+h2{font-size:15px;margin:0 0 10px;color:#4a524a}
+.wrap{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1700px;margin:auto}
+.stage{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden}
+.stage .inner{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
+.video{background:linear-gradient(160deg,#3d6b55 0%,#2c5a7a 45%,#1d3b55 100%)}
+.video::before{content:'';position:absolute;inset:0;background:
+  linear-gradient(90deg,transparent 49.6%,rgba(255,255,255,.55) 49.6% 50.4%,transparent 50.4%),
+  linear-gradient(0deg,transparent 30%,rgba(255,255,255,.4) 30% 30.6%,transparent 30.6%);opacity:.7}
+.video .cap{position:absolute;right:40px;top:30px;color:rgba(255,255,255,.6);font:600 28px Inter}
+.green{background:#00ff00}
+/* ===== the overlay bug ===== */
+.bug{position:absolute;left:64px;bottom:64px;width:820px;filter:drop-shadow(0 12px 30px rgba(0,0,0,.45));color:#fff}
+.green .bug{filter:none}
+.bug .top{display:flex;align-items:center;gap:14px;background:#0f1410;border-radius:14px 14px 0 0;padding:10px 20px;}
+.bug .top .lg{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#a6e57f,#6cc144 60%,#4f9d2d);flex:none}
+.bug .top .t{flex:1;min-width:0}
+.bug .top .t b{display:block;font:700 22px Oswald;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bug .top .t small{display:block;font:600 15px Inter;color:#9fb09a;letter-spacing:.04em}
+.bug .top .clk{font:700 30px Oswald;letter-spacing:.04em;padding:2px 12px;border-radius:8px;background:rgba(255,255,255,.08)}
+.bug .top .clk.w2{color:#ff8a1f}
+.bug .top .call{font:700 30px Oswald;color:#ffc43d;letter-spacing:.06em}
+.bug .row{display:flex;align-items:center;height:96px;background:rgba(15,20,16,.94);position:relative}
+.bug .row+.row{border-top:1px solid rgba(255,255,255,.08);border-radius:0 0 14px 14px}
+.bug .bar{width:12px;height:100%;background:var(--c)}
+.bug .nm{flex:1;min-width:0;padding:0 18px 0 22px}
+.bug .nm b{display:block;font:700 36px Oswald;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bug .srv{width:20px;height:20px;border-radius:50%;margin:0 20px;flex:none}
+.bug .srv.on{background:#ffc43d;box-shadow:0 0 18px #ffc43d}
+.bug .sc{width:124px;height:100%;display:grid;place-items:center;background:var(--c);font:700 72px Oswald;flex:none}
+.bug .row:last-child .sc{border-radius:0 0 14px 0}
+.bug .tag{position:absolute;right:136px;top:50%;transform:translateY(-50%);font:700 15px Inter;letter-spacing:.12em;color:#c792ff}
+/* winner */
+.win{position:absolute;left:64px;bottom:64px;width:820px;border-radius:16px;overflow:hidden;filter:drop-shadow(0 12px 30px rgba(0,0,0,.45));color:#fff}
+.win .k{background:#ffc43d;color:#1d1600;font:700 22px Oswald;letter-spacing:.3em;padding:10px 22px}
+.win .b{display:flex;align-items:center;background:rgba(15,20,16,.96);height:120px}
+.win .b .bar{width:12px;height:100%;background:var(--c)}
+.win .b .n{flex:1;min-width:0;padding:0 22px;font:700 38px Oswald;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.win .b .n small{display:block;font:600 16px Inter;color:#9fb09a;letter-spacing:.04em;text-transform:none}
+.win .b .s{font:700 64px Oswald;padding:0 28px}
+/* ===== Tab 7 mockup ===== */
+.tab{grid-column:1/-1;background:#fff;border:1px solid #dcdddb;border-radius:14px;padding:20px;display:grid;grid-template-columns:360px 1fr;gap:20px}
+.card{background:#f7f7f5;border:1px solid #dcdddb;border-radius:12px;padding:16px}
+.card+.card{margin-top:14px}
+.card h3{font-family:'Oswald';font-size:18px;margin-bottom:4px}
+.help{color:#6a706a;font-size:13px;margin-bottom:10px;line-height:1.4}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{border:1px solid #dcdddb;background:#fff;border-radius:999px;padding:7px 14px;font:600 13px Inter}
+.chips button.on{background:#3992b9;color:#fff;border-color:#3992b9}
+.link{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid #dcdddb;border-radius:10px;padding:6px 6px 6px 10px;font-size:13px;margin-top:10px}
+.link code{flex:1;font-weight:600}
+.btn{border:1px solid #dcdddb;background:#fff;border-radius:8px;padding:6px 12px;font:600 13px Inter}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sw{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #dcdddb;border-radius:10px;padding:8px}
+.sw i{width:28px;height:28px;border-radius:6px}
+.lbl{font-size:12px;font-weight:700;color:#6a706a;margin:12px 0 6px}
+.prev{background:repeating-conic-gradient(#ddd 0 25%,#f4f4f4 0 50%) 0 0/24px 24px;border-radius:12px;position:relative;aspect-ratio:16/9;overflow:hidden}
+.note{font-size:12.5px;color:#6a706a;margin-top:8px}
+</style></head><body>
+<div class="wrap">
+  <div><h2>1 · Transparent (OBS Browser Source), playing</h2><div class="stage video" id="s1"><div class="inner"><div class="cap">your camera feed</div>
+    <div class="bug">
+      <div class="top"><div class="lg"></div><div class="t"><b>Mindoro Pickleball Org. Cup 2026</b><small>Court 3 · Low Intermediate Men</small></div><div class="clk w2">14:08</div><div class="call">4-2-1</div></div>
+      <div class="row" style="--c:#1f6fd6"><div class="bar"></div><div class="nm"><b>Ella Ramos / Ian Torres</b></div><div class="srv on"></div><div class="sc">4</div></div>
+      <div class="row" style="--c:#e5484d"><div class="bar"></div><div class="nm"><b>Carlo Mendoza / Dina Uy</b></div><div class="srv"></div><div class="sc">2</div></div>
+    </div></div></div></div>
+  <div><h2>2 · Green screen option, during a timeout</h2><div class="stage green" id="s2"><div class="inner">
+    <div class="bug">
+      <div class="top"><div class="lg"></div><div class="t"><b>Mindoro Pickleball Org. Cup 2026</b><small>Court 3 · Low Intermediate Men</small></div><div class="clk" style="color:#c792ff">0:43</div><div class="call">4-2-1</div></div>
+      <div class="row" style="--c:#1f6fd6"><div class="bar"></div><div class="nm"><b>Ella Ramos / Ian Torres</b></div><span class="tag">TIMEOUT</span><div class="srv"></div><div class="sc">4</div></div>
+      <div class="row" style="--c:#e5484d"><div class="bar"></div><div class="nm"><b>Carlo Mendoza / Dina Uy</b></div><div class="srv on"></div><div class="sc">2</div></div>
+    </div></div></div></div>
+  <div><h2>3 · Match ended: winner banner (about 12 s, then hides)</h2><div class="stage video" id="s3"><div class="inner"><div class="cap">your camera feed</div>
+    <div class="win"><div class="k">WINNER</div><div class="b" style="--c:#1f6fd6"><div class="bar"></div><div class="n">Ella Ramos / Ian Torres<small>Court 3 · Low Intermediate Men</small></div><div class="s">11–7</div></div></div>
+  </div></div></div>
+  <div><h2>4 · No match on the court: nothing shows (clean feed)</h2><div class="stage video" id="s4"><div class="inner"><div class="cap">your camera feed</div></div></div></div>
+
+  <div class="tab">
+    <div>
+      <div class="card"><h3>OBS Overlay</h3><div class="help">Make a link for one court and add it in OBS as a Browser Source (1920 × 1080). Scores come from the umpire app (Tab 6).</div>
+        <div class="lbl">Court</div><div class="chips"><button>Court 1</button><button>Court 2</button><button class="on">Court 3</button><button>Court 4</button><button>Court 5</button></div>
+        <div class="link"><code>…/obs.html?court=3</code><button class="btn">Copy link</button><button class="btn">Open</button></div></div>
+      <div class="card"><h3>Look</h3>
+        <div class="lbl">Background</div><div class="chips"><button class="on">Transparent</button><button>Green screen</button></div>
+        <div class="lbl">Team colors</div><div class="cols"><div class="sw"><i style="background:#1f6fd6"></i>Team A</div><div class="sw"><i style="background:#e5484d"></i>Team B</div></div>
+        <div class="lbl">Position</div><div class="chips"><button class="on">Bottom left</button><button>Bottom right</button><button>Top left</button><button>Top right</button></div>
+        <div class="note">Same look for every court. Event title and logo come from 📺 TV display.</div></div>
+    </div>
+    <div><div class="lbl" style="margin-top:0">Live preview · Court 3</div><div class="prev" id="s5"><div class="inner" style="position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0">
+      <div class="bug">
+        <div class="top"><div class="lg"></div><div class="t"><b>Mindoro Pickleball Org. Cup 2026</b><small>Court 3 · Low Intermediate Men</small></div><div class="clk w2">14:08</div><div class="call">4-2-1</div></div>
+        <div class="row" style="--c:#1f6fd6"><div class="bar"></div><div class="nm"><b>Ella Ramos / Ian Torres</b></div><div class="srv on"></div><div class="sc">4</div></div>
+        <div class="row" style="--c:#e5484d"><div class="bar"></div><div class="nm"><b>Carlo Mendoza / Dina Uy</b></div><div class="srv"></div><div class="sc">2</div></div>
+      </div></div></div>
+      <div class="note">Checkered = transparent. OBS: Sources → + → Browser → paste the link → Width 1920, Height 1080.</div></div>
+  </div>
+</div>
+<script>
+function fit(){ document.querySelectorAll('.stage,.prev').forEach(s => { const i = s.querySelector('.inner'); i.style.transform = `scale(${s.clientWidth / 1920})`; }); }
+addEventListener('resize', fit); fit();
+</script>
+</body></html>

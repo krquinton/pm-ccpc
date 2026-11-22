@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Umpire app — mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#191c19;--card:#232823;--card-2:#2c322c;--name:#f4f7f1;--dim:#93a08f;--amp:#6b7768;--accent:#6cc144;--on-accent:#10210a;
+  --warm:#4fb4ff;--w1:#ffc43d;--w2:#ff8a1f;--fin:#ff4f4f;--line:rgba(255,255,255,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0e100e;color:var(--name);font-family:Archivo,system-ui,sans-serif;font-stretch:90%;font-variant-numeric:tabular-nums;padding:28px}
+.intro{max-width:1500px;margin:0 auto 22px;color:var(--dim);font-size:15px;line-height:1.5}
+.intro b{color:var(--name)}
+.board{display:flex;gap:28px;flex-wrap:wrap;justify-content:center}
+.shot{display:flex;flex-direction:column;gap:10px;align-items:center}
+.shot p{color:var(--dim);font-size:13px;font-weight:600;max-width:330px;text-align:center}
+/* phone frame */
+.ph{width:340px;height:720px;border-radius:38px;background:var(--bg);border:8px solid #2a2e2a;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.bar{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px}
+.bar .ct{font-weight:900;font-stretch:120%;font-size:22px}
+.bar .ct small{display:block;font-size:11px;font-weight:600;color:var(--dim);font-stretch:100%}
+.bar .live{font-size:12px;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:6px}
+.bar .live::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.cat{padding:0 18px;color:var(--dim);font-size:13px;font-weight:600}
+
+/* PIN */
+.pin{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:0 26px}
+.pin h1{font-weight:900;font-stretch:125%;font-size:46px;line-height:1}
+.pin .sub{color:var(--dim);font-size:15px}
+.dots{display:flex;gap:14px;margin:6px 0 4px}
+.dots i{width:16px;height:16px;border-radius:50%;border:2px solid var(--dim)}
+.dots i.on{background:var(--name);border-color:var(--name)}
+.keys{display:grid;grid-template-columns:repeat(3,72px);gap:12px}
+.keys button{height:62px;border-radius:50%;border:0;background:var(--card-2);color:var(--name);font:700 26px Archivo,sans-serif;font-stretch:110%}
+.keys button.ghost{background:transparent;font-size:15px;color:var(--dim)}
+
+/* clock */
+.clock{margin:14px 18px 0;border-radius:18px;background:var(--card);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden}
+.clock b{font-weight:800;font-stretch:118%;font-size:44px;line-height:1}
+.clock span{font-size:13px;font-weight:700;color:var(--dim);text-align:right;line-height:1.3}
+.clock .prog{position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--line)}
+.clock .prog i{position:absolute;left:0;top:0;bottom:0;background:var(--accent)}
+.clock.warm b{color:var(--warm)} .clock.warm .prog i{background:var(--warm)}
+.clock.w2 b{color:var(--w2)} .clock.w2 .prog i{background:var(--w2)}
+
+/* teams */
+.teams{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 18px 0;min-height:0}
+.tm{background:var(--card);border-radius:18px;display:flex;flex-direction:column;padding:14px 12px 12px;min-height:0}
+.tm .who{font-weight:700;font-size:19px;line-height:1.15;min-height:46px}
+.tm .who div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tm .sc{flex:1;display:flex;align-items:center;justify-content:center;font-weight:900;font-stretch:125%;font-size:96px;line-height:1}
+.tm .up{height:92px;border:0;border-radius:14px;background:var(--accent);color:var(--on-accent);font-size:40px;font-weight:900;cursor:pointer}
+.tm .dn{height:40px;margin-top:8px;border:0;border-radius:12px;background:var(--card-2);color:var(--dim);font-size:18px;font-weight:800;cursor:pointer}
+.tm.lead .sc{color:var(--accent)}
+.teams.off .tm .sc{color:var(--amp)}
+.teams.off .up,.teams.off .dn{background:var(--card-2);color:var(--amp)}
+.swap{align-self:center;margin:10px 0 0;border:0;background:transparent;color:var(--dim);font:700 13px Archivo,sans-serif}
+
+.foot{padding:12px 18px 18px;display:flex;flex-direction:column;gap:8px}
+.btn{height:58px;border-radius:16px;border:0;font:800 19px Archivo,sans-serif;font-stretch:105%;cursor:pointer}
+.btn.go{background:var(--warm);color:#fff}
+.btn.go.pulse{animation:pulse 1.2s ease-in-out infinite}
+.btn.end{background:var(--card-2);color:var(--name)}
+.btn.rec{background:var(--accent);color:var(--on-accent)}
+.btn.ghost{background:transparent;color:var(--dim);height:44px;font-size:15px}
+.hint{color:var(--dim);font-size:12.5px;text-align:center}
+@keyframes pulse{50%{opacity:.6}}
+
+/* waiting */
+.wait{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:0 30px}
+.wait .big{font-weight:800;font-size:26px;line-height:1.15}
+.wait .sub{color:var(--dim);font-size:15px;line-height:1.4}
+.wait .next{margin-top:18px;background:var(--card);border-radius:16px;padding:12px 14px;width:100%;text-align:left}
+.wait .next small{color:var(--dim);font-size:12px;font-weight:700}
+.wait .next div{font-weight:700;font-size:17px;line-height:1.25}
+
+/* end sheet */
+.dim{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--card);border-radius:26px 26px 0 0;padding:22px 20px 20px;display:flex;flex-direction:column;gap:14px}
+.sheet h2{font-weight:800;font-size:22px}
+.res{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;background:var(--card-2);border-radius:16px;padding:14px}
+.res .n{font-size:14px;font-weight:700;line-height:1.25}
+.res .n.r{text-align:right}
+.res .s{font-weight:900;font-stretch:120%;font-size:38px}
+.res .s em{font-style:normal;color:var(--dim);padding:0 6px}
+.win{font-size:15px;color:var(--dim)} .win b{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="intro"><b>Umpire app mockup (phone).</b> Isang umpire, isang court. Link: <b>umpire.html?court=3</b> + PIN. Pindutin ang ▲ ▼ sa ikatlong screen; gumagana ang score.</div>
+<div class="board">
+
+  <div class="shot">
+    <div class="ph">
+      <div class="pin">
+        <h1>Court 3</h1>
+        <div class="sub">Enter the umpire PIN</div>
+        <div class="dots"><i class="on"></i><i class="on"></i><i></i><i></i></div>
+        <div class="keys">
+          <button>1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>6</button>
+          <button>7</button><button>8</button><button>9</button><button class="ghost"></button><button>0</button><button class="ghost">⌫</button>
+        </div>
+      </div>
+    </div>
+    <p>1 · PIN. Isang beses lang; tatandaan ng phone hanggang palitan ang PIN.</p>
+  </div>
+
+  <div class="shot">
+    <div class="ph">
+      <div class="bar"><div class="ct"><small>Umpire</small>Court 3</div><div class="live">Live</div></div>
+      <div class="wait">
+        <div class="big">No match yet</div>
+        <div class="sub">Players will show here when the admin adds a match to Court 3.</div>
+      </div>
+    </div>
+    <p>2 · Walang match sa court. Kusang lilipat sa susunod na screen kapag na-assign.</p>
+  </div>
+
+  <div class="shot">
+    <div class="ph">
+      <div class="bar"><div class="ct"><small>Umpire</small>Court 3</div><div class="live">Live</div></div>
+      <div class="cat">Low Intermediate Men · M-014</div>
+      <div class="clock warm"><b>01:12</b><span>Warm-up<br>then 15:00 game</span><div class="prog"><i style="width:40%"></i></div></div>
+      <div class="teams off">
+        <div class="tm"><div class="who"><div>Ella Ramos</div><div>Ian Torres</div></div><div class="sc">0</div><button class="up">▲</button><button class="dn">▼</button></div>
+        <div class="tm"><div class="who"><div>Carlo Mendoza</div><div>Dina Uy</div></div><div class="sc">0</div><button class="up">▲</button><button class="dn">▼</button></div>
+      </div>
+      <div class="foot"><button class="btn go">▶ Start game now</button><div class="hint">Starts on its own when the warm-up ends</div></div>
+    </div>
+    <p>3 · Warm-up. Nakikita ang mga pangalan at countdown. Naka-lock ang score hanggang magsimula. (Kung Manual ang setting: "Start game" na kumikislap pagdating sa 0.)</p>
+  </div>
+
+  <div class="shot">
+    <div class="ph">
+      <div class="bar"><div class="ct"><small>Umpire</small>Court 3</div><div class="live">Live</div></div>
+      <div class="cat">Low Intermediate Men · M-014</div>
+      <div class="clock w2"><b>14:08</b><span>of 15:00<br>2nd warning</span><div class="prog"><i style="width:94%"></i></div></div>
+      <div class="teams" id="t">
+        <div class="tm" id="a"><div class="who"><div>Ella Ramos</div><div>Ian Torres</div></div><div class="sc">9</div><button class="up">▲</button><button class="dn">▼</button></div>
+        <div class="tm" id="b"><div class="who"><div>Carlo Mendoza</div><div>Dina Uy</div></div><div class="sc">7</div><button class="up">▲</button><button class="dn">▼</button></div>
+      </div>
+      <button class="swap">⇄ Switch sides</button>
+      <div class="foot"><button class="btn end">End match</button></div>
+    </div>
+    <p>4 · Laro. Malaking ▲ para sa puntos, maliit na ▼ para sa mali. Live ang score sa TV. "Switch sides" ay para sa pagpapalit ng side ng mga team (itsura lang).</p>
+  </div>
+
+  <div class="shot">
+    <div class="ph">
+      <div class="bar"><div class="ct"><small>Umpire</small>Court 3</div><div class="live">Live</div></div>
+      <div class="cat">Low Intermediate Men · M-014</div>
+      <div class="clock"><b>15:31</b><span>of 15:00</span><div class="prog"><i style="width:100%"></i></div></div>
+      <div class="dim"></div>
+      <div class="sheet">
+        <h2>End match?</h2>
+        <div class="res"><div class="n">Ella Ramos<br>Ian Torres</div><div class="s">11<em>–</em>7</div><div class="n r">Carlo Mendoza<br>Dina Uy</div></div>
+        <div class="win">Winner: <b>Ella Ramos &amp; Ian Torres</b></div>
+        <button class="btn rec">Record result</button>
+        <button class="btn ghost">Keep playing</button>
+      </div>
+    </div>
+    <p>5 · Kumpirmasyon. Hindi pwede kapag tabla. Pagkatapos: lalabas ang winner sa TV, mababakante ang court, at babalik sa screen 2.</p>
+  </div>
+
+</div>
+<script>
+/* make screen 4 tappable */
+const lead = () => { const a = +document.querySelector('#a .sc').textContent, b = +document.querySelector('#b .sc').textContent;
+  document.getElementById('a').classList.toggle('lead', a > b); document.getElementById('b').classList.toggle('lead', b > a); };
+['a','b'].forEach(id => {
+  const t = document.getElementById(id), sc = t.querySelector('.sc');
+  t.querySelector('.up').onclick = () => { sc.textContent = +sc.textContent + 1; lead(); };
+  t.querySelector('.dn').onclick = () => { sc.textContent = Math.max(0, +sc.textContent - 1); lead(); };
+});
+document.querySelector('.swap').onclick = () => { const t = document.getElementById('t'); t.append(t.firstElementChild); };
+lead();
+</script>
+</body>
+</html>

@@ -220,12 +220,77 @@
   .court-match .teams{font-weight:700;margin-bottom:6px;}
   .court-timer{font-family:'Baloo 2';font-size:22px;color:var(--navy);margin-bottom:10px;}
   html[data-theme="dark"] .court-timer{color:var(--blue);}
+  /* Tab 6 · Mobile Companion */
+  .mc-layout{display:grid;grid-template-columns:minmax(300px,390px) minmax(0,1fr);gap:18px;align-items:start;}
+  @media (max-width:900px){.mc-layout{grid-template-columns:1fr;}}
+  .mc-link{display:flex;gap:8px;align-items:center;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:6px 6px 6px 10px;}
+  .mc-link code{flex:1;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .mc-seg{display:flex;flex-wrap:wrap;}
+  .mc-seg button{flex:1;}
+  .mc-table{width:100%;border-collapse:collapse;font-size:14px;}
+  .mc-table th{font-size:12px;color:var(--muted);text-align:left;font-weight:700;padding:8px;border-bottom:1px solid var(--border);}
+  .mc-table td{padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  .mc-table input{width:120px;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 9px;font:600 14px inherit;}
+  .mc-pin{font-weight:800;letter-spacing:.2em;font-size:15px;}
+  .mc-st{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;white-space:nowrap;}
+  .mc-st::before{content:'';width:8px;height:8px;border-radius:50%;background:#b8bcb7;}
+  .mc-st.on::before{background:var(--gold);}
+  .mc-now{font-size:13px;color:var(--muted);} .mc-now b{color:var(--text);}
+  .mc-acts{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;}
+  /* Tab 7 · OBS Overlay */
+  .obs-chips{display:flex;gap:6px;flex-wrap:wrap;}
+  .obs-chips button{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:999px;padding:7px 14px;font-weight:600;font-size:13px;cursor:pointer;}
+  .obs-chips button.on{background:var(--blue);border-color:var(--blue);color:#fff;}
+  .obs-colors{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .obs-color{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px 8px;cursor:pointer;font-weight:600;font-size:14px;}
+  .obs-color input{width:34px;height:30px;border:0;padding:0;background:none;cursor:pointer;}
+  .obs-prev{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:repeating-conic-gradient(#d6d6d6 0 25%,#f2f2f2 0 50%) 0 0/24px 24px;}
+  .obs-prev iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;}
+  /* TV header settings */
+  .th-logo{display:flex;gap:14px;align-items:center;}
+  .th-logo-box{width:150px;height:84px;border-radius:12px;background:#2f332e;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;}
+  .th-logo-box img{max-width:100%;max-height:100%;object-fit:contain;display:none;}
+  .th-logo-box.has img{display:block;} .th-logo-box.has span{display:none;}
+  .th-logo-box span{color:rgba(255,255,255,.6);font-size:12px;font-weight:600;}
+  .th-logo-actions{display:flex;flex-direction:column;gap:6px;align-items:flex-start;}
+  /* live score from the umpire app, next to "Court N" */
+  .live-chip{display:inline-flex;align-items:center;gap:5px;margin-left:8px;padding:2px 9px;border-radius:999px;background:var(--gold);color:#fff;font-size:13px;font-weight:800;vertical-align:middle;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+  .live-chip[hidden]{display:none}
+  .live-chip::before{content:'';width:6px;height:6px;border-radius:50%;background:#fff;animation:tpulse 1.4s ease-in-out infinite}
+  .live-chip.paused{background:#8a5cc7}
+  /* Game timer */
+  .gt-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;}
+  .gt-legend{display:flex;gap:8px;margin:4px 0 6px;font-size:12px;font-weight:700;}
+  .gt-legend span{padding:3px 9px;border-radius:20px;}
+  .gt-legend .lv-warn1,.tlv.lv-warn1{background:#f5c518;color:#1d1d1f;}
+  .gt-legend .lv-warn2,.tlv.lv-warn2{background:#ff8a00;color:#fff;}
+  .gt-legend .lv-final,.tlv.lv-final{background:#e5484d;color:#fff;}
+  .gt-legend .lv-over,.tlv.lv-over{background:#9b1c22;color:#fff;}
+  .court-timer.tlv{display:inline-block;padding:2px 12px;border-radius:12px;}
+  .court-timer.tlv.lv-final{animation:tpulse 1s ease-in-out infinite;}
+  .court-timer .cap{font-size:14px;opacity:.75;}
+  .court-timer .over{font-size:14px;font-weight:800;margin-left:6px;}
+  .court-card.lv-warn1{border-color:#f5c518;border-width:2px;}
+  .court-card.lv-warn2{border-color:#ff8a00;border-width:2px;}
+  .court-card.lv-final,.court-card.lv-over{border-color:#e5484d;border-width:2px;}
+  .warmup-badge{display:inline-flex;align-items:baseline;gap:8px;background:#2f7fd6;color:#fff;border-radius:12px;padding:4px 12px;font-family:'Baloo 2';font-size:20px;margin-bottom:10px;}
+  .warmup-badge small{font-family:'Inter';font-size:11px;font-weight:800;letter-spacing:.08em;}
+  .warmup-badge.ready{background:#2e9e5b;}
+  .btn.pulse{animation:tpulse 1s ease-in-out infinite;}
+  @keyframes tpulse{0%,100%{opacity:1;}50%{opacity:.45;}}
+  @media (prefers-reduced-motion: reduce){.court-timer.tlv.lv-final,.btn.pulse{animation:none;}}
   .court-empty{color:var(--muted);font-size:13px;text-align:center;padding:20px 0;}
 
   .queue-list{display:flex;flex-direction:column;gap:10px;}
   .queue-row{background:var(--surface);border:1px solid var(--border);border-radius:12px;
     padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:var(--shadow);cursor:grab;}
   .queue-row.onhold{opacity:.6;}
+  .queue-row{position:relative;}
+  .est-tip{display:none;position:absolute;left:44px;bottom:calc(100% + 6px);z-index:20;background:#1d1d1f;color:#fff;font-size:12.5px;font-weight:600;
+    padding:7px 11px;border-radius:9px;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.25);pointer-events:none;}
+  .est-tip::after{content:'';position:absolute;left:16px;top:100%;border:6px solid transparent;border-top-color:#1d1d1f;}
+  .queue-row:hover .est-tip,.queue-row.tip-open .est-tip{display:block;}
+  .queue-row.onhold .est-tip{opacity:1;}
   .queue-row .drag-handle{color:var(--muted);font-size:16px;}
   .queue-row .qid{font-family:'Baloo 2';font-weight:700;color:var(--navy);font-size:14px;min-width:56px;}
   html[data-theme="dark"] .queue-row .qid{color:var(--blue);}
@@ -420,6 +485,7 @@
   <div class="session-chip" id="sessionLabel">Loading session…</div>
   <div class="sync-chip" id="syncChip" style="display:none;"></div>
   <div class="top-actions">
+    <button class="btn-top" id="btnTvHeader" title="Logo, titles, theme and Up next times on the TV">📺 TV display</button>
     <button class="btn-top" id="btnSaveSnap" title="Save a snapshot of the current session">💾 Save</button>
     <button class="btn-top" id="btnSnapshots" title="View or restore saved snapshots">🗂 Snapshots</button>
     <button class="btn-danger-ghost" id="btnEndSession" title="End the session and see the recap">⏹ End session</button>
@@ -437,6 +503,8 @@
   <button data-tab="queue">3 · Queue &amp; Courts</button>
   <button data-tab="leaderboard">4 · Leaderboard</button>
   <button data-tab="sponsors">5 · Sponsors</button>
+  <button data-tab="mobile">6 · Mobile Companion</button>
+  <button data-tab="obs">7 · OBS Overlay</button>
   <button data-tab="logs">Logs</button>
 </nav>
 
@@ -451,6 +519,7 @@
     <div class="section-title" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">Courts
       <button class="btn btn-primary btn-sm" id="btnActivateCourts" style="text-transform:none;letter-spacing:0;">▶ Activate Courts (ALL)</button>
       <button class="btn btn-ghost btn-sm" id="btnFlipCourts" style="text-transform:none;letter-spacing:0;">⇅ Flip courts</button>
+      <button class="btn btn-ghost btn-sm" id="btnGameTimer" style="text-transform:none;letter-spacing:0;" title="Game length, warm-up and time warnings">⏱ Game timer · off</button>
       <span style="display:inline-flex;align-items:center;gap:6px;">
         <button class="btn btn-ghost btn-sm" id="btnRemoveCourt" style="text-transform:none;letter-spacing:0;" title="Remove the last court (blocked while it is in use)">− Remove court</button>
         <span id="courtCountLabel" style="font-size:12px;font-weight:700;color:var(--muted);text-transform:none;letter-spacing:0;white-space:nowrap;"></span>
@@ -467,7 +536,6 @@
       <button class="btn btn-ghost btn-sm" id="btnShowLeaderboard" style="text-transform:none;letter-spacing:0;">🏆 Show leaderboard</button>
       <button class="btn btn-ghost btn-sm" id="btnLbPick" style="display:none;text-transform:none;letter-spacing:0;" title="Choose which categories the TV leaderboard shows (max 3)">⚙ Leaderboard categories</button>
       <button class="btn btn-ghost btn-sm" id="btnShowImage" style="text-transform:none;letter-spacing:0;" title="Show a picture full screen on the TV">🖼 Show Image</button>
-      <button class="btn btn-ghost btn-sm" id="btnShowSponsors" style="text-transform:none;letter-spacing:0;" title="Play the sponsor showcase once on the TV">🎉 Show Sponsors</button>
     </div>
     <div class="queue-list" id="queueList"></div>
   </section>
@@ -475,8 +543,7 @@
   <section class="panel" id="panel-leaderboard">
     <div class="bucket-card" style="margin-bottom:18px;">
       <div class="logs-toolbar">
-        <div class="field" style="margin:0;min-width:240px;"><label>Session</label>
-          <select id="lbSessionFilter"><option value="">Current session</option></select></div>
+        <div style="font-size:13px;font-weight:700;">Current session: <span id="lbSessionName"></span></div>
         <div class="seg" id="lbViewToggle" style="display:none;"><button data-v="pool" class="on">By pool</button><button data-v="cat">Whole category</button></div>
         <div style="font-size:12.5px;color:var(--muted);">Ranked by Wins → Total Points → Point Differential</div>
       </div>
@@ -526,9 +593,78 @@
         </div>
       </div>
       <div class="bucket-card sp-card">
-        <h3>Sponsors</h3>
-        <div class="helper sp-sub">This is the order on the TV. Use ↑ ↓ to change it. Play it from Tab 3 with 🎉 Show Sponsors.</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;"><h3 style="margin:0;">Sponsors</h3>
+          <button class="btn btn-primary btn-sm" id="btnShowSponsors" style="text-transform:none;letter-spacing:0;" title="Play the sponsor showcase once on the TV">🎉 Show Sponsors</button></div>
+        <div class="helper sp-sub">This is the order on the TV. Use ↑ ↓ to change it. Play it with 🎉 Show Sponsors.</div>
         <div id="spList"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-mobile">
+    <div class="mc-layout">
+      <div class="sp-stack">
+        <div class="bucket-card sp-card">
+          <h3>Mobile Companion</h3>
+          <div class="helper sp-sub">Umpires score their court from a phone. Live scores show here and, if you choose, on the TV.</div>
+          <label class="tv-switch mc-switch"><input type="checkbox" id="mcEnabled"><span>Turn on Mobile Companion</span></label>
+          <div class="field" style="margin-top:12px;"><label>Umpire link (same for every court)</label>
+            <div class="mc-link"><code id="mcLink"></code><button type="button" class="btn btn-ghost btn-sm" id="btnMcCopy">Copy link</button></div></div>
+          <div class="helper" style="margin:0;">Keep this admin page open: it records the umpires' results and starts their games.</div>
+        </div>
+        <div class="bucket-card sp-card">
+          <h3>Scoring</h3>
+          <div class="helper sp-sub">Used by every umpire. A change applies to games that start after it.</div>
+          <div class="seg mc-seg" id="mcScoring"><button type="button" data-v="rally">Rally scoring</button><button type="button" data-v="sideout">Side-out scoring</button></div>
+        </div>
+        <div class="bucket-card sp-card">
+          <h3>Scores on the TV</h3>
+          <div class="helper sp-sub">What the TV shows next to each team while a game is on.</div>
+          <div class="seg mc-seg" id="mcTv"><button type="button" data-v="off">Off</button><button type="button" data-v="score">Score</button><button type="button" data-v="serve">Serve</button><button type="button" data-v="both">Score + Serve</button></div>
+        </div>
+        <div class="bucket-card sp-card">
+          <h3>Pause &amp; timeouts</h3>
+          <div class="helper sp-sub">Lets umpires call a team timeout, pause the game, or reset the game timer. The game timer stops while paused.</div>
+          <label class="tv-switch mc-switch"><input type="checkbox" id="mcPause"><span>Allow pause and timeouts</span></label>
+          <div class="sp-grid3" style="grid-template-columns:1fr 1fr;margin-top:10px;">
+            <div class="field" style="margin:0;"><label for="mcToSec">Timeout length (sec)</label><input type="number" id="mcToSec" min="10" max="600" step="5"></div>
+            <div class="field" style="margin:0;"><label for="mcToPer">Timeouts per team per game</label><input type="number" id="mcToPer" min="0" max="10"></div>
+          </div>
+          <div class="error-text" id="errMcPause"></div>
+        </div>
+      </div>
+      <div class="bucket-card sp-card">
+        <h3>Court logins</h3>
+        <div class="helper sp-sub">One login per court. The umpire signs in with these on the umpire link. A new PIN or Sign out signs that court's phone out.</div>
+        <div style="overflow-x:auto;"><table class="mc-table"><thead><tr><th>Court</th><th>Username</th><th>PIN</th><th>Phone</th><th>Now on court</th><th></th></tr></thead><tbody id="mcBody"></tbody></table></div>
+        <div class="error-text" id="errMc"></div>
+        <div class="helper" style="margin:10px 0 0;">PINs keep honest mistakes out; someone who opens the browser's developer tools could still find them.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-obs">
+    <div class="mc-layout">
+      <div class="sp-stack">
+        <div class="bucket-card sp-card">
+          <h3>OBS Overlay</h3>
+          <div class="helper sp-sub">Make a link for one court and add it in OBS as a Browser Source (1920 × 1080). Scores come from the umpire app (Tab 6).</div>
+          <div class="field"><label>Court</label><div class="obs-chips" id="obsCourts"></div></div>
+          <div class="mc-link"><code id="obsLink"></code><button type="button" class="btn btn-ghost btn-sm" id="btnObsCopy">Copy link</button><a class="btn btn-ghost btn-sm" id="btnObsOpen" target="_blank" rel="noopener">Open</a></div>
+          <div class="helper" style="margin:10px 0 0;">In OBS: Sources → + → Browser → paste the link → Width 1920, Height 1080.</div>
+        </div>
+        <div class="bucket-card sp-card">
+          <h3>Look</h3>
+          <div class="helper sp-sub">Same look for every court. Event title and logo come from 📺 TV display.</div>
+          <div class="field"><label>Background</label><div class="obs-chips" id="obsBg"><button type="button" data-v="transparent">Transparent</button><button type="button" data-v="green">Green screen</button></div></div>
+          <div class="field"><label>Team colors</label><div class="obs-colors"><label class="obs-color"><input type="color" id="obsColorA"><span>Team A</span></label><label class="obs-color"><input type="color" id="obsColorB"><span>Team B</span></label></div></div>
+          <div class="field" style="margin-bottom:0;"><label>Position</label><div class="obs-chips" id="obsPos"><button type="button" data-v="bl">Bottom left</button><button type="button" data-v="br">Bottom right</button><button type="button" data-v="tl">Top left</button><button type="button" data-v="tr">Top right</button></div></div>
+        </div>
+      </div>
+      <div class="bucket-card sp-card">
+        <h3>Live preview · <span id="obsPrevCourt"></span></h3>
+        <div class="helper sp-sub">Checkered = transparent. Shows only while a match is on the court.</div>
+        <div class="obs-prev" id="obsPrev"><iframe id="obsFrame" title="OBS overlay preview"></iframe></div>
       </div>
     </div>
   </section>
@@ -676,6 +812,46 @@
     <div class="helper">Landscape (16:9) pictures fill the TV best. Other shapes get black bars on the sides.</div>
     <div class="error-text" id="errTvImg"></div>
     <div class="modal-actions"><button class="btn btn-ghost" id="btnTvImgCancel">Cancel</button><button class="btn btn-primary" id="btnTvImgShow">Show on TV</button></div>
+  </div>
+</div>
+
+<!-- TV header: logo, title, subtitle -->
+<div class="overlay" id="tvHeaderOverlay">
+  <div class="modal">
+    <h2>TV display</h2>
+    <div class="modal-sub">Logo, titles and look of the TV display.</div>
+    <div class="field"><label>Logo</label>
+      <div class="th-logo"><div class="th-logo-box" id="thLogoBox"><img id="thLogoPreview" alt=""><span id="thLogoEmpty">No logo</span></div>
+        <div class="th-logo-actions"><button type="button" class="btn btn-ghost btn-sm" id="btnThLogoPick">⬆ Upload logo</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="btnThLogoRemove">Remove logo</button>
+          <div class="helper" style="margin:0;">PNG with a clear background looks best. Shown at the top left.</div></div></div>
+      <input type="file" id="thLogoFile" accept="image/*" style="display:none;"></div>
+    <div class="field"><label for="thTitle">Event title</label><input type="text" id="thTitle" maxlength="60" placeholder="PickleManage"></div>
+    <div class="field"><label for="thSub">Subtitle</label><input type="text" id="thSub" maxlength="80"><div class="helper" style="margin:0;">Leave blank to show the session name.</div></div>
+    <div class="field"><label for="thTheme">TV theme</label><select id="thTheme"><option value="">Let the TV choose (corner switch)</option><option value="dark">Dark</option><option value="light">Light</option><option value="mindoro">Mindoro Cup</option></select></div>
+    <label class="tv-switch" style="margin-bottom:12px;"><input type="checkbox" id="thShowEta"><span>Show estimated time in Up next (needs the Game timer)</span></label>
+    <div class="error-text" id="errTvHeader"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" id="btnThCancel">Cancel</button><button class="btn btn-primary" id="btnThSave">Save display</button></div>
+  </div>
+</div>
+
+<!-- Game timer settings -->
+<div class="overlay" id="gameTimerOverlay">
+  <div class="modal">
+    <h2>Game timer</h2>
+    <div class="modal-sub">Same for every category. Shows on the courts here and on the TV.</div>
+    <label class="tv-switch" style="margin-bottom:14px;"><input type="checkbox" id="gtEnabled"><span>Use the game timer</span></label>
+    <div class="gt-grid">
+      <div class="field"><label for="gtGameMin">Game length (min)</label><input type="number" id="gtGameMin" min="1" max="90"></div>
+      <div class="field"><label for="gtWarmupSec">Warm-up (sec)</label><input type="number" id="gtWarmupSec" min="0" max="900" step="10"><div class="helper" id="gtWarmupHelp" style="margin:0;"></div></div>
+      <div class="field"><label for="gtWarn1">1st warning at (min)</label><input type="number" id="gtWarn1" min="0" step="0.5"></div>
+      <div class="field"><label for="gtWarn2">2nd warning at (min)</label><input type="number" id="gtWarn2" min="0" step="0.5"></div>
+      <div class="field"><label for="gtFinal">Final warning (sec before end)</label><input type="number" id="gtFinal" min="1"></div>
+      <div class="field"><label>After warm-up</label><div class="seg" id="gtAutoSeg"><button type="button" data-v="auto">Auto start</button><button type="button" data-v="manual">Manual start</button></div></div>
+    </div>
+    <div class="gt-legend"><span class="lv-warn1">1st</span><span class="lv-warn2">2nd</span><span class="lv-final">Final</span><span class="lv-over">Over</span></div>
+    <div class="error-text" id="errGameTimer"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" id="btnGtCancel">Cancel</button><button class="btn btn-primary" id="btnGtSave">Save timer</button></div>
   </div>
 </div>
 
@@ -855,6 +1031,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="game-timer.js"></script>
+<script src="umpire-logic.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -2733,8 +2911,9 @@ function renderCourts(){
         <div class="court-title"><h3>Court ${c}</h3><span class="court-status assigned">Not started</span></div>
         <div class="court-match"><div class="mid">${m.matchId} · ${bucketLabelHtml(m.bucket)}${poolTagHtml(m.bucket, matchPoolId(m))}</div>
           <div class="teams">${escapeHtml(t1)} <span style="color:var(--muted);font-weight:400;">vs</span> ${escapeHtml(t2)}</div></div>
+        <div class="gt-slot" data-mid="${m.id}"></div>
         <div class="row-actions" style="margin-bottom:8px;">
-          <button class="btn btn-primary btn-sm" onclick="startGame('${m.id}')">▶ Start game</button>
+          <button class="btn btn-primary btn-sm gt-start" onclick="startGame('${m.id}')">▶ Start game</button>
           <button class="btn btn-ghost btn-sm" onclick="callPlayers('${m.id}')">📣 Call players</button>
         </div>
         <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="backToQueue('${m.id}')">↩ Back to queue</button>
@@ -2742,10 +2921,10 @@ function renderCourts(){
     } else {
       const t1=m.team1.map(p=>p.name).join(' & '), t2=m.team2.map(p=>p.name).join(' & ');
       html += `<div class="court-card busy" data-court="${c}">
-        <div class="court-title"><h3>Court ${c}</h3><span class="court-status busy">In progress</span></div>
+        <div class="court-title"><h3>Court ${c}<span class="live-chip" data-mid="${m.id}" hidden></span></h3><span class="court-status busy">In progress</span></div>
         <div class="court-match"><div class="mid">${m.matchId} · ${bucketLabelHtml(m.bucket)}${poolTagHtml(m.bucket, matchPoolId(m))}</div>
           <div class="teams">${escapeHtml(t1)} <span style="color:var(--muted);font-weight:400;">vs</span> ${escapeHtml(t2)}</div></div>
-        <div class="court-timer timer" data-started="${m.startedAt}">00:00</div>
+        <div class="court-timer timer" data-started="${m.startedAt}" data-mid="${m.id}">00:00</div>
         <div class="row-actions">
           <button class="btn btn-primary btn-sm" style="flex:1;" onclick="openEndModal('${m.id}')">End match</button>
           <button class="btn-icon" title="Reset timer" onclick="resetTimer('${m.id}')">⟲</button>
@@ -2755,6 +2934,8 @@ function renderCourts(){
   }
   grid.innerHTML = html;
   attachCourtDropZones();
+  paintCourtClocks();
+  try { renderMobile(); processUmpireRequests(); } catch (e) { /* Tab 6 not ready yet */ }
 }
 /* ---- Activate courts / flip courts (admin view only) ---- */
 let flipCourts = localStorage.getItem('pkl-flip-courts') === '1';
@@ -2842,14 +3023,54 @@ function attachCourtDropZones(){
     });
   });
 }
-setInterval(() => {
+/* Court clocks: warm-up countdown, then count-up game clock with warning colours (game-timer.js) */
+const LV_CLASSES = ['lv-warn1','lv-warn2','lv-final','lv-over'];
+function paintCourtClocks(){
+  const cfg = timerCfg(), now = Date.now();
   document.querySelectorAll('.timer').forEach(el => {
-    const started = Number(el.dataset.started);
-    if (!started) return;
-    const secs = Math.max(0, Math.floor((Date.now() - started) / 1000));
-    el.textContent = `${String(Math.floor(secs/60)).padStart(2,'0')}:${String(secs%60).padStart(2,'0')}`;
+    const m = queueMatches.find(x => x.id === el.dataset.mid);
+    const ck = m ? GameTimer.clockFor(m, cfg, now, umpDocFor(m)) : null;
+    let secs = ck ? ck.secs : Math.max(0, Math.floor((now - Number(el.dataset.started)) / 1000));
+    if (!ck && !Number(el.dataset.started)) return;
+    const lv = ck ? ck.level : 'normal', card = el.closest('.court-card');
+    if (cfg.enabled) {
+      const G = cfg.gameMin * 60;
+      el.innerHTML = lv === 'over'
+        ? `${GameTimer.formatClock(G)}<span class="cap"> / ${GameTimer.formatClock(G)}</span><span class="over">${GameTimer.formatOver(secs - G)} OVER</span>`
+        : `${GameTimer.formatClock(secs)}<span class="cap"> / ${GameTimer.formatClock(G)}</span>`;
+    } else el.textContent = GameTimer.formatClock(secs);
+    if (ck && ck.paused) el.insertAdjacentHTML('beforeend', `<span class="over">${ck.paused === 'timeout' ? 'TIMEOUT ' + GameTimer.formatClock(ck.pauseLeft) : 'PAUSED'}</span>`);
+    el.classList.toggle('tlv', lv !== 'normal');
+    LV_CLASSES.forEach(c => { el.classList.toggle(c, 'lv-' + lv === c); if (card) card.classList.toggle(c, 'lv-' + lv === c); });
   });
-}, 1000);
+  /* live score chip (Tab 6 on + umpire scoring this match) */
+  document.querySelectorAll('.live-chip').forEach(el => {
+    const m = queueMatches.find(x => x.id === el.dataset.mid), u = mobileCfg().enabled ? umpireLiveFor(m) : null;
+    if (!u) { el.hidden = true; return; }
+    const pz = GameTimer.pauseInfo(u, now).kind;
+    el.hidden = false; el.classList.toggle('paused', !!pz);
+    el.textContent = `${u.s1}–${u.s2}` + (pz === 'timeout' ? ' · Timeout' : pz ? ' · Paused' : '');
+    el.title = 'Umpire score · call ' + UmpireLogic.call(u);
+  });
+  document.querySelectorAll('.gt-slot').forEach(el => {
+    const m = queueMatches.find(x => x.id === el.dataset.mid), ck = m ? GameTimer.clockFor(m, cfg, now) : { phase:'none' };
+    const btn = el.parentElement.querySelector('.gt-start');
+    if (btn) btn.classList.toggle('pulse', ck.phase === 'ready');
+    el.innerHTML = ck.phase === 'warmup' ? `<div class="warmup-badge"><small>WARM-UP</small>${GameTimer.formatClock(ck.secs)}</div>`
+      : ck.phase === 'ready' ? `<div class="warmup-badge ready"><small>WARM-UP DONE</small>Ready</div>`
+      : ck.phase === 'playing' ? `<div class="warmup-badge ready"><small>STARTING</small>${GameTimer.formatClock(ck.secs)}</div>` : '';
+  });
+}
+/* Auto start: when the warm-up ends, start the game with startedAt = warmupEndsAt (transaction in startGame stops double starts) */
+function autoStartDue(){
+  const cfg = timerCfg(), now = Date.now();
+  if (!cfg.enabled || !cfg.autoStart || !courtsActive() || sessionState.sessionEndedAt) return;
+  queueMatches.forEach(m => {
+    if (m.status === 'assigned' && Number(m.warmupEndsAt) && now >= Number(m.warmupEndsAt) && !startingGames.has(m.id))
+      startGame(m.id, { startedAt: Number(m.warmupEndsAt) });
+  });
+}
+setInterval(() => { paintCourtClocks(); autoStartDue(); }, 1000);
 
 function renderQueueList(){
   const list = queueMatches.filter(m => m.status==='waiting' || m.status==='onhold').sort((a,b) => a.order - b.order);
@@ -2858,6 +3079,7 @@ function renderQueueList(){
   el.innerHTML = list.map((m, i) => `
     <div class="queue-row ${m.status==='onhold'?'onhold':''}" draggable="true" data-match-id="${m.id}">
       <div class="drag-handle" title="Drag to reorder or assign to a court">⠿</div>
+      <div class="est-tip" data-mid="${m.id}" role="tooltip"></div>
       <div class="row-actions q-move">
         <button class="btn-icon" title="Move up" ${i===0?'disabled':''} onclick="moveQueueMatch('${m.id}',-1)">▲</button>
         <button class="btn-icon" title="Move down" ${i===list.length-1?'disabled':''} onclick="moveQueueMatch('${m.id}',1)">▼</button>
@@ -2879,7 +3101,44 @@ function renderQueueList(){
   `).join('');
   attachQueueDrag();
   updateWaitTimes();
+  paintEstimates();
 }
+/* Estimated start on hover (tap on tablets): when each court frees up, then the queue in order (game-timer.js) */
+let estLastAt = 0;
+function paintEstimates(force){
+  const now = Date.now();
+  if (!force && now - estLastAt < 5000) return;
+  estLastAt = now;
+  const tips = document.querySelectorAll('.est-tip');
+  if (!tips.length) return;
+  const cfg = timerCfg();
+  const est = cfg.enabled && courtsActive() ? GameTimer.estimateStarts({
+    courts: Array.from({ length: COURTS }, (_, i) => i + 1),
+    active: queueMatches.filter(m => COURT_BUSY_STATUSES.includes(m.status)),
+    queue: queueOrderedList(), cfg, now, allowsCourt: bucketAllowsCourt }) : {};
+  tips.forEach(el => {
+    const m = queueMatches.find(x => x.id === el.dataset.mid), e = est[el.dataset.mid];
+    let t;
+    if (!cfg.enabled) t = 'Turn on the Game timer to see estimates';
+    else if (!courtsActive()) t = 'Activate courts to see estimates';
+    else if (m && m.status === 'onhold') t = 'On hold — not estimated';
+    else if (!e) t = 'No court allowed for this category';
+    else {
+      const mins = Math.round((e.startAt - now) / 60000);
+      t = e.startAt - now < 60000 ? `Est. start: anytime now · Court ${e.court}`
+        : `Est. start ~${new Date(e.startAt).toLocaleTimeString([], { hour:'numeric', minute:'2-digit' })} · Court ${e.court} · in ~${mins} min`;
+    }
+    el.textContent = t;
+  });
+}
+document.getElementById('queueList').addEventListener('click', e => {
+  if (e.target.closest('button, select, input, .drag-handle')) return;
+  const row = e.target.closest('.queue-row');
+  if (!row) return;
+  const open = row.classList.contains('tip-open');
+  document.querySelectorAll('.queue-row.tip-open').forEach(r => r.classList.remove('tip-open'));
+  if (!open) { paintEstimates(true); row.classList.add('tip-open'); }
+});
 let draggingQueueId = null;
 function queueOrderedList(){ return queueMatches.filter(m => m.status==='waiting' || m.status==='onhold').sort((a,b) => a.order - b.order); }
 function clearQueueDropMarks(){ document.querySelectorAll('.queue-row.drop-before,.queue-row.drop-after').forEach(r => r.classList.remove('drop-before','drop-after')); }
@@ -3129,7 +3388,7 @@ function updateWaitTimes(){
     el.textContent = `(${txt})`;
   });
 }
-setInterval(updateWaitTimes, 1000);
+setInterval(() => { updateWaitTimes(); paintEstimates(); }, 1000);
 
 /* ---- Clear all waiting-queue matches ---- */
 document.getElementById('btnClearQueue').addEventListener('click', async () => {
@@ -3330,7 +3589,282 @@ function scheduleBattleSync(){
     try { await displayRef.set({ meet: want ? { ...want, updatedAt: Date.now() } : null }, { merge:true }); } catch (e) { /* best effort */ }
   }, 900);
 }
-displayRef.onSnapshot(doc => { displaySettings = doc.exists ? doc.data() : {}; displayLoaded = true; updateDisplayControls(); scheduleBattleSync(); }, err => showToast('TV settings sync error: ' + err.message, true));
+displayRef.onSnapshot(doc => { displaySettings = doc.exists ? doc.data() : {}; displayLoaded = true; updateDisplayControls(); scheduleBattleSync(); updateGameTimerButton(); if (typeof renderCourts === 'function') renderCourts(); try { renderObs(); } catch (e) {} }, err => showToast('TV settings sync error: ' + err.message, true));
+/* ================= Tab 7 · OBS Overlay ================= */
+let obsCourt = Number(localStorage.getItem('pkl-obs-court')) || 1;
+function obsCfg(){ return Object.assign({ bg:'transparent', colorA:'#1f6fd6', colorB:'#e5484d', pos:'bl' }, displaySettings.obs || {}); }
+function obsUrl(court, preview){ return new URL(`obs.html?court=${court}${preview ? '&preview=1' : ''}`, location.href).href; }
+function renderObs(){
+  const box = document.getElementById('obsCourts'); if (!box) return;
+  if (obsCourt > COURTS) obsCourt = 1;
+  box.innerHTML = Array.from({ length: COURTS }, (_, i) => `<button type="button" data-c="${i + 1}" class="${i + 1 === obsCourt ? 'on' : ''}">Court ${i + 1}</button>`).join('');
+  box.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { obsCourt = Number(b.dataset.c); localStorage.setItem('pkl-obs-court', obsCourt); renderObs(); }));
+  const c = obsCfg();
+  document.getElementById('obsLink').textContent = obsUrl(obsCourt);
+  document.getElementById('btnObsOpen').href = obsUrl(obsCourt);
+  document.getElementById('obsPrevCourt').textContent = 'Court ' + obsCourt;
+  document.querySelectorAll('#obsBg button').forEach(b => b.classList.toggle('on', b.dataset.v === c.bg));
+  document.querySelectorAll('#obsPos button').forEach(b => b.classList.toggle('on', b.dataset.v === c.pos));
+  ['A','B'].forEach(k => { const el = document.getElementById('obsColor' + k); if (document.activeElement !== el) el.value = c['color' + k]; });
+  const f = document.getElementById('obsFrame'), want = obsUrl(obsCourt, true);
+  if (document.getElementById('panel-obs').classList.contains('active') && f.dataset.src !== want) { f.src = want; f.dataset.src = want; }
+}
+async function obsSave(patch){ try { await displayRef.set({ obs: Object.assign(obsCfg(), patch) }, { merge:true }); } catch (e) { showToast('Could not save: ' + e.message, true); } }
+document.querySelectorAll('#obsBg button').forEach(b => b.addEventListener('click', () => obsSave({ bg: b.dataset.v })));
+document.querySelectorAll('#obsPos button').forEach(b => b.addEventListener('click', () => obsSave({ pos: b.dataset.v })));
+['A','B'].forEach(k => document.getElementById('obsColor' + k).addEventListener('change', e => obsSave({ ['color' + k]: e.target.value })));
+document.getElementById('btnObsCopy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(document.getElementById('obsLink').textContent); showToast(`Court ${obsCourt} overlay link copied.`); }
+  catch (e) { showToast('Copy the link by selecting it.', true); }
+});
+document.querySelector('nav.tabs button[data-tab="obs"]').addEventListener('click', () => setTimeout(renderObs, 0));
+
+/* ================= Tab 6 · Mobile Companion =================
+   Umpires (umpire.html, no Firebase login) write only to the open pm-umpire/{court} docs.
+   This page carries out what they ask: start the game (startReq) and record the result (endReq). */
+const umpLoginsRef = db.collection('pkl-queue-events').doc('umpireLogins');
+const umpCol = db.collection('pm-umpire');
+const UMP_ONLINE_MS = 60000;
+let umpLogins = { courts:{} }, umpDocs = {};
+const umpTabId = Math.random().toString(36).slice(2);
+function mobileCfg(){ return Object.assign({ enabled:false, scoring:'sideout', tvScores:'both', pauseEnabled:false, timeoutSec:60, timeoutsPerTeam:2 }, displaySettings.mobile || {}); }
+/* the umpire's doc for this match (pause / timeout / reset change the game clock) */
+function umpDocFor(m){ try { const u = m && umpDocs[String(m.court)]; return u && u.matchDocId === m.id ? u : undefined; } catch (e) { return undefined; } }
+function randPin(){ return String(Math.floor(1000 + Math.random() * 9000)); }
+function umpireLiveFor(m){ const u = m && umpDocs[String(m.court)]; return u && u.matchDocId === m.id && u.started ? u : null; }
+function clearUmpireDoc(m){ const u = m && umpDocs[String(m.court)]; if (u && u.matchDocId === m.id) umpCol.doc(String(m.court)).delete().catch(() => {}); }
+
+async function ensureUmpLogins(){
+  const c = Object.assign({}, umpLogins.courts || {}), add = {};
+  for (let i = 1; i <= COURTS; i++) if (!c[i]) add[i] = { username:'court' + i, pin: randPin(), ver: 1 };
+  if (Object.keys(add).length) { try { await umpLoginsRef.set({ courts: add }, { merge:true }); } catch (err) { console.warn('umpire logins', err); } }
+}
+umpLoginsRef.onSnapshot(d => { umpLogins = d.exists ? d.data() : { courts:{} }; if (!umpLogins.courts) umpLogins.courts = {}; ensureUmpLogins(); renderMobile(); }, err => console.warn(err));
+umpCol.onSnapshot(snap => { umpDocs = {}; snap.forEach(d => { umpDocs[d.id] = d.data(); }); renderMobile(); processUmpireRequests(); }, err => console.warn(err));
+
+function renderMobile(){
+  const c = mobileCfg();
+  const en = document.getElementById('mcEnabled'); if (!en) return;
+  en.checked = c.enabled;
+  document.querySelectorAll('#mcScoring button').forEach(b => b.classList.toggle('on', b.dataset.v === c.scoring));
+  document.querySelectorAll('#mcTv button').forEach(b => b.classList.toggle('on', b.dataset.v === c.tvScores));
+  document.getElementById('mcPause').checked = !!c.pauseEnabled;
+  ['mcToSec','mcToPer'].forEach(id => { const el = document.getElementById(id); if (document.activeElement !== el) el.value = id === 'mcToSec' ? c.timeoutSec : c.timeoutsPerTeam; });
+  document.getElementById('mcLink').textContent = new URL('umpire.html', location.href).href;
+  const body = document.getElementById('mcBody');
+  if (body.contains(document.activeElement)) return;          // don't redraw under someone typing a username
+  const now = Date.now(), rows = [];
+  for (let i = 1; i <= COURTS; i++) {
+    const L = (umpLogins.courts || {})[i] || {}, u = umpDocs[String(i)];
+    const on = !!(u && u.lastSeen && now - u.lastSeen < UMP_ONLINE_MS && u.ver === L.ver);
+    const m = queueMatches.find(x => x.court === i && COURT_BUSY_STATUSES.includes(x.status));
+    let nowTxt = 'Open';
+    if (m) {
+      const names = `${escapeHtml(m.team1.map(p => p.name).join(' & '))} vs ${escapeHtml(m.team2.map(p => p.name).join(' & '))}`;
+      const live = umpireLiveFor(m);
+      nowTxt = live ? `<b>${escapeHtml(UmpireLogic.call(live))}</b> · ${names}` : `${m.status === 'assigned' ? 'Warm-up' : 'Playing'} · ${names}`;
+      if (u && u.endReq && u.matchDocId === m.id) nowTxt = `<b>Recording ${u.endReq.s1}–${u.endReq.s2}…</b> · ${names}`;
+    }
+    rows.push(`<tr><td><b>Court ${i}</b></td>
+      <td><input value="${escapeHtml(L.username || '')}" data-court="${i}" class="mc-user" aria-label="Court ${i} username" autocomplete="off"></td>
+      <td><span class="mc-pin">${escapeHtml(L.pin || '—')}</span></td>
+      <td><span class="mc-st${on ? ' on' : ''}">${on ? 'Signed in' : 'Not signed in'}</span></td>
+      <td class="mc-now">${nowTxt}</td>
+      <td><div class="mc-acts"><button class="btn btn-ghost btn-sm" onclick="mcNewPin(${i})">New PIN</button>${on ? `<button class="btn btn-ghost btn-sm" onclick="mcSignOut(${i})">Sign out</button>` : ''}</div></td></tr>`);
+  }
+  body.innerHTML = rows.join('');
+  body.querySelectorAll('.mc-user').forEach(inp => inp.addEventListener('change', () => mcSaveUser(Number(inp.dataset.court), inp.value)));
+}
+async function mcSetCourt(i, patch){
+  const cur = (umpLogins.courts || {})[i] || { username:'court' + i, pin: randPin(), ver: 1 };
+  await umpLoginsRef.set({ courts: { [i]: Object.assign({}, cur, patch) } }, { merge:true });
+}
+async function mcSaveUser(i, raw){
+  const err = document.getElementById('errMc'), v = raw.trim().toLowerCase().replace(/\s+/g, '');
+  err.textContent = '';
+  if (!v) { err.textContent = `Court ${i} needs a username.`; renderMobile(); return; }
+  const taken = Object.entries(umpLogins.courts || {}).some(([k, L]) => Number(k) !== i && Number(k) <= COURTS && (L.username || '').toLowerCase() === v);
+  if (taken) { err.textContent = `"${v}" is already used by another court.`; return; }
+  try { await mcSetCourt(i, { username: v }); showToast(`Court ${i} username saved.`); } catch (e) { err.textContent = 'Could not save: ' + e.message; }
+}
+async function mcNewPin(i){
+  if (!confirm(`Make a new PIN for Court ${i}? The phone signed in on Court ${i} will be signed out.`)) return;
+  const cur = (umpLogins.courts || {})[i] || {};
+  try { await mcSetCourt(i, { pin: randPin(), ver: (cur.ver || 1) + 1 }); showToast(`Court ${i} has a new PIN.`); } catch (e) { showToast('Could not change the PIN: ' + e.message, true); }
+}
+async function mcSignOut(i){
+  const cur = (umpLogins.courts || {})[i] || {};
+  try { await mcSetCourt(i, { ver: (cur.ver || 1) + 1 }); showToast(`Court ${i} phone signed out.`); } catch (e) { showToast('Could not sign out: ' + e.message, true); }
+}
+async function mcSave(patch){
+  try { await displayRef.set({ mobile: Object.assign(mobileCfg(), patch) }, { merge:true }); }
+  catch (e) { showToast('Could not save: ' + e.message, true); }
+}
+document.getElementById('mcEnabled').addEventListener('change', e => mcSave({ enabled: e.target.checked }).then(() => showToast(e.target.checked ? 'Mobile Companion is on.' : 'Mobile Companion is off.')));
+document.querySelectorAll('#mcScoring button').forEach(b => b.addEventListener('click', () => mcSave({ scoring: b.dataset.v })));
+document.querySelectorAll('#mcTv button').forEach(b => b.addEventListener('click', () => mcSave({ tvScores: b.dataset.v })));
+document.getElementById('mcPause').addEventListener('change', e => mcSave({ pauseEnabled: e.target.checked }));
+['mcToSec','mcToPer'].forEach(id => document.getElementById(id).addEventListener('change', () => {
+  const sec = Math.round(Number(document.getElementById('mcToSec').value)), per = Math.round(Number(document.getElementById('mcToPer').value));
+  const err = document.getElementById('errMcPause');
+  if (!(sec >= 10 && sec <= 600)) { err.textContent = 'Timeout length must be 10 to 600 seconds.'; return; }
+  if (!(per >= 0 && per <= 10)) { err.textContent = 'Timeouts per team must be 0 to 10.'; return; }
+  err.textContent = ''; mcSave({ timeoutSec: sec, timeoutsPerTeam: per }).then(() => showToast('Timeout settings saved.'));
+}));
+document.getElementById('btnMcCopy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(document.getElementById('mcLink').textContent); showToast('Umpire link copied.'); }
+  catch (e) { showToast('Copy the link by selecting it.', true); }
+});
+document.querySelector('nav.tabs button[data-tab="mobile"]').addEventListener('click', () => { ensureUmpLogins(); renderMobile(); });
+setInterval(() => { if (document.getElementById('panel-mobile').classList.contains('active')) renderMobile(); }, 10000);
+
+/* what the umpires asked for */
+const umpBusy = new Set();
+async function processUmpireRequests(){
+  if (!mobileCfg().enabled) return;
+  for (const [court, u] of Object.entries(umpDocs)) {
+    const ref = umpCol.doc(court);
+    const m = queueMatches.find(x => x.id === u.matchDocId && String(x.court) === court);
+    if (u.startReq) {
+      if (m && m.status === 'assigned') { if (!startingGames.has(m.id)) startGame(m.id, { umpire:true }); }
+      else ref.update({ startReq: null }).catch(() => {});           // started, or no longer on this court
+    }
+    if (!u.endReq || umpBusy.has(court)) continue;
+    if (!m) { ref.update({ endReq: null, processing: null }).catch(() => {}); continue; }   // match already ended here
+    if (u.processing && Date.now() - (u.processingAt || 0) < 30000) continue;               // another admin tab has it
+    const s1 = Number(u.endReq.s1), s2 = Number(u.endReq.s2);
+    if (!(s1 >= 0 && s2 >= 0) || s1 === s2) { ref.update({ endReq: null }).catch(() => {}); continue; }
+    umpBusy.add(court);
+    try {
+      /* claim it, so two open admin tabs don't record the same result twice */
+      const mine = await db.runTransaction(async tx => {
+        const d = await tx.get(ref);
+        const x = d.exists ? d.data() : null;
+        if (!x || !x.endReq || x.matchDocId !== m.id) return false;
+        if (x.processing && Date.now() - (x.processingAt || 0) < 30000) return false;
+        tx.update(ref, { processing: umpTabId, processingAt: Date.now() });
+        return true;
+      });
+      if (mine) {
+        await finishMatch(m, s1, s2);                     // also deletes pm-umpire/{court}
+        showToast(`Court ${court}: ${m.matchId} recorded by the umpire (${s1}–${s2}).`);
+      }
+    } catch (err) {
+      ref.update({ processing: null }).catch(() => {});
+      showToast(`Court ${court}: could not record the umpire's result: ` + err.message, true);
+    } finally { umpBusy.delete(court); }
+  }
+}
+
+/* ---- TV header: displaySettings.tvHeader {title, sub}; logo in its own doc (pkl-queue-events/tvLogo) so it loads only when it changes ---- */
+const tvLogoRef = db.collection('pkl-queue-events').doc('tvLogo');
+const thOverlay = document.getElementById('tvHeaderOverlay');
+let tvLogoSaved = null, thLogo;   // thLogo: undefined = unchanged, null = remove, {url} = new
+tvLogoRef.onSnapshot(d => { tvLogoSaved = d.exists ? d.data() : null; }, () => {});
+function thPreview(){
+  const l = thLogo === undefined ? tvLogoSaved : thLogo, has = !!(l && l.url);
+  document.getElementById('thLogoBox').classList.toggle('has', has);
+  document.getElementById('thLogoPreview').src = has ? l.url : '';
+  document.getElementById('btnThLogoPick').textContent = has ? '⬆ Change logo' : '⬆ Upload logo';
+  document.getElementById('btnThLogoRemove').style.display = has ? '' : 'none';
+}
+/* logos keep transparency (PNG), max 600×300; falls back to WebP if the PNG is too big for one document */
+function thLogoProcess(file){
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) return reject(new Error('Image files only.'));
+    const r = new FileReader();
+    r.onerror = () => reject(new Error('Could not read the file.'));
+    r.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Could not open this image.'));
+      img.onload = () => {
+        let w = img.naturalWidth || 600, h = img.naturalHeight || 300;
+        const fit = Math.min(1, 600 / w, 300 / h);
+        w = Math.max(1, Math.round(w * fit)); h = Math.max(1, Math.round(h * fit));
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        let out = c.toDataURL('image/png');
+        if (out.length > 700000) out = c.toDataURL('image/webp', 0.85);
+        if (out.length > 900000) return reject(new Error('Logo is too big. Try a smaller file.'));
+        resolve({ url: out, w, h });
+      };
+      img.src = r.result;
+    };
+    r.readAsDataURL(file);
+  });
+}
+document.getElementById('btnTvHeader').addEventListener('click', () => {
+  const th = displaySettings.tvHeader || {};
+  document.getElementById('thTitle').value = th.title || '';
+  document.getElementById('thSub').value = th.sub || '';
+  document.getElementById('thSub').placeholder = sessionState.currentSessionName || 'Session name';
+  document.getElementById('thTheme').value = th.theme || '';
+  document.getElementById('thShowEta').checked = !!th.showEta;
+  document.getElementById('errTvHeader').textContent = '';
+  thLogo = undefined; thPreview(); thOverlay.classList.add('show');
+});
+document.getElementById('btnThLogoPick').addEventListener('click', () => document.getElementById('thLogoFile').click());
+document.getElementById('thLogoFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  try { thLogo = await thLogoProcess(f); document.getElementById('errTvHeader').textContent = ''; thPreview(); }
+  catch (err) { document.getElementById('errTvHeader').textContent = err.message; }
+});
+document.getElementById('btnThLogoRemove').addEventListener('click', () => { thLogo = null; thPreview(); });
+document.getElementById('btnThCancel').addEventListener('click', () => thOverlay.classList.remove('show'));
+thOverlay.addEventListener('click', e => { if (e.target === thOverlay) thOverlay.classList.remove('show'); });
+document.getElementById('btnThSave').addEventListener('click', async () => {
+  const btn = document.getElementById('btnThSave'); btn.disabled = true;
+  try {
+    if (thLogo === null) await tvLogoRef.delete();
+    else if (thLogo) await tvLogoRef.set({ url: thLogo.url, w: thLogo.w, h: thLogo.h, updatedAt: Date.now() });
+    await displayRef.set({ tvHeader: { title: document.getElementById('thTitle').value.trim(), sub: document.getElementById('thSub').value.trim(),
+      theme: document.getElementById('thTheme').value, showEta: document.getElementById('thShowEta').checked } }, { merge:true });
+    thOverlay.classList.remove('show'); showToast('TV display saved.');
+  } catch (err) { document.getElementById('errTvHeader').textContent = 'Could not save: ' + err.message; }
+  finally { btn.disabled = false; }
+});
+
+/* ---- Game timer settings (displaySettings.gameTimer, same for all categories) ---- */
+function timerCfg(){ return GameTimer.normalize(displaySettings.gameTimer); }
+function updateGameTimerButton(){
+  const c = timerCfg(), b = document.getElementById('btnGameTimer');
+  if (b) b.textContent = c.enabled ? `⏱ Game timer · ${c.gameMin} min` : '⏱ Game timer · off';
+}
+const gtOverlay = document.getElementById('gameTimerOverlay');
+let gtAuto = true;
+function gtRead(){
+  const v = id => document.getElementById(id).value;
+  return GameTimer.normalize({ enabled: document.getElementById('gtEnabled').checked, gameMin: v('gtGameMin'), warmupSec: v('gtWarmupSec'),
+    warn1Min: v('gtWarn1'), warn2Min: v('gtWarn2'), finalSec: v('gtFinal'), autoStart: gtAuto });
+}
+function gtRefresh(){
+  const c = gtRead(), err = GameTimer.validate(c);
+  document.getElementById('errGameTimer').textContent = err;
+  document.getElementById('btnGtSave').disabled = !!err;
+  document.getElementById('gtWarmupHelp').textContent = c.warmupSec ? `${GameTimer.formatClock(c.warmupSec)} warm-up` : 'No warm-up';
+  document.querySelectorAll('#gtAutoSeg button').forEach(bt => bt.classList.toggle('on', (bt.dataset.v === 'auto') === gtAuto));
+}
+document.getElementById('btnGameTimer').addEventListener('click', () => {
+  const c = timerCfg();
+  document.getElementById('gtEnabled').checked = c.enabled;
+  document.getElementById('gtGameMin').value = c.gameMin; document.getElementById('gtWarmupSec').value = c.warmupSec;
+  document.getElementById('gtWarn1').value = c.warn1Min; document.getElementById('gtWarn2').value = c.warn2Min;
+  document.getElementById('gtFinal').value = c.finalSec; gtAuto = c.autoStart;
+  gtRefresh(); gtOverlay.classList.add('show');
+});
+gtOverlay.querySelectorAll('input').forEach(i => i.addEventListener('input', gtRefresh));
+document.querySelectorAll('#gtAutoSeg button').forEach(bt => bt.addEventListener('click', () => { gtAuto = bt.dataset.v === 'auto'; gtRefresh(); }));
+document.getElementById('btnGtCancel').addEventListener('click', () => gtOverlay.classList.remove('show'));
+gtOverlay.addEventListener('click', e => { if (e.target === gtOverlay) gtOverlay.classList.remove('show'); });
+document.getElementById('btnGtSave').addEventListener('click', async () => {
+  const c = gtRead();
+  if (GameTimer.validate(c)) return;
+  const btn = document.getElementById('btnGtSave'); btn.disabled = true;
+  try { await displayRef.set({ gameTimer: c }, { merge:true }); gtOverlay.classList.remove('show'); showToast('Game timer saved.'); }
+  catch (err) { showToast('Could not save the game timer: ' + err.message, true); }
+  finally { btn.disabled = false; }
+});
 document.getElementById('chkDisplayQueue').addEventListener('change', async e => {
   try { await displayRef.set({ showQueue: e.target.checked }, { merge:true }); }
   catch (err) { showToast('Could not update the TV: ' + err.message, true); updateDisplayControls(); }
@@ -3460,7 +3994,7 @@ document.getElementById('btnTvImgShow').addEventListener('click', async () => {
 /* ---- Show Sponsors: the TV plays the tvurl.html showcase once, then goes back to courts/queue ---- */
 document.getElementById('btnShowSponsors').addEventListener('click', async () => {
   const btn = document.getElementById('btnShowSponsors'), on = sponsorsShown();
-  if (!on && !spData.sponsors.length) { showToast('Add a sponsor in Tab 5 first.', true); return; }
+  if (!on && !spData.sponsors.length) { showToast('Add a sponsor first.', true); return; }
   btn.disabled = true;
   try {
     await displayRef.set({ sponsorShow: on ? { show: false, playId: Number(displaySettings.sponsorShow.playId) || 0 } : { show: true, playId: Date.now() } }, { merge:true });
@@ -3528,31 +4062,44 @@ async function assignToCourt(matchDocId, court){
     if (busy.length && !confirm(`${busy.map(p => p.name).join(', ')} ${busy.length===1?'is':'are'} still on a court in another match. Assign anyway?`)) return;
   }
   try {
-    await db.collection('pkl-queue-matches').doc(matchDocId).update({ status:'assigned', court, startedAt:null });
+    await db.collection('pkl-queue-matches').doc(matchDocId).update({ status:'assigned', court, startedAt:null, warmupEndsAt: timerCfg().enabled ? Date.now() + timerCfg().warmupSec * 1000 : null });
     courtOverlay.classList.remove('show');
     showToast(`Match assigned to Court ${court}. Calling players…`);
   } catch(err){ showToast('Could not assign court: ' + err.message, true); return; }
   if (m) await sendCallEvent(m, court);
 }
 const startingGames = new Set();
-async function startGame(matchDocId){
+async function startGame(matchDocId, opts){
   const m = queueMatches.find(x => x.id === matchDocId);
   if (!m || m.status !== 'assigned' || startingGames.has(matchDocId)) return;
-  if (!courtsActive()) { showToast('Activate the courts first (▶ Activate Courts).', true); return; }
+  if (!courtsActive()) { if (!opts) showToast('Activate the courts first (▶ Activate Courts).', true); return; }
   startingGames.add(matchDocId);
   try {
     const ps = [...m.team1, ...m.team2].map(participantOf).filter(Boolean);
-    await Promise.all(ps.map(flushElapsed));           // close out waiting time before the clock switches to playing time
-    const batch = db.batch(), now = Date.now();
+    const flush = ps.map(elapsedWrite).filter(Boolean);   // waiting time measured now, before the status flips to playing
+    const now = (opts && Number(opts.startedAt)) || Date.now(), ref = db.collection('pkl-queue-matches').doc(matchDocId);
+    /* transaction: if another admin tab already started this match, do nothing (no double start) */
+    const started = await db.runTransaction(async tx => {
+      const d = await tx.get(ref);
+      if (!d.exists || d.data().status !== 'assigned') return false;
+      tx.update(ref, { status:'playing', startedAt: now });
+      return true;
+    });
+    if (!started) return;
+    await Promise.all(flush.map(w => w.ref.set(w.data, { merge:true }).catch(() => {})));   // close out waiting time (only the tab that started it)
+    const batch = db.batch();
     ps.forEach(p => batch.update(db.collection('pkl-queue-participants').doc(p.id), { statusSince: now }));
-    batch.update(db.collection('pkl-queue-matches').doc(matchDocId), { status:'playing', startedAt: now });
     await batch.commit();
-    showToast('Game started!');
-  } catch(err){ showToast('Could not start game: ' + err.message, true); }
+    showToast(opts && opts.umpire ? `Court ${m.court} started by the umpire.` : opts ? `Warm-up done · Court ${m.court} started.` : 'Game started!');
+  } catch(err){
+    if (!opts) showToast('Could not start game: ' + err.message, true);
+    else if (Date.now() - (startGame.lastErr || 0) > 30000) { startGame.lastErr = Date.now(); showToast('Auto start is waiting for the connection: ' + err.message, true); }
+  }
   finally { startingGames.delete(matchDocId); }
 }
 async function backToQueue(matchDocId){
-  try { await db.collection('pkl-queue-matches').doc(matchDocId).update({ status:'waiting', court:null, startedAt:null, order: nextQueueOrder() }); showToast('Moved back to queue.'); }
+  const bm = queueMatches.find(x => x.id === matchDocId); if (bm) clearUmpireDoc(bm);
+  try { await db.collection('pkl-queue-matches').doc(matchDocId).update({ status:'waiting', court:null, startedAt:null, warmupEndsAt:null, order: nextQueueOrder() }); showToast('Moved back to queue.'); }
   catch(err){ showToast('Could not move to queue: ' + err.message, true); }
 }
 async function resetTimer(matchDocId){
@@ -3669,8 +4216,9 @@ function openEndModal(matchDocId){
   if (!m) return;
   endMatchId = matchDocId;
   document.getElementById('errEnd').textContent = '';
-  document.getElementById('score1Input').value = '';
-  document.getElementById('score2Input').value = '';
+  const u = umpireLiveFor(m);   // umpire app score, if any
+  document.getElementById('score1Input').value = u ? u.s1 : '';
+  document.getElementById('score2Input').value = u ? u.s2 : '';
   document.getElementById('leadingIndicator').textContent = '';
   endTeamNames.t1 = m.team1.map(p=>p.name).join(' & ');
   endTeamNames.t2 = m.team2.map(p=>p.name).join(' & ');
@@ -3678,6 +4226,7 @@ function openEndModal(matchDocId){
   document.getElementById('score1Label').textContent = endTeamNames.t1 + ' score';
   document.getElementById('score2Label').textContent = endTeamNames.t2 + ' score';
   endOverlay.classList.add('show');
+  updateLeadingIndicator();
 }
 function updateLeadingIndicator(){
   const s1 = document.getElementById('score1Input').value, s2 = document.getElementById('score2Input').value;
@@ -3701,41 +4250,45 @@ document.getElementById('btnEndConfirm').addEventListener('click', async () => {
   const score1 = Number(s1raw), score2 = Number(s2raw);
   if (isNaN(score1) || isNaN(score2)) { errEl.textContent = 'Scores must be numbers.'; return; }
   if (score1 === score2) { errEl.textContent = "Scores can't be tied — adjust to determine a winner."; return; }
-  const winner = score1 > score2 ? 'team1' : 'team2';
   const btn = document.getElementById('btnEndConfirm');
   btn.disabled = true;
-  const endedAt = Date.now();
-  const duration = Math.max(0, Math.round((endedAt - (m.startedAt || endedAt)) / 1000));
   try {
-    await Promise.all([...m.team1, ...m.team2].map(participantOf).filter(Boolean).map(flushElapsed)); // closes out playing time
-    const batch = db.batch();
-    const logRef = db.collection('pkl-queue-logs').doc();
-    batch.set(logRef, {
-      matchId: m.matchId, bucket: m.bucket, bucketName: bucketLabel(m.bucket), pool: matchPoolId(m) || null, poolName: poolNameOf(m.bucket, matchPoolId(m)) || '', team1: m.team1, team2: m.team2,
-      winner, score1, score2, court: m.court,
-      startedAt: m.startedAt || null, endedAt, durationSeconds: duration,
-      sessionId: sessionState.currentSessionId || null, sessionName: sessionState.currentSessionName || '', sessionDate: sessionState.currentSessionDate || '',
-      completedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    batch.delete(db.collection('pkl-queue-matches').doc(m.id));
-    [...m.team1, ...m.team2].forEach(p => { batch.update(db.collection('pkl-queue-participants').doc(p.participantId), releaseUpdate(p.participantId, m.id)); });
-    await batch.commit();
-    await db.collection('pkl-queue-events').add({
-      type:'winner', matchId: m.matchId, bucket: m.bucket, court: m.court,
-      team1: m.team1.map(p=>p.name), team2: m.team2.map(p=>p.name), winner, score1, score2,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    await finishMatch(m, score1, score2);
     endOverlay.classList.remove('show');
     showToast(`${m.matchId} logged. Players returned to their category.`);
   } catch (err) { showToast('Could not save result: ' + err.message, true); }
   finally { btn.disabled = false; }
 });
+/* Records a result and frees the court. Used by the End match modal and by the umpire app (Tab 6). */
+async function finishMatch(m, score1, score2){
+  const winner = score1 > score2 ? 'team1' : 'team2';
+  const endedAt = Date.now();
+  const ul = umpDocFor(m);   // pauses and timeouts are not game time
+  const duration = ul && m.startedAt ? GameTimer.clockFor(m, GameTimer.normalize(displaySettings.gameTimer), endedAt, ul).secs : Math.max(0, Math.round((endedAt - (m.startedAt || endedAt)) / 1000));
+  await Promise.all([...m.team1, ...m.team2].map(participantOf).filter(Boolean).map(flushElapsed)); // closes out playing time
+  const batch = db.batch();
+  const logRef = db.collection('pkl-queue-logs').doc();
+  batch.set(logRef, {
+    matchId: m.matchId, bucket: m.bucket, bucketName: bucketLabel(m.bucket), pool: matchPoolId(m) || null, poolName: poolNameOf(m.bucket, matchPoolId(m)) || '', team1: m.team1, team2: m.team2,
+    winner, score1, score2, court: m.court,
+    startedAt: m.startedAt || null, endedAt, durationSeconds: duration,
+    sessionId: sessionState.currentSessionId || null, sessionName: sessionState.currentSessionName || '', sessionDate: sessionState.currentSessionDate || '',
+    completedAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  batch.delete(db.collection('pkl-queue-matches').doc(m.id));
+  [...m.team1, ...m.team2].forEach(p => { batch.update(db.collection('pkl-queue-participants').doc(p.participantId), releaseUpdate(p.participantId, m.id)); });
+  await batch.commit();
+  clearUmpireDoc(m);
+  await db.collection('pkl-queue-events').add({
+    type:'winner', matchId: m.matchId, bucket: m.bucket, court: m.court,
+    team1: m.team1.map(p=>p.name), team2: m.team2.map(p=>p.name), winner, score1, score2,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+}
 
 /* ================= LOGS ================= */
 function renderSessionFilterOptions(){
   updateExportTargetLabel();
-  const lb = document.getElementById('lbSessionFilter');
-  if (lb) { const lcur = lb.value; lb.innerHTML = `<option value="">Current session</option>` + sessionsList.map(x => `<option value="${x.id}">${escapeHtml(x.name)} · ${x.date}</option>`).join(''); lb.value = lcur; }
 }
 function renderLogBucketFilter(){
   const sel = document.getElementById('logBucketFilter');
@@ -4271,7 +4824,7 @@ async function restoreSnapshot(id){
     (s.matches || []).forEach(m => {
       const { id, ...data } = m;
       const onCourt = COURT_BUSY_STATUSES.includes(data.status);
-      ops.push(b => b.set(db.collection('pkl-queue-matches').doc(id), onCourt ? { ...data, status:'waiting', court:null, startedAt:null } : data));
+      ops.push(b => b.set(db.collection('pkl-queue-matches').doc(id), onCourt ? { ...data, status:'waiting', court:null, startedAt:null, warmupEndsAt:null } : data));
     });
     for (let i = 0; i < ops.length; i += 400) {
       const batch = db.batch();
@@ -4341,11 +4894,11 @@ function lbBuckets(sessionId){
   return list;
 }
 var lbView = 'pool';
-let lbSessionSel = '';
 function renderLeaderboard(){
   const grid = document.getElementById('lbGrid');
   if (!grid) return;
-  const sid = lbSessionSel || sessionState.currentSessionId;
+  const sid = sessionState.currentSessionId;
+  const sn = document.getElementById('lbSessionName'); if (sn) sn.textContent = sessionState.currentSessionName || '—';
   const anyPools = BUCKETS.some(b => bucketHasPools(b.key));
   const tg = document.getElementById('lbViewToggle');
   if (tg) { tg.style.display = anyPools ? '' : 'none'; tg.querySelectorAll('button').forEach(bt => bt.classList.toggle('on', bt.dataset.v === lbView)); }
@@ -4378,7 +4931,6 @@ function renderLeaderboard(){
     });
   }).join('');
 }
-document.getElementById('lbSessionFilter').addEventListener('change', e => { lbSessionSel = e.target.value; renderLeaderboard(); });
 document.querySelectorAll('#lbViewToggle button').forEach(bt => bt.addEventListener('click', () => { lbView = bt.dataset.v; renderLeaderboard(); }));
 
 /* ================= DUPR CSV EXPORT ================= */
