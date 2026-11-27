@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#2f332e">
+<title>Player check-in &amp; shirts · PickleManage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#2f332e; --navy-deep:#222622;
+    --green:#4f9d2d; --green-bg:#e8f3e1; --green-ink:#2f6a16;
+    --t1:#3992b9; --t1-bg:#e6f2f8; --t2:#bb1421; --t2-bg:#f9e5e7;
+    --amber:#b86e00; --amber-bg:#fff2dc;
+    --bg:#ececec; --surface:#fff; --surface-2:#f7f7f5;
+    --text:#262a26; --muted:#6a706a; --border:#dcdddb;
+    --radius:12px; --shadow:0 4px 14px rgba(38,42,38,.07);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.4}
+  h1,h2,h3{font-family:'Baloo 2',system-ui,sans-serif;margin:0;line-height:1.1}
+  button,select,input{font:inherit;color:inherit}
+  button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--t1);outline-offset:2px}
+
+  /* ---------- gate ---------- */
+  #gate{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:50;padding:24px;text-align:center}
+  .spin{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  #gateBack{display:none;padding:9px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-weight:600}
+
+  /* ---------- top bar ---------- */
+  header.top{background:linear-gradient(135deg,var(--navy),var(--navy-deep));color:#fff;padding:12px clamp(12px,3vw,28px);display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:10}
+  .brand{display:flex;align-items:center;gap:10px;min-width:0}
+  .brand img{width:38px;height:38px;border-radius:8px;object-fit:cover;background:#fff}
+  .brand h1{font-size:21px;font-weight:700}
+  .brand .sub{font-size:12px;color:#c3cdc3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
+  .search{flex:1 1 260px;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:0 10px;min-width:200px}
+  .search label{font-size:12px;color:#c3cdc3;white-space:nowrap}
+  .search input{flex:1;min-width:0;background:transparent;border:0;color:#fff;padding:10px 0;outline:none}
+  .search input::placeholder{color:#9aa49a}
+  .search .clr{background:none;border:0;color:#c3cdc3;cursor:pointer;padding:6px;font-size:16px;line-height:1}
+  .top-right{display:flex;align-items:center;gap:12px;margin-left:auto}
+  .total{text-align:right;line-height:1}
+  .total b{font-family:'Baloo 2',system-ui,sans-serif;font-size:22px}
+  .total span{display:block;font-size:11px;color:#c3cdc3;margin-top:2px}
+  .live{display:flex;align-items:center;gap:6px;font-size:12px;color:#c3cdc3}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+  .dot.off{background:#9aa49a}
+  .user{font-size:12px;color:#c3cdc3;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .btn-ghost{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer}
+  .btn-ghost:hover{background:rgba(255,255,255,.18)}
+
+  .notice{margin:12px clamp(12px,3vw,28px) 0;padding:10px 14px;border-radius:10px;background:var(--amber-bg);color:#6b4200;border:1px solid #f1d3a1;font-size:13px}
+
+  /* ---------- shirt stock strip ---------- */
+  .stock{margin:12px clamp(12px,3vw,28px) 0;padding:10px 12px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .stock .ttl{font-weight:700;font-size:13px;margin-right:4px}
+  .stock .ttl small{display:block;font-weight:500;color:var(--muted);font-size:11px}
+  .sbox{display:flex;flex-direction:column;align-items:center;min-width:58px;padding:5px 8px;border-radius:9px;border:1px solid var(--border);background:var(--surface-2);line-height:1.1}
+  .sbox b{font-size:12px}
+  .sbox big{font-family:'Baloo 2',system-ui,sans-serif;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+  .sbox small{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .sbox.low{background:var(--amber-bg);border-color:#f1d3a1}
+  .sbox.low big{color:var(--amber)}
+  .sbox.out{background:var(--t2-bg);border-color:#e8b9be}
+  .sbox.out big{color:var(--t2)}
+  .stock .set{margin-left:auto}
+  .stock .empty-txt{color:var(--muted);font-size:13px}
+
+  /* ---------- toolbar (category + status filters) ---------- */
+  .toolbar{padding:12px clamp(12px,3vw,28px) 0;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .pills{display:flex;flex-wrap:wrap;gap:6px;flex:1 1 auto;min-width:0}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;min-height:36px;border-radius:999px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-weight:600;font-size:13px}
+  .pill small{font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+  .pill[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+  .pill[aria-pressed="true"] small{color:#c3cdc3}
+  .pill.full:not([aria-pressed="true"]) small{color:var(--green-ink)}
+  .status{display:inline-flex;flex-wrap:wrap;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)}
+  .status button{border:0;background:none;padding:8px 12px;min-height:36px;cursor:pointer;font-weight:600;font-size:13px;color:var(--muted)}
+  .status button+button{border-left:1px solid var(--border)}
+  .status button[aria-pressed="true"]{background:var(--surface-2);color:var(--text);box-shadow:inset 0 -2px 0 var(--green)}
+
+  /* ---------- category cards ---------- */
+  main{padding:12px clamp(12px,3vw,28px) 40px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(380px,100%),1fr));gap:14px;align-items:start}
+  .card{background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--green);border-radius:var(--radius);box-shadow:var(--shadow);overflow:clip}
+  .card.orphan{border-top-color:var(--muted)}
+  .card-head{width:100%;display:flex;align-items:center;gap:10px;padding:12px 14px;background:none;border:0;cursor:pointer;text-align:left;min-height:52px}
+  .card-head:hover{background:rgba(0,0,0,.02)}
+  .card-head h2{font-size:21px;font-weight:700}
+  .card-head .tag{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+  .count{margin-left:auto;text-align:right}
+  .count b{font-family:'Baloo 2',system-ui,sans-serif;font-size:24px;line-height:1}
+  .count span{display:block;font-size:11px;color:var(--muted)}
+  .count.full b{color:var(--green-ink)}
+  .chev{width:16px;flex:none;color:var(--muted);transition:transform .15s ease}
+  [aria-expanded="true"] > .chev{transform:rotate(90deg)}
+  .bar{height:4px;background:var(--surface-2)}
+  .bar i{display:block;height:100%;background:var(--green);width:0;transition:width .25s ease}
+  .card-body{padding:8px;border-top:1px solid var(--border)}
+  .card-body[hidden]{display:none}
+  .empty{padding:28px 14px;text-align:center;color:var(--muted);background:var(--surface);border:1px dashed var(--border);border-radius:var(--radius)}
+  .empty b{display:block;color:var(--text);margin-bottom:4px}
+
+  /* ---------- sub-buckets ---------- */
+  .bucket{border:1px solid var(--border);border-radius:10px;margin:6px 0;background:var(--surface-2)}
+  .bhead{width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;background:none;border:0;cursor:pointer;text-align:left;border-radius:10px;min-height:44px}
+  .bhead:hover{background:rgba(0,0,0,.025)}
+  .bname{font-weight:600;font-size:14px}
+  .bcount{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums;font-size:13px;padding:2px 9px;border-radius:999px;background:var(--surface);border:1px solid var(--border)}
+  .bcount.full{background:var(--green-bg);border-color:#c5e2b5;color:var(--green-ink)}
+  .bbody{padding:0 10px 10px}
+  .bbody[hidden]{display:none}
+
+  /* ---------- entries + chips ---------- */
+  .entries{display:flex;flex-wrap:wrap;gap:8px}
+  .entry{display:flex;flex-wrap:wrap;gap:4px;padding:4px;border:1px dashed var(--border);border-radius:12px;background:var(--surface)}
+  .chip{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:7px 12px;min-height:44px;justify-content:center;border-radius:9px;border:1px solid var(--border);background:var(--surface-2);cursor:pointer;text-align:left;transition:background-color .15s ease,border-color .15s ease}
+  .chip:hover{border-color:#b9bcb8}
+  .chip .nm{font-weight:600;font-size:14px}
+  .chip .meta{font-size:11px;color:var(--muted);display:flex;gap:6px;align-items:center}
+  .chip.in{background:var(--green-bg);border-color:#9fcf87}
+  .chip.in .nm,.chip.in .meta{color:var(--green-ink)}
+  .chip.hit{box-shadow:0 0 0 2px var(--t1)}
+  .sz{font-size:10px;font-weight:700;letter-spacing:.03em;padding:1px 6px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+  .sz.maybe{border-style:dashed;border-color:var(--amber);color:var(--amber)}
+  .sz.none{background:var(--amber-bg);border-color:#f1d3a1;color:var(--amber)}
+  .sz.given{background:var(--t1);border-color:var(--t1);color:#fff}
+  .note-dot{font-size:11px}
+
+  /* ---------- modal ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(20,23,20,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:40;opacity:0;pointer-events:none;transition:opacity .15s ease}
+  .overlay.show{opacity:1;pointer-events:auto}
+  .modal{background:var(--surface);border-radius:14px;width:min(460px,100%);max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.25);transform:translateY(8px);transition:transform .15s ease}
+  .modal.wide{width:min(620px,100%)}
+  .overlay.show .modal{transform:none}
+  .m-head{padding:16px 18px 12px;border-bottom:1px solid var(--border)}
+  .m-head h3{font-size:24px;font-weight:700}
+  .m-sub{color:var(--muted);font-size:13px;margin-top:2px}
+  .m-status{margin-top:10px;font-size:13px;padding:8px 10px;border-radius:8px;background:var(--surface-2)}
+  .m-status.in{background:var(--green-bg);color:var(--green-ink)}
+  .m-body{padding:14px 18px}
+  .lbl{display:block;font-weight:600;font-size:13px;margin:0 0 6px}
+  .hint{font-size:12px;color:var(--muted);margin:-2px 0 8px}
+  select,input[type=number]{width:100%;border:1px solid var(--border);border-radius:9px;padding:9px 10px;background:var(--surface);min-height:42px}
+  .shirt-box{border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:14px;background:var(--surface-2)}
+  .match{font-size:13px;padding:8px 10px;border-radius:8px;background:var(--surface);border:1px solid var(--border);margin-bottom:10px}
+  .match.maybe{background:var(--amber-bg);border-color:#f1d3a1;color:#6b4200}
+  .match.none{background:var(--amber-bg);border-color:#f1d3a1;color:#6b4200}
+  .sizes{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;margin:0 0 12px}
+  .sizes button{display:flex;flex-direction:column;align-items:center;padding:7px 4px;border-radius:9px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-weight:700;min-height:48px;line-height:1.1}
+  .sizes button small{font-weight:500;font-size:10px;color:var(--muted)}
+  .sizes button.out small{color:var(--t2)}
+  .sizes button[aria-pressed="true"]{background:var(--t1);border-color:var(--t1);color:#fff}
+  .sizes button[aria-pressed="true"] small{color:#e6f2f8}
+  .shirt-act{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .shirt-act .st{flex:1 1 160px;font-size:13px;color:var(--muted)}
+  .shirt-act .st.given{color:#1f5f7c;font-weight:600}
+  textarea{width:100%;min-height:64px;resize:vertical;border:1px solid var(--border);border-radius:9px;padding:9px 10px;font:inherit;background:var(--surface)}
+  .m-foot{padding:12px 18px 16px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;border-top:1px solid var(--border)}
+  .btn{padding:11px 16px;border-radius:9px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-weight:600;min-height:44px}
+  .btn.primary{background:var(--green);border-color:var(--green);color:#fff}
+  .btn.primary:hover{background:#43881f}
+  .btn.give{background:var(--t1);border-color:var(--t1);color:#fff}
+  .btn.danger{color:var(--t2);border-color:#e8b9be;margin-right:auto}
+  .btn.link{border-color:transparent;background:none;color:var(--t2);padding:11px 8px}
+  .btn.sm{padding:7px 12px;min-height:36px;font-size:13px}
+  .btn:disabled{opacity:.55;cursor:default}
+
+  /* ---------- settings ---------- */
+  .sec{margin-bottom:18px}
+  .sec h4{margin:0 0 6px;font-size:15px}
+  .file-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .file-row .info{font-size:13px;color:var(--muted)}
+  table.stk{width:100%;border-collapse:collapse;font-size:13px}
+  table.stk th,table.stk td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums}
+  table.stk th:first-child,table.stk td:first-child{text-align:left}
+  table.stk th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700}
+  table.stk input{width:84px;min-height:36px;padding:5px 8px;text-align:right}
+  table.stk tfoot td{font-weight:700;border-bottom:0}
+  .neg{color:var(--t2);font-weight:700}
+  .add-row{display:flex;gap:6px;margin-top:8px}
+  .add-row input{width:110px;border:1px solid var(--border);border-radius:9px;padding:7px 10px;min-height:36px}
+  details.unm{border:1px solid var(--border);border-radius:10px;padding:8px 12px;background:var(--surface-2)}
+  details.unm summary{cursor:pointer;font-weight:600}
+  details.unm ul{margin:8px 0 0;padding-left:18px;columns:2;font-size:13px}
+  @media (max-width:480px){details.unm ul{columns:1}}
+
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;z-index:60;max-width:calc(100% - 32px)}
+  .toast.show{opacity:1;transform:translateX(-50%)}
+  .toast.err{background:var(--t2)}
+
+  @media (max-width:560px){ .total{display:none} }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation-duration:1ms!important}}
+</style>
+</head>
+<body>
+
+<div id="gate" role="status" aria-live="polite">
+  <div class="spin" id="gateSpin"></div>
+  <div id="gateMsg">Checking your account…</div>
+  <button id="gateBack" type="button">Go to log in</button>
+</div>
+
+<header class="top">
+  <div class="brand">
+    <img src="logo.png" alt="" onerror="this.style.display='none'">
+    <div>
+      <h1>Player check-in</h1>
+      <div class="sub" id="sessTxt">Loading session…</div>
+    </div>
+  </div>
+  <div class="search">
+    <label for="q">Search</label>
+    <input id="q" type="search" placeholder="Player name" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button class="clr" id="qClear" type="button" aria-label="Clear search" hidden>✕</button>
+  </div>
+  <div class="top-right">
+    <div class="total"><b id="totCount">0/0</b><span>checked in</span></div>
+    <div class="live"><span class="dot off" id="liveDot"></span><span id="liveTxt">Connecting…</span></div>
+    <span class="user" id="userTxt"></span>
+    <button class="btn-ghost" id="btnLogout" type="button">Log out</button>
+  </div>
+</header>
+
+<div class="notice" id="notice" hidden></div>
+
+<section class="stock" id="stock" aria-label="Shirts left"></section>
+
+<div class="toolbar">
+  <div class="pills" id="cats" role="group" aria-label="Category"></div>
+  <div class="status" role="group" aria-label="Show">
+    <button type="button" data-st="all" aria-pressed="true">All</button>
+    <button type="button" data-st="out" aria-pressed="false">Not here yet</button>
+    <button type="button" data-st="in" aria-pressed="false">Checked in</button>
+    <button type="button" data-st="noshirt" aria-pressed="false">No shirt yet</button>
+  </div>
+</div>
+
+<main>
+  <div class="grid" id="grid"></div>
+</main>
+
+<!-- ============ player modal ============ -->
+<div class="overlay" id="ov" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mName">
+    <div class="m-head">
+      <h3 id="mName">Player</h3>
+      <div class="m-sub" id="mSub"></div>
+      <div class="m-status" id="mStatus"></div>
+    </div>
+    <div class="m-body">
+      <div class="shirt-box">
+        <span class="lbl">Shirt</span>
+        <div class="match" id="mMatch"></div>
+        <label class="lbl" for="mListSel">Name on the shirt list</label>
+        <select id="mListSel"></select>
+        <div style="height:10px"></div>
+        <span class="lbl" id="sizeLbl">Size to give</span>
+        <div class="sizes" id="mSizes" role="group" aria-labelledby="sizeLbl"></div>
+        <div class="shirt-act">
+          <div class="st" id="mShirtState"></div>
+          <button class="btn link" id="mUngive" type="button" hidden>Undo shirt</button>
+          <button class="btn give" id="mGive" type="button">Give shirt</button>
+        </div>
+      </div>
+      <label class="lbl" for="mNotes">Notes</label>
+      <textarea id="mNotes" maxlength="300" placeholder="Optional"></textarea>
+    </div>
+    <div class="m-foot">
+      <button class="btn danger" id="mUndo" type="button" hidden>Undo check-in</button>
+      <button class="btn" id="mCancel" type="button">Cancel</button>
+      <button class="btn primary" id="mSave" type="button">Check in</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ settings modal ============ -->
+<div class="overlay" id="sov" aria-hidden="true">
+  <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="sTitle">
+    <div class="m-head">
+      <h3 id="sTitle">Shirt settings</h3>
+      <div class="m-sub">Shared on all devices. The shirt list and stock stay until you replace them.</div>
+    </div>
+    <div class="m-body">
+      <div class="sec">
+        <h4>Shirt list</h4>
+        <p class="hint">CSV with <b>name</b> and <b>size</b> columns. "Others: 4XL" is read as 4XL. Repeated names count as one shirt.</p>
+        <div class="file-row">
+          <input type="file" id="sFile" accept=".csv,text/csv" hidden>
+          <button class="btn sm" id="sPick" type="button">Upload CSV</button>
+          <span class="info" id="sFileInfo">No list yet</span>
+        </div>
+      </div>
+      <div class="sec">
+        <h4>Starting stock</h4>
+        <p class="hint">How many shirts of each size you have on hand. Left = starting stock − shirts given this session.</p>
+        <table class="stk">
+          <thead><tr><th>Size</th><th>On list</th><th>Starting stock</th><th>Given</th><th>Left</th></tr></thead>
+          <tbody id="sRows"></tbody>
+          <tfoot id="sFoot"></tfoot>
+        </table>
+        <div class="add-row">
+          <label for="sNewSize" class="sr" hidden>New size</label>
+          <input id="sNewSize" placeholder="e.g. 5XL" maxlength="8">
+          <button class="btn sm" id="sAddSize" type="button">Add size</button>
+          <button class="btn sm" id="sFill" type="button" style="margin-left:auto">Copy "On list" into stock</button>
+        </div>
+      </div>
+      <div class="sec" id="sUnmSec" hidden>
+        <details class="unm"><summary id="sUnmTitle">Names on the list with no player</summary><ul id="sUnm"></ul></details>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn" id="sCancel" type="button">Cancel</button>
+      <button class="btn primary" id="sSave" type="button">Save settings</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+(function(){
+  'use strict';
+  const SUPER_EMAIL = 'ton.quinton@gmail.com';
+  const COL = 'pkl-checkin';            // same collection as checkin.html, so both pages share check-ins
+  const CFG_DOC = '_shirts_config';     // shirt list + stock, kept in the same collection (it has no sessionId, so the session query skips it)
+  const LS_COLLAPSED = 'pm-checkin-mpo-collapsed';
+  const LS_FILTER = 'pm-checkin-mpo-filter';
+  const ORPHAN = '__none__', NOT_ON_LIST = '__none__';
+  const SIZE_ORDER = ['XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL','7XL','8XL'];
+  const SURE = 0.85, MIN_MATCH = 0.55;
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+  const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const fmtTime = ms => ms ? new Date(ms).toLocaleTimeString([], { hour:'numeric', minute:'2-digit' }) : '';
+  const CHEV = '<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  firebase.initializeApp(window.FIREBASE_CONFIG);
+  const auth = firebase.auth(), db = firebase.firestore();
+  try { db.settings({ experimentalAutoDetectLongPolling: true, merge: true }); } catch (e) {}
+
+  /* ================= auth gate (same rules as index.html) ================= */
+  let started = false, bouncing = false, unsubProfile = null, me = '';
+  function gateMsg(t, failed){ $('gate').style.display = 'flex'; $('gateMsg').textContent = t; $('gateSpin').style.display = failed ? 'none' : ''; $('gateBack').style.display = failed ? '' : 'none'; }
+  function bounce(reason){ if (bouncing) return; bouncing = true; auth.signOut().catch(() => {}).then(() => location.replace('login.html' + (reason ? '?reason=' + reason : ''))); }
+  function isGoogleSuper(u){ return !!u && (u.email || '').toLowerCase() === SUPER_EMAIL && u.emailVerified === true && u.providerData.some(p => p.providerId === 'google.com'); }
+  function licenseOk(d){ return !!d && d.active === true && !(d.validUntil && d.validUntil.toMillis && d.validUntil.toMillis() < Date.now()); }
+  $('gateBack').addEventListener('click', () => location.replace('login.html'));
+  $('btnLogout').addEventListener('click', () => { if (!confirm('Log out of PickleManage?')) return; bouncing = true; auth.signOut().catch(() => {}).then(() => location.replace('login.html')); });
+  auth.onAuthStateChanged(user => {
+    if (bouncing) return;
+    if (!user) { location.replace('login.html'); return; }
+    if (isGoogleSuper(user)) return begin(user, { displayName:'Superadmin' });
+    if (unsubProfile) unsubProfile();
+    unsubProfile = db.collection('pm-users').doc(user.uid).onSnapshot(s => {
+      if (!s.exists && s.metadata.fromCache) return gateMsg('Waiting for a connection to verify your license…');
+      const d = s.exists ? s.data() : null;
+      if (!licenseOk(d)) return bounce(d && d.active === true ? 'expired' : 'license');
+      begin(user, d);
+    }, err => { if (err && err.code === 'permission-denied') bounce('license'); else gateMsg("Can't verify your account right now. Check your connection and refresh.", true); });
+  });
+  function begin(user, prof){
+    if (started) return; started = true;
+    me = (prof && (prof.displayName || prof.username)) || user.displayName || user.email || '';
+    $('userTxt').textContent = me;
+    $('gate').style.display = 'none';
+    startData();
+  }
+
+  /* ================= data ================= */
+  let buckets = [], parts = [], checks = {}, sid = null, sessName = '', q = '';
+  let gotB = false, gotP = false, unsubC = null;
+  let shirtCfg = { list: [], stock: {}, fileName: '' }, cfgVer = 0;
+  let collapsed = new Set(), cat = '', status = 'all';
+  try { collapsed = new Set(JSON.parse(localStorage.getItem(LS_COLLAPSED) || '[]')); } catch (e) {}
+  try { const f = JSON.parse(localStorage.getItem(LS_FILTER) || '{}'); cat = f.cat || ''; status = f.status || 'all'; } catch (e) {}
+  const saveCollapsed = () => { try { localStorage.setItem(LS_COLLAPSED, JSON.stringify([...collapsed])); } catch (e) {} };
+  const saveFilter = () => { try { localStorage.setItem(LS_FILTER, JSON.stringify({ cat, status })); } catch (e) {} };
+
+  function setLive(ok, t){ $('liveDot').classList.toggle('off', !ok); $('liveTxt').textContent = t; }
+  function fail(what){ return err => { setLive(false, 'Offline'); toast(`Couldn't load ${what}: ${err && err.code === 'permission-denied' ? 'no permission' : (err.message || err)}`, true); }; }
+
+  function startData(){
+    db.collection('pkl-queue-buckets').onSnapshot(snap => {
+      buckets = snap.docs.map(d => { const x = d.data(); return {
+        key: d.id, label: x.name || 'Category', mode: x.mode,
+        order: (x.order !== undefined && x.order !== null) ? Number(x.order) : (x.createdAtMs || 0), createdAtMs: x.createdAtMs || 0 }; })
+        .sort((a, b) => a.order - b.order || a.createdAtMs - b.createdAtMs);
+      gotB = true; render();
+    }, fail('categories'));
+    db.collection('pkl-queue-participants').onSnapshot(snap => {
+      parts = snap.docs.map(d => ({ id: d.id, ...d.data() })); gotP = true; setLive(true, 'Live'); render();
+    }, fail('players'));
+    db.collection('pkl-queue-session').doc('state').onSnapshot(s => {
+      const x = s.exists ? s.data() : {};
+      const nid = x.currentSessionId || null; sessName = [x.currentSessionName, x.currentSessionDate].filter(Boolean).join(' · ');
+      $('sessTxt').textContent = nid ? (sessName || 'Current session') : 'No active session';
+      if (nid !== sid) { sid = nid; watchChecks(); }
+      render();
+    }, fail('session'));
+    db.collection(COL).doc(CFG_DOC).onSnapshot(s => {
+      const x = s.exists ? s.data() : {};
+      shirtCfg = { list: Array.isArray(x.list) ? x.list : [], stock: x.stock || {}, fileName: x.fileName || '', updatedBy: x.updatedBy || '', updatedAtMs: x.updatedAtMs || 0 };
+      prepList(); cfgVer++; render();
+      if ($('sov').classList.contains('show') && !sDirty) loadSettingsForm();
+    }, fail('shirt settings'));
+  }
+  function watchChecks(){
+    if (unsubC) { unsubC(); unsubC = null; }
+    checks = {};
+    if (!sid) return;
+    unsubC = db.collection(COL).where('sessionId', '==', sid).onSnapshot(snap => {
+      checks = {}; snap.docs.forEach(d => { checks[d.id] = d.data(); }); render();
+    }, fail('check-ins'));
+  }
+
+  /* ================= shirt sizes + name matching ================= */
+  function normSize(s){
+    let t = String(s || '').toUpperCase().replace(/^\s*OTHERS?\s*:?\s*/, '').replace(/\s+/g, '');
+    const m = t.match(/^(X+)L$/); if (m && m[1].length >= 2) t = m[1].length + 'XL';   // XXL -> 2XL, XXXL -> 3XL
+    if (t === 'SMALL') t = 'S'; else if (t === 'MEDIUM') t = 'M'; else if (t === 'LARGE') t = 'L';
+    return t;
+  }
+  const sizeRank = s => { const i = SIZE_ORDER.indexOf(s); return i < 0 ? 100 : i; };
+  const sortSizes = arr => [...new Set(arr)].filter(Boolean).sort((a, b) => sizeRank(a) - sizeRank(b) || a.localeCompare(b));
+  const nameKey = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const toks = s => nameKey(s).split(' ').filter(t => t.length > 1);   // drop initials like "L." / "S."
+
+  function lev(a, b){
+    if (a === b) return 0; if (!a.length) return b.length; if (!b.length) return a.length;
+    let prev = Array.from({ length: b.length + 1 }, (_, i) => i), cur = new Array(b.length + 1);
+    for (let i = 1; i <= a.length; i++) {
+      cur[0] = i;
+      for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      [prev, cur] = [cur, prev];
+    }
+    return prev[b.length];
+  }
+  function tokSim(x, y){
+    if (x === y) return 1;
+    const mn = Math.min(x.length, y.length), d = lev(x, y);
+    if (mn >= 4 && d <= 1) return 0.85;           // Nicko / Nikko, Kaizer / Kaizzer
+    if (mn >= 6 && d <= 2) return 0.75;
+    if (mn >= 3 && (x.startsWith(y) || y.startsWith(x))) return 0.7;   // Chris / Christopher
+    return 0;
+  }
+  // 0..1 — how likely two names are the same person
+  function nameSim(ta, tb){
+    if (!ta.length || !tb.length) return 0;
+    const [sh, lg] = ta.length <= tb.length ? [ta, tb] : [tb, ta];
+    const used = new Set(); let sum = 0;
+    sh.forEach(t => { let best = 0, bi = -1; lg.forEach((u, i) => { if (used.has(i)) return; const s = tokSim(t, u); if (s > best) { best = s; bi = i; } }); if (bi >= 0) used.add(bi); sum += best; });
+    let score = 2 * sum / (ta.length + tb.length);
+    if (sh.length >= 2) score = Math.max(score, 0.95 * sum / sh.length);          // extra middle name on one side
+    else if (sum >= 1) score = Math.max(score, 0.72);                              // first name only, e.g. "Kenneth"
+    const ca = ta.join(''), cb = tb.join(''), r = 1 - lev(ca, cb) / Math.max(ca.length, cb.length);
+    if (r >= 0.85) score = Math.max(score, r);
+    return Math.min(1, score);
+  }
+
+  let listIdx = new Map();
+  function prepList(){
+    shirtCfg.list = shirtCfg.list.map(e => ({ name: String(e.name || ''), size: normSize(e.size), k: nameKey(e.name), t: toks(e.name) }));
+    listIdx = new Map(shirtCfg.list.map((e, i) => [e.k, i]));
+  }
+
+  // one shirt-list name per player; manual picks first, then best scores win
+  let matchSig = '', matchMap = {}, candMap = {}, listOwner = {};
+  function computeMatches(players){
+    const list = shirtCfg.list;
+    const sig = cfgVer + '#' + players.map(p => p.key + '=' + p.name + '=' + ((checks[p.key] || {}).shirtListName || '')).join('|');
+    if (sig === matchSig) return;
+    matchSig = sig; matchMap = {}; candMap = {}; listOwner = {};
+    const taken = new Set(), pairs = [];
+    players.forEach(p => {
+      const pt = toks(p.name);
+      const cands = list.map((e, i) => ({ i, s: nameSim(pt, e.t) })).filter(x => x.s >= 0.45).sort((a, b) => b.s - a.s);
+      candMap[p.key] = cands;
+      const ov = (checks[p.key] || {}).shirtListName || '';
+      if (ov === NOT_ON_LIST) { matchMap[p.key] = { none: true, manual: true }; return; }
+      if (ov && listIdx.has(ov)) { const i = listIdx.get(ov); matchMap[p.key] = { i, s: 1, manual: true }; taken.add(i); listOwner[i] = p.key; return; }
+      cands.forEach(c => { if (c.s >= MIN_MATCH) pairs.push({ key: p.key, i: c.i, s: c.s }); });
+    });
+    pairs.sort((a, b) => b.s - a.s);
+    pairs.forEach(x => {
+      if (matchMap[x.key] || taken.has(x.i)) return;
+      const c = candMap[x.key], second = c.find(y => y.i !== x.i);
+      const close = second && second.s >= MIN_MATCH && x.s - second.s < 0.05;
+      matchMap[x.key] = { i: x.i, s: x.s, maybe: x.s < SURE || close };
+      taken.add(x.i); listOwner[x.i] = x.key;
+    });
+  }
+  const matchOf = k => { const m = matchMap[k]; return m && !m.none ? { ...m, e: shirtCfg.list[m.i] } : null; };
+  const expectedSize = k => { const m = matchOf(k); return m ? m.e.size : ''; };
+
+  function givenCounts(){ const g = {}; Object.values(checks).forEach(c => { if (c.shirtGiven && c.shirtSize) g[c.shirtSize] = (g[c.shirtSize] || 0) + 1; }); return g; }
+  function allSizes(){ return sortSizes([...Object.keys(shirtCfg.stock || {}), ...shirtCfg.list.map(e => e.size), ...Object.keys(givenCounts())]); }
+  function leftOf(size, given){ const st = Number((shirtCfg.stock || {})[size]); return Number.isFinite(st) && (shirtCfg.stock || {})[size] !== undefined ? st - (given[size] || 0) : null; }
+
+  /* ================= model ================= */
+  function splitNames(n){
+    const out = String(n || '').split(/\s+(?:and|&)\s+|\s*[\/+]\s*|\s*,\s*(?=\S)/i).map(s => s.trim()).filter(Boolean);
+    return out.length ? out : [String(n || '').trim() || '(no name)'];
+  }
+  const keyOf = (pid, i) => `${sid || 'nosession'}__${pid}__${i}`;
+  function splitCat(label){
+    const i = label.indexOf('|');
+    return i < 0 ? [label.trim(), ''] : [label.slice(0, i).trim(), label.slice(i + 1).trim()];
+  }
+  // -> [{ name, orphan, items:[{ sub, bucket, entries:[{ pid, players:[...] }] }] }]
+  // "Mens | Novice" and "Mens | Open" become one "Mens" card with two sub-buckets.
+  function build(){
+    const known = new Set(buckets.map(b => b.key));
+    const mkEntries = (list, label, bkey) => list
+      .sort((a, c) => String(a.name || '').localeCompare(String(c.name || '')))
+      .map(p => ({ pid: p.id, players: splitNames(p.name).map((nm, i) => ({ key: keyOf(p.id, i), name: nm, pid: p.id, idx: i, entry: p.name, bucket: label, bucketKey: bkey })) }));
+    const groups = [], byName = new Map();
+    buckets.forEach(b => {
+      const ents = mkEntries(parts.filter(p => p.bucket === b.key), b.label, b.key);
+      if (!ents.length) return;
+      const [g, s] = splitCat(b.label), gname = g || 'Category';
+      if (!byName.has(gname)) { const grp = { name: gname, orphan: false, items: [] }; byName.set(gname, grp); groups.push(grp); }
+      byName.get(gname).items.push({ sub: s, bucket: b, entries: ents });
+    });
+    const lost = parts.filter(p => !known.has(p.bucket));
+    if (lost.length) groups.push({ name: 'No category', orphan: true, items: [{ sub: '', bucket: { key: ORPHAN, label: 'No category' }, entries: mkEntries(lost, 'No category', '') }] });
+    return groups;
+  }
+  const isIn = k => !!(checks[k] && checks[k].checkedIn);
+  const hasShirt = k => !!(checks[k] && checks[k].shirtGiven);
+  const playersOf = g => g.items.flatMap(it => it.entries.flatMap(e => e.players));
+  function countOf(list){ let a = 0; list.forEach(pl => { if (isIn(pl.key)) a++; }); return [a, list.length]; }
+
+  /* ================= render ================= */
+  function matches(pl, tk){ if (!tk.length) return true; const n = norm(pl.name); return tk.every(t => n.includes(t)); }
+  function entryVisible(e, tk){
+    if (!e.players.some(p => matches(p, tk))) return false;
+    if (status === 'in') return e.players.some(p => isIn(p.key));
+    if (status === 'out') return e.players.some(p => !isIn(p.key));
+    if (status === 'noshirt') return e.players.some(p => !hasShirt(p.key));
+    return true;
+  }
+  function sizeTag(k){
+    const c = checks[k] || {};
+    if (c.shirtGiven) return `<span class="sz given" title="Shirt given">👕 ${esc(c.shirtSize || '?')}</span>`;
+    if (!shirtCfg.list.length) return '';
+    const m = matchOf(k);
+    if (!m) return '<span class="sz none" title="Not found on the shirt list">No size</span>';
+    return m.maybe ? `<span class="sz maybe" title="Possible match: ${esc(m.e.name)}">${esc(m.e.size)}?</span>` : `<span class="sz" title="${esc(m.e.name)}">${esc(m.e.size)}</span>`;
+  }
+  function chipHtml(pl, hit){
+    const c = checks[pl.key] || {}, inn = !!c.checkedIn;
+    const meta = (inn ? `<span>✓ ${esc(fmtTime(c.checkedInAtMs))}</span>` : '<span>Not here yet</span>') + sizeTag(pl.key);
+    const note = c.notes ? '<span class="note-dot" title="Has a note">📝</span>' : '';
+    const shirt = c.shirtGiven ? `shirt ${c.shirtSize} given` : (expectedSize(pl.key) ? `shirt size ${expectedSize(pl.key)}` : 'no shirt size');
+    return `<button type="button" class="chip${inn ? ' in' : ''}${hit ? ' hit' : ''}" data-k="${esc(pl.key)}" aria-label="${esc(pl.name)}, ${inn ? 'checked in at ' + esc(fmtTime(c.checkedInAtMs)) : 'not checked in'}, ${esc(shirt)}"><span class="nm">${esc(pl.name)}</span><span class="meta">${meta}${note}</span></button>`;
+  }
+  function renderStock(){
+    const el = $('stock');
+    if (!shirtCfg.list.length && !Object.keys(shirtCfg.stock || {}).length) {
+      el.innerHTML = '<span class="ttl">Shirts</span><span class="empty-txt">No shirt list or stock yet.</span><button class="btn sm set" type="button" data-open-settings>Set up shirts</button>';
+      return;
+    }
+    const given = givenCounts(), sizes = allSizes();
+    let tg = 0; Object.values(given).forEach(n => tg += n);
+    const boxes = sizes.map(s => {
+      const left = leftOf(s, given), cls = left === null ? '' : left <= 0 ? ' out' : left <= 3 ? ' low' : '';
+      return `<div class="sbox${cls}" title="${left === null ? 'No starting stock set' : `${left} left of ${shirtCfg.stock[s]}`}"><b>${esc(s)}</b><big>${left === null ? '—' : left}</big><small>${given[s] || 0} given</small></div>`;
+    }).join('');
+    el.innerHTML = `<div class="ttl">Shirts left<small>${tg} given this session</small></div>${boxes}<button class="btn sm set" type="button" data-open-settings>Shirt settings</button>`;
+  }
+  function renderPills(groups){
+    const pills = [{ id: '', name: 'All', pl: groups.flatMap(playersOf) }].concat(groups.map(g => ({ id: g.name, name: g.name, pl: playersOf(g) })));
+    $('cats').innerHTML = pills.map(p => { const [a, t] = countOf(p.pl); return `<button type="button" class="pill${t && a === t ? ' full' : ''}" data-cat="${esc(p.id)}" aria-pressed="${cat === p.id}">${esc(p.name)} <small>${a}/${t}</small></button>`; }).join('');
+  }
+  function renderCard(g, tk){
+    const filtering = tk.length > 0 || status !== 'all';
+    let inner = '', shown = false;
+    g.items.forEach(it => {
+      const vis = it.entries.filter(e => entryVisible(e, tk));
+      if (!vis.length) return;
+      shown = true;
+      const chips = `<div class="entries">${vis.map(e => `<div class="entry">${e.players.map(p => chipHtml(p, tk.length > 0 && matches(p, tk))).join('')}</div>`).join('')}</div>`;
+      if (it.sub) {
+        const [a, t] = countOf(it.entries.flatMap(e => e.players));
+        const id = `b|${it.bucket.key}`, open = filtering || !collapsed.has(id);
+        inner += `<div class="bucket"><button type="button" class="bhead" data-col="${esc(id)}" aria-expanded="${open}">${CHEV}<span class="bname">${esc(it.sub)}</span><span class="bcount${t && a === t ? ' full' : ''}">${a}/${t}</span></button><div class="bbody"${open ? '' : ' hidden'}>${chips}</div></div>`;
+      } else inner += chips;
+    });
+    if (!shown) return '';
+    const [a, t] = countOf(playersOf(g)), id = `g|${g.name}`, open = filtering || !collapsed.has(id);
+    const subs = g.items.filter(it => it.sub).length;
+    const tag = g.orphan ? 'Needs a category' : (subs > 1 ? `${subs} divisions` : 'Category');
+    return `<section class="card${g.orphan ? ' orphan' : ''}">
+      <button type="button" class="card-head" data-col="${esc(id)}" aria-expanded="${open}">${CHEV}<div><div class="tag">${esc(tag)}</div><h2>${esc(g.name)}</h2></div><div class="count${t && a === t ? ' full' : ''}"><b>${a}/${t}</b><span>checked in</span></div></button>
+      <div class="bar"><i style="width:${t ? (100 * a / t) : 0}%"></i></div>
+      <div class="card-body"${open ? '' : ' hidden'}>${inner}</div></section>`;
+  }
+  let lastGroups = [];
+  function render(){
+    if (!gotB || !gotP) return;
+    const groups = build(), tk = norm(q).split(' ').filter(Boolean);
+    lastGroups = groups;
+    computeMatches(groups.flatMap(playersOf));
+    if (cat && !groups.some(g => g.name === cat)) cat = '';
+    const note = [];
+    if (!buckets.length) note.push('No categories found. Add categories in PickleManage so players show here.');
+    if (!sid) note.push('There is no active session, so check-ins and shirts can’t be saved yet. Start a session in PickleManage first.');
+    $('notice').hidden = !note.length; $('notice').textContent = note.join(' ');
+
+    const [ta, tt] = countOf(groups.flatMap(playersOf));
+    $('totCount').textContent = `${ta}/${tt}`;
+    renderStock();
+    renderPills(groups);
+    document.querySelectorAll('.status button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.st === status)));
+
+    const html = groups.filter(g => !cat || g.name === cat).map(g => renderCard(g, tk)).join('');
+    let empty = '';
+    if (!groups.length) empty = '<div class="empty"><b>No players yet</b>Add players to a category in PickleManage.</div>';
+    else if (!html) empty = tk.length ? '<div class="empty"><b>No match</b>Try another spelling, or switch to All categories.</div>'
+      : status === 'out' ? '<div class="empty"><b>Everyone here is checked in</b>Switch to All to see them.</div>'
+      : status === 'in' ? '<div class="empty"><b>No one checked in yet</b>Tap a player’s name to check them in.</div>'
+      : status === 'noshirt' ? '<div class="empty"><b>Everyone here has a shirt</b>Switch to All to see them.</div>'
+      : '<div class="empty"><b>Nothing to show</b></div>';
+    $('grid').innerHTML = html || empty;
+    if (modalKey) refreshModal();
+    if ($('sov').classList.contains('show')) renderStockRows();
+  }
+
+  /* ================= interactions ================= */
+  document.addEventListener('click', e => {
+    if (e.target.closest('[data-open-settings]')) { openSettings(e.target.closest('button')); return; }
+    const p = e.target.closest('.pill');
+    if (p) { cat = p.dataset.cat; saveFilter(); render(); window.scrollTo({ top: 0 }); return; }
+    const st = e.target.closest('.status button');
+    if (st) { status = st.dataset.st; saveFilter(); render(); return; }
+    const h = e.target.closest('[data-col]');
+    if (h) {
+      const id = h.dataset.col, open = h.getAttribute('aria-expanded') === 'true';
+      h.setAttribute('aria-expanded', String(!open));
+      const body = h.parentElement.querySelector(':scope > .card-body, :scope > .bbody'); if (body) body.hidden = open;
+      if (!q && status === 'all') { open ? collapsed.add(id) : collapsed.delete(id); saveCollapsed(); }
+      return;
+    }
+    const c = e.target.closest('.chip');
+    if (c) openModal(c.dataset.k, c);
+  });
+  let qt = null;
+  $('q').addEventListener('input', () => { clearTimeout(qt); qt = setTimeout(() => { q = $('q').value.trim(); $('qClear').hidden = !q; render(); }, 120); });
+  $('qClear').addEventListener('click', () => { $('q').value = ''; q = ''; $('qClear').hidden = true; render(); $('q').focus(); });
+  document.addEventListener('keydown', e => { if (e.key === '/' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName) && !openOverlay()) { e.preventDefault(); $('q').focus(); } });
+
+  /* ================= overlays (shared) ================= */
+  let lastFocus = null;
+  const openOverlay = () => document.querySelector('.overlay.show');
+  function showOv(id, from){ lastFocus = from || document.activeElement; $(id).classList.add('show'); $(id).setAttribute('aria-hidden', 'false'); }
+  function hideOv(id){
+    $(id).classList.remove('show'); $(id).setAttribute('aria-hidden', 'true');
+    const k = lastFocus && lastFocus.dataset ? lastFocus.dataset.k : null;
+    if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+    else if (k) { const el = document.querySelector(`.chip[data-k="${CSS.escape(k)}"]`); if (el) el.focus(); }
+  }
+  document.addEventListener('keydown', e => {
+    const ov = openOverlay(); if (!ov) return;
+    if (e.key === 'Escape') { e.preventDefault(); ov.id === 'ov' ? closeModal() : closeSettings(); return; }
+    if (e.key === 'Tab') { // keep focus inside the open dialog
+      const f = [...ov.querySelectorAll('button:not([hidden]), textarea, select, input:not([type=file])')].filter(x => x.offsetParent !== null && !x.disabled);
+      if (!f.length) return; const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+
+  /* ================= player modal ================= */
+  let modalKey = null, modalPl = null, pickSize = '', listSel = '', busy = false;
+  function findPlayer(k){
+    for (const g of lastGroups) for (const it of g.items) for (const e of it.entries) for (const p of e.players)
+      if (p.key === k) return { ...p, partners: e.players.filter(x => x.key !== k).map(x => x.name) };
+    return null;
+  }
+  // the list entry the desk currently has selected (or the auto match)
+  function selEntry(){
+    if (listSel === NOT_ON_LIST) return null;
+    if (listSel && listIdx.has(listSel)) return { e: shirtCfg.list[listIdx.get(listSel)], manual: true };
+    const m = matchOf(modalKey); return m ? { e: m.e, maybe: m.maybe, s: m.s } : null;
+  }
+  function fillListSelect(){
+    const list = shirtCfg.list, sel = $('mListSel');
+    if (!list.length) { sel.innerHTML = '<option value="">No shirt list uploaded</option>'; sel.disabled = true; return; }
+    sel.disabled = false;
+    const auto = matchOf(modalKey), ownerName = i => { const o = listOwner[i]; if (!o || o === modalKey) return ''; const p = findPlayer(o); return p ? ` — matched to ${p.name}` : ''; };
+    const opt = (v, t) => `<option value="${esc(v)}">${esc(t)}</option>`;
+    const cands = (candMap[modalKey] || []).slice(0, 6);
+    const all = list.map((e, i) => ({ e, i })).sort((a, b) => a.e.name.localeCompare(b.e.name));
+    sel.innerHTML = opt('', auto ? `Auto: ${auto.e.name} (${auto.e.size})` : 'Auto: no close name found')
+      + opt(NOT_ON_LIST, 'Not on the shirt list')
+      + (cands.length ? `<optgroup label="Closest names">${cands.map(c => opt(list[c.i].k, `${list[c.i].name} · ${list[c.i].size} · ${Math.round(c.s * 100)}%${ownerName(c.i)}`)).join('')}</optgroup>` : '')
+      + `<optgroup label="All names">${all.map(x => opt(x.e.k, `${x.e.name} · ${x.e.size}${ownerName(x.i)}`)).join('')}</optgroup>`;
+    sel.value = listSel;
+    if (sel.value !== listSel) sel.value = '';
+  }
+  function renderSizes(){
+    const given = givenCounts(), c = checks[modalKey] || {};
+    const sizes = sortSizes([...allSizes(), ...(SIZE_ORDER.slice(0, 7))]);
+    $('mSizes').innerHTML = sizes.map(s => {
+      let left = leftOf(s, given);
+      if (left !== null && c.shirtGiven && c.shirtSize === s) left += 1;   // their own shirt doesn't count against them
+      return `<button type="button" data-size="${esc(s)}" aria-pressed="${pickSize === s}" class="${left !== null && left <= 0 ? 'out' : ''}">${esc(s)}<small>${left === null ? '&nbsp;' : left + ' left'}</small></button>`;
+    }).join('');
+  }
+  function refreshModal(){
+    const c = checks[modalKey] || {}, inn = !!c.checkedIn;
+    $('mStatus').className = 'm-status' + (inn ? ' in' : '');
+    $('mStatus').textContent = inn ? `Checked in at ${fmtTime(c.checkedInAtMs)}${c.checkedInBy ? ' by ' + c.checkedInBy : ''}` : 'Not checked in yet';
+    $('mUndo').hidden = !inn;
+    $('mSave').textContent = inn ? 'Save changes' : 'Check in';
+
+    const se = selEntry(), mm = $('mMatch');
+    if (!shirtCfg.list.length) { mm.className = 'match none'; mm.textContent = 'No shirt list yet. Upload one in Shirt settings, or just pick a size.'; }
+    else if (!se) { mm.className = 'match none'; mm.textContent = listSel === NOT_ON_LIST ? 'Marked as not on the shirt list. Pick a size if you are giving one.' : 'Not found on the shirt list. Pick the right name below if it is spelled differently.'; }
+    else if (se.manual) { mm.className = 'match'; mm.innerHTML = `On the list as <b>${esc(se.e.name)}</b> · size <b>${esc(se.e.size)}</b> (picked by desk)`; }
+    else if (se.maybe) { mm.className = 'match maybe'; mm.innerHTML = `Possible match: <b>${esc(se.e.name)}</b> · size <b>${esc(se.e.size)}</b>. Check the name with the player.`; }
+    else { mm.className = 'match'; mm.innerHTML = `On the list as <b>${esc(se.e.name)}</b> · size <b>${esc(se.e.size)}</b>`; }
+
+    renderSizes();
+    const g = !!c.shirtGiven, stEl = $('mShirtState');
+    stEl.className = 'st' + (g ? ' given' : '');
+    stEl.textContent = g ? `👕 ${c.shirtSize} given at ${fmtTime(c.shirtGivenAtMs)}${c.shirtGivenBy ? ' by ' + c.shirtGivenBy : ''}` : 'Shirt not given yet';
+    $('mUngive').hidden = !g;
+    const give = $('mGive');
+    give.hidden = g && pickSize === c.shirtSize;
+    give.disabled = !pickSize;
+    give.textContent = !pickSize ? 'Pick a size' : g ? `Change to ${pickSize}` : `Give shirt · ${pickSize}`;
+  }
+  function openModal(k, from){
+    const pl = findPlayer(k); if (!pl) return;
+    modalKey = k; modalPl = pl;
+    const c = checks[k] || {};
+    $('mName').textContent = pl.name;
+    $('mSub').textContent = [pl.bucket.replace(/\s*\|\s*/, ' · '), pl.partners.length ? 'with ' + pl.partners.join(', ') : ''].filter(Boolean).join(' · ');
+    listSel = c.shirtListName || '';
+    fillListSelect();
+    pickSize = c.shirtGiven ? (c.shirtSize || '') : (selEntry() ? selEntry().e.size : '');
+    $('mNotes').value = c.notes || '';
+    refreshModal();
+    showOv('ov', from);
+    setTimeout(() => ($('mGive').hidden || $('mGive').disabled ? $('mSave') : $('mGive')).focus(), 30);
+  }
+  function closeModal(){ modalKey = null; modalPl = null; hideOv('ov'); }
+  $('mListSel').addEventListener('change', () => {
+    listSel = $('mListSel').value;
+    const c = checks[modalKey] || {};
+    if (!c.shirtGiven) { const se = selEntry(); pickSize = se ? se.e.size : pickSize; }
+    refreshModal();
+  });
+  $('mSizes').addEventListener('click', e => { const b = e.target.closest('button[data-size]'); if (!b) return; pickSize = b.dataset.size; refreshModal(); });
+  $('mCancel').addEventListener('click', closeModal);
+  $('ov').addEventListener('mousedown', e => { if (e.target === $('ov')) closeModal(); });
+
+  function setBusy(v){ busy = v; ['mSave','mUndo','mGive','mUngive'].forEach(id => $(id).disabled = v); }
+  async function write(data, okMsg){
+    if (!sid) return toast('No active session. Start a session in PickleManage first.', true);
+    if (busy) return; setBusy(true);
+    const pl = modalPl;
+    try {
+      await db.collection(COL).doc(modalKey).set({
+        sessionId: sid, participantId: pl.pid, index: pl.idx, name: pl.name, entryName: pl.entry || '',
+        category: pl.bucket, bucketKey: pl.bucketKey || '', shirtListName: listSel,
+        notes: $('mNotes').value.trim(), updatedBy: me, updatedAtMs: Date.now(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(), ...data
+      }, { merge: true });
+      toast(okMsg); closeModal();
+    } catch (err) {
+      toast(err && err.code === 'permission-denied' ? 'Couldn’t save: your account has no permission to write check-ins.' : 'Couldn’t save. Check your connection and try again.', true);
+    } finally { setBusy(false); if (modalKey) refreshModal(); }
+  }
+  $('mSave').addEventListener('click', () => {
+    const c = checks[modalKey] || {};
+    if (c.checkedIn) write({}, `Saved ${modalPl.name}`);
+    else write({ checkedIn: true, checkedInAtMs: Date.now(), checkedInBy: me }, `${modalPl.name} checked in`);
+  });
+  $('mUndo').addEventListener('click', () => {
+    if (!confirm(`Undo check-in for ${modalPl.name}? Their shirt record stays as it is.`)) return;
+    write({ checkedIn: false, checkedInAtMs: null, checkedInBy: null }, `Undid check-in for ${modalPl.name}`);
+  });
+  $('mGive').addEventListener('click', () => {
+    if (!pickSize) return;
+    const c = checks[modalKey] || {}, given = givenCounts();
+    let left = leftOf(pickSize, given); if (left !== null && c.shirtGiven && c.shirtSize === pickSize) left += 1;
+    if (left !== null && left <= 0 && !confirm(`The count says no ${pickSize} shirts are left. Give one anyway?`)) return;
+    const se = selEntry();
+    if (se && se.e.size !== pickSize && !c.shirtGiven && !confirm(`${modalPl.name} is listed as ${se.e.size}. Give ${pickSize} instead?`)) return;
+    write({ shirtGiven: true, shirtSize: pickSize, shirtGivenAtMs: c.shirtGiven ? (c.shirtGivenAtMs || Date.now()) : Date.now(), shirtGivenBy: me },
+      c.shirtGiven ? `Changed ${modalPl.name}'s shirt to ${pickSize}` : `Gave a ${pickSize} shirt to ${modalPl.name}`);
+  });
+  $('mUngive').addEventListener('click', () => {
+    const c = checks[modalKey] || {};
+    if (!confirm(`Undo shirt for ${modalPl.name}? The ${c.shirtSize} shirt goes back to the count.`)) return;
+    write({ shirtGiven: false, shirtSize: null, shirtGivenAtMs: null, shirtGivenBy: null }, `Undid shirt for ${modalPl.name}`);
+  });
+
+  /* ================= settings ================= */
+  let sList = [], sStock = {}, sFileName = '', sDirty = false, sExtra = [];
+  function parseCSV(text){
+    const rows = []; let row = [], f = '', inQ = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (inQ) { if (ch === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else inQ = false; } else f += ch; }
+      else if (ch === '"') inQ = true;
+      else if (ch === ',') { row.push(f); f = ''; }
+      else if (ch === '\n' || ch === '\r') { if (ch === '\r' && text[i + 1] === '\n') i++; row.push(f); rows.push(row); row = []; f = ''; }
+      else f += ch;
+    }
+    if (f || row.length) { row.push(f); rows.push(row); }
+    return rows.filter(r => r.some(c => c.trim()));
+  }
+  function readShirtCSV(text){
+    const rows = parseCSV(text.replace(/^﻿/, ''));
+    if (!rows.length) throw new Error('The file is empty.');
+    const head = rows[0].map(h => h.trim().toLowerCase());
+    const ni = head.findIndex(h => h === 'name' || h.includes('name')), si = head.findIndex(h => h === 'size' || h.includes('size'));
+    if (ni < 0 || si < 0) throw new Error('The CSV needs a "name" column and a "size" column.');
+    const seen = new Set(), out = []; let dup = 0;
+    rows.slice(1).forEach(r => {
+      const name = (r[ni] || '').trim(), size = normSize(r[si]);
+      if (!name) return;
+      const k = nameKey(name);
+      if (seen.has(k)) { dup++; return; }
+      seen.add(k); out.push({ name, size });
+    });
+    return { list: out, dup, rows: rows.length - 1 };
+  }
+  function loadSettingsForm(){
+    sList = shirtCfg.list.map(e => ({ name: e.name, size: e.size }));
+    sStock = { ...(shirtCfg.stock || {}) }; sFileName = shirtCfg.fileName || ''; sExtra = []; sDirty = false;
+    $('sFileInfo').textContent = sList.length ? `${sList.length} names${sFileName ? ' · ' + sFileName : ''}${shirtCfg.updatedBy ? ' · saved by ' + shirtCfg.updatedBy : ''}` : 'No list yet';
+    renderStockRows(); renderUnmatched();
+  }
+  function renderStockRows(){
+    const given = givenCounts(), onList = {};
+    sList.forEach(e => onList[e.size] = (onList[e.size] || 0) + 1);
+    const sizes = sortSizes([...Object.keys(onList), ...Object.keys(sStock), ...Object.keys(given), ...sExtra]);
+    const focused = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.stock : null;
+    let tl = 0, ts = 0, tg = 0;
+    $('sRows').innerHTML = sizes.map(s => {
+      const st = sStock[s], g = given[s] || 0, left = st === undefined || st === '' ? null : Number(st) - g;
+      tl += onList[s] || 0; ts += Number(st) || 0; tg += g;
+      return `<tr><td><b>${esc(s)}</b></td><td>${onList[s] || 0}</td><td><input type="number" min="0" step="1" inputmode="numeric" data-stock="${esc(s)}" value="${st === undefined ? '' : esc(st)}" aria-label="Starting stock for ${esc(s)}"></td><td>${g}</td><td class="${left !== null && left < 0 ? 'neg' : ''}">${left === null ? '—' : left}</td></tr>`;
+    }).join('') || '<tr><td colspan="5" style="text-align:left;color:var(--muted)">Upload a shirt list or add a size.</td></tr>';
+    $('sFoot').innerHTML = sizes.length ? `<tr><td>Total</td><td>${tl}</td><td>${ts}</td><td>${tg}</td><td>${ts - tg}</td></tr>` : '';
+    if (focused) { const el = document.querySelector(`[data-stock="${CSS.escape(focused)}"]`); if (el) el.focus(); }
+  }
+  function renderUnmatched(){
+    // only meaningful for the saved list (matching runs against saved data)
+    if (!shirtCfg.list.length || sDirty && sList.length !== shirtCfg.list.length) { $('sUnmSec').hidden = true; return; }
+    const unm = shirtCfg.list.map((e, i) => ({ e, i })).filter(x => !(x.i in listOwner));
+    $('sUnmSec').hidden = !unm.length;
+    $('sUnmTitle').textContent = `${unm.length} name${unm.length === 1 ? '' : 's'} on the list with no matching player`;
+    $('sUnm').innerHTML = unm.sort((a, b) => a.e.name.localeCompare(b.e.name)).map(x => `<li>${esc(x.e.name)} · ${esc(x.e.size)}</li>`).join('');
+  }
+  function openSettings(from){ loadSettingsForm(); showOv('sov', from); setTimeout(() => $('sPick').focus(), 30); }
+  function closeSettings(){ if (sDirty && !confirm('Discard your changes to shirt settings?')) return; sDirty = false; hideOv('sov'); }
+  $('sCancel').addEventListener('click', closeSettings);
+  $('sov').addEventListener('mousedown', e => { if (e.target === $('sov')) closeSettings(); });
+  $('sPick').addEventListener('click', () => $('sFile').click());
+  $('sFile').addEventListener('change', async () => {
+    const f = $('sFile').files[0]; $('sFile').value = '';
+    if (!f) return;
+    try {
+      const r = readShirtCSV(await f.text());
+      if (!r.list.length) throw new Error('No names found in the file.');
+      sList = r.list; sFileName = f.name; sDirty = true;
+      $('sFileInfo').textContent = `${r.list.length} names from ${f.name}${r.dup ? ` (${r.dup} repeated name${r.dup === 1 ? '' : 's'} skipped)` : ''}. Not saved yet.`;
+      $('sUnmSec').hidden = true; renderStockRows();
+    } catch (err) { toast(`Couldn’t read that file: ${err.message || err}`, true); }
+  });
+  $('sRows').addEventListener('input', e => {
+    const s = e.target.dataset && e.target.dataset.stock; if (!s) return;
+    const v = e.target.value.trim();
+    if (v === '') delete sStock[s]; else sStock[s] = Math.max(0, Math.floor(Number(v) || 0));
+    sDirty = true; renderStockRows();
+  });
+  $('sAddSize').addEventListener('click', () => {
+    const s = normSize($('sNewSize').value); if (!s) return;
+    if (!sExtra.includes(s)) sExtra.push(s);
+    $('sNewSize').value = ''; renderStockRows();
+    const el = document.querySelector(`[data-stock="${CSS.escape(s)}"]`); if (el) el.focus();
+  });
+  $('sNewSize').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('sAddSize').click(); } });
+  $('sFill').addEventListener('click', () => {
+    if (!sList.length) return toast('Upload a shirt list first.', true);
+    if (Object.keys(sStock).length && !confirm('Replace the starting stock with the counts from the list?')) return;
+    sStock = {}; sList.forEach(e => sStock[e.size] = (sStock[e.size] || 0) + 1);
+    sDirty = true; renderStockRows();
+  });
+  $('sSave').addEventListener('click', async () => {
+    const btn = $('sSave'); btn.disabled = true;
+    try {
+      await db.collection(COL).doc(CFG_DOC).set({
+        list: sList.map(e => ({ name: e.name, size: e.size })), stock: sStock, fileName: sFileName,
+        updatedBy: me, updatedAtMs: Date.now(), updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      sDirty = false; toast('Shirt settings saved'); hideOv('sov');
+    } catch (err) {
+      toast(err && err.code === 'permission-denied' ? 'Couldn’t save: your account has no permission to change shirt settings.' : 'Couldn’t save. Check your connection and try again.', true);
+    } finally { btn.disabled = false; }
+  });
+
+  let tt = null;
+  function toast(msg, err){ const t = $('toast'); t.textContent = msg; t.classList.toggle('err', !!err); t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), err ? 4500 : 2200); }
+
+})();
+</script>
+</body>
+</html>
