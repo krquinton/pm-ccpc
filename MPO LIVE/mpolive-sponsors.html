@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<!-- mpolive-sponsors.html: standalone sponsor editor for MPO LIVE.
+     Same data as index.html#sponsors, tvurl.html and ../mpo-sponsors.html:
+       Firestore (ccpc-1943f)  sponsorShows/main                -> display text settings
+                               sponsorShows/main/sponsors/{id}  -> { name, type, logo, order, createdAt }
+     "Show Sponsors" switches the MPO LIVE screen (RTDB mindoropickleballorg, mpolive/state) to the Sponsors view.
+     No login: saving needs Firestore rules that allow writes to sponsorShows without sign-in. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MPO LIVE · Sponsors</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#F3F1E8;--dim:#A9C3B6;--forest:#0F3B2E;--card:#F6F4EC;--ball:#D7F03C;--clay:#E27A5C;--ink:#0B1D17;--line:#DAD6C8;--mut:#56665e;--red:#b4432a}
+*{box-sizing:border-box;margin:0}
+html{background:#15342A}
+body{background:linear-gradient(180deg,#06120E 0%,#0B1D17 40%,#15342A 100%) fixed;color:var(--cream);font:15px/1.45 Inter,system-ui,sans-serif;min-height:100vh}
+h1,h2,h3,h4,button,.eyebrow{font-family:Archivo,system-ui,sans-serif}
+.wrap{max-width:1180px;margin:auto;padding:0 18px 60px}
+header{display:flex;align-items:center;gap:14px;padding:22px 0 6px;flex-wrap:wrap}
+header img{height:44px}
+.eyebrow{font-weight:700;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim)}
+h1{font-weight:800;font-stretch:105%;font-size:28px;line-height:1.1}
+h1 em{font-style:normal;color:var(--ball)}
+header .sp{flex:1}
+header a{color:var(--dim);font-weight:600;font-size:14px}
+
+#live{position:sticky;top:0;z-index:20;background:rgba(6,18,14,.94);backdrop-filter:blur(6px);border-bottom:1px solid rgba(243,241,232,.12);margin:10px -18px 0;padding:12px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#live .sp{flex:1}
+.pill{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:13px;padding:6px 12px;border-radius:999px;background:rgba(243,241,232,.1);color:var(--cream)}
+.pill i{width:9px;height:9px;border-radius:50%;background:#b9b4a3}
+.pill.on i{background:#2f9e5b;box-shadow:0 0 0 3px rgba(47,158,91,.2)}
+.pill.bad i{background:var(--clay)}
+
+.layout{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:18px;align-items:start}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}
+.stack{display:grid;gap:18px}
+.card{background:var(--card);color:var(--ink);border-radius:16px;margin:18px 0 0;overflow:hidden;box-shadow:0 18px 36px rgba(0,0,0,.35)}
+.stack .card+.card{margin-top:0}
+.card>h2{background:var(--forest);color:var(--cream);font-weight:800;font-size:14px;letter-spacing:.22em;text-transform:uppercase;padding:13px 18px;display:flex;align-items:center;gap:10px}
+.card>h2 .sp{flex:1}
+.cb{padding:14px 18px 18px}
+.sub{font-size:13px;color:var(--mut);margin:0 0 6px}
+label,.lbl{display:block;font-weight:600;font-size:13px;color:#3d4d45;margin:12px 0 5px}
+input,textarea{width:100%;background:#fff;border:1.5px solid var(--line);color:var(--ink);border-radius:9px;padding:9px 11px;font:inherit}
+textarea{min-height:76px;resize:vertical}
+input.err{border-color:var(--red)}
+.err-text{color:var(--red);font-size:13px;min-height:1.1em;margin-top:4px}
+.hint{font-size:12.5px;color:var(--mut);margin-top:4px}
+button{border:0;border-radius:999px;padding:10px 20px;font-size:15px;font-weight:800;letter-spacing:.02em;cursor:pointer;color:var(--ink);background:var(--ball)}
+button.g{background:#fff;color:var(--forest);border:1.5px solid var(--forest)}
+button.d{background:#fff;color:var(--red);border:1.5px solid #e3b5a8}
+button.sm{padding:6px 12px;font-size:13px}
+button.ic{width:34px;height:34px;padding:0;border-radius:9px;display:inline-grid;place-items:center;background:#fff;border:1.5px solid var(--line);color:var(--forest)}
+button.ic svg{width:16px;height:16px}
+button.ic:hover:not(:disabled){border-color:var(--forest)}
+button:disabled{opacity:.4;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--clay);outline-offset:2px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:16px}
+
+/* type segmented control */
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+#s_minorPerPage{grid-template-columns:1fr 1fr}
+.seg label{margin:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:9px 6px;border:1.5px solid var(--line);border-radius:9px;cursor:pointer;font-size:13px;font-weight:700;color:var(--ink);background:#fff}
+.seg input{position:absolute;opacity:0;pointer-events:none;width:auto}
+.seg label:has(input:checked){background:var(--forest);border-color:var(--forest);color:var(--ball)}
+.seg label:focus-within{outline:3px solid var(--clay);outline-offset:2px}
+
+/* logo */
+.drop{border:1.5px dashed #b9b4a3;border-radius:12px;padding:16px;text-align:center;cursor:pointer;color:var(--mut);font-size:13px;line-height:1.5;background:#fff}
+.drop strong{color:var(--ink)}
+.drop:hover,.drop.over{border-color:var(--forest);background:#f1f6e4}
+.preview{display:none;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:12px;padding:10px;background:#fff}
+.preview.show{display:flex}
+.pimg{width:110px;height:66px;border-radius:8px;background:#fff;display:grid;place-items:center;overflow:hidden;border:1px solid var(--line);flex:none}
+.pimg img{max-width:100%;max-height:100%;object-fit:contain}
+.pmeta{flex:1;font-size:13px;color:var(--mut)}
+
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.grid3 .hint{margin:0 0 4px}
+
+/* list */
+.tier{margin-top:18px}
+.tier:first-child{margin-top:4px}
+.tier-h{display:flex;align-items:center;gap:10px;margin:0 0 10px}
+.tier-h h4{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.16em;color:var(--mut)}
+.count{font:700 12px Inter,sans-serif;padding:1px 9px;border-radius:99px;background:#ece9dd;color:var(--mut)}
+.row{display:flex;align-items:center;gap:12px;padding:9px 10px;border:1.5px solid var(--line);border-radius:12px;margin-bottom:8px;background:#fff;cursor:grab;user-select:none;-webkit-user-select:none}
+.row:hover{border-color:#b9b4a3}
+.row button{cursor:pointer}
+.row.editing{border-color:var(--forest);box-shadow:0 0 0 3px rgba(215,240,60,.6)}
+.thumb{width:64px;height:40px;border-radius:6px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;overflow:hidden;flex:none}
+.thumb img{max-width:100%;max-height:100%;object-fit:contain}
+.thumb span{font:800 14px Archivo,sans-serif;color:#6a706a}
+.nm{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tools{display:flex;gap:4px;align-items:center;flex:none}
+.empty{border:1.5px dashed var(--line);border-radius:12px;padding:14px;color:var(--mut);font-size:13px;text-align:center}
+@media(max-width:520px){.row{flex-wrap:wrap}.tools{width:100%;justify-content:flex-end}}
+
+/* drag and drop */
+.grip{width:26px;height:34px;display:grid;place-items:center;color:#9a9a8c;cursor:grab;touch-action:none;flex:none;border-radius:7px;user-select:none}
+.grip:hover{color:var(--forest);background:#ece9dd}
+.grip svg{width:16px;height:16px}
+.dlist{min-height:52px;border-radius:12px;transition:background-color .15s ease-out,box-shadow .15s ease-out}
+.dlist.over{background:#eef5d6;box-shadow:0 0 0 2px var(--forest) inset}
+.dlist:has(.ph) .empty{display:none}
+.row.dragging{box-shadow:0 16px 32px rgba(0,0,0,.28);border-color:var(--forest);opacity:.96;cursor:grabbing}
+.ph{border:2px dashed var(--forest);border-radius:12px;margin-bottom:8px;background:rgba(215,240,60,.25)}
+body.dragging,body.dragging *{cursor:grabbing!important;user-select:none}
+/* special thanks intro preview */
+.sxprev{margin-top:12px;border-radius:12px;background:linear-gradient(180deg,#06120E,#15342A);padding:18px 14px;text-align:center;color:var(--cream)}
+.sxprev .e{font:700 11px Archivo,sans-serif;letter-spacing:.3em;text-transform:uppercase;color:var(--dim)}
+.sxprev .t{font:900 30px/1.05 Archivo,sans-serif;font-stretch:110%;text-transform:uppercase;margin-top:6px}
+.sxprev .t b{color:var(--ball);font-weight:900}
+.subh{font:800 12px Archivo,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--forest);margin:20px 0 0;padding-top:16px;border-top:1.5px solid var(--line)}
+#showBtn.on{background:var(--clay);color:#fff}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;background:var(--forest);color:var(--cream);border:1px solid rgba(215,240,60,.5);padding:11px 18px;border-radius:12px;font-weight:600;font-size:14px;box-shadow:0 12px 28px rgba(0,0,0,.4);transition:opacity .18s ease-out,transform .18s ease-out;z-index:50;max-width:calc(100vw - 32px)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.bad{background:#5a1f12;border-color:var(--clay)}
+@media (prefers-reduced-motion:reduce){#toast{transition:opacity .01s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><img src="../mpo-mark.png" alt="" onerror="this.remove()"><div><div class="eyebrow">MPO LIVE</div><h1>Sponsors <em>editor</em></h1></div><span class="sp"></span>
+  <a href="mpolive-setup.html">← Live setup</a><a href="../mpo-sponsors.html" target="_blank" rel="noopener">Preview showcase ↗</a><a href="mpolive.html" target="_blank" rel="noopener">Open screen ↗</a></header>
+
+<div id="live">
+  <span class="pill" id="dbPill"><i></i><span>Connecting to sponsors…</span></span>
+  <span class="pill" id="scrPill"><i></i><span>MPO LIVE screen: …</span></span>
+  <span class="sp"></span>
+  <button id="showBtn" title="Switch the MPO LIVE screen to the Sponsors view">🎉 Show Sponsors</button>
+</div>
+
+<div class="layout">
+  <div class="stack">
+    <section class="card"><h2 id="formTitle">Add sponsor</h2><div class="cb">
+      <p class="sub" id="formSub">Lalabas sa MPO LIVE Sponsors screen.</p>
+      <label for="spName">Name</label>
+      <input type="text" id="spName" maxlength="80" autocomplete="off" placeholder="e.g. Juan's Hardware">
+      <div class="err-text" id="errName"></div>
+      <span class="lbl" id="typeLbl">Type</span>
+      <div class="seg" role="radiogroup" aria-labelledby="typeLbl">
+        <label><input type="radio" name="spType" value="major" checked>Major</label>
+        <label><input type="radio" name="spType" value="minor">Minor</label>
+        <label><input type="radio" name="spType" value="special">Special Thanks</label>
+      </div>
+      <span class="lbl">Logo (optional)</span>
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="Upload logo"><strong>Click to upload</strong> o i-drag dito ang logo<br><span>PNG na transparent ang background ang pinakamaganda</span></div>
+      <input type="file" id="file" accept="image/*" hidden>
+      <div class="preview" id="preview"><div class="pimg"><img id="previewImg" alt="Logo preview"></div><div class="pmeta" id="previewMeta"></div><button type="button" class="g sm" id="removeLogo">Remove</button></div>
+      <div class="bar"><button id="saveBtn">Add sponsor</button><button class="g" id="cancelBtn" style="display:none">Cancel</button></div>
+    </div></section>
+
+    <section class="card"><h2>Display text</h2><div class="cb">
+      <p class="sub">Words shown in the intro and closing of the sponsor showcase.</p>
+      <label for="s_eventName">Event name</label><input type="text" id="s_eventName" maxlength="80" placeholder="e.g. Mindoro Pickleball Org. Cup 2026">
+      <label for="s_eyebrow">Intro small heading</label><input type="text" id="s_eyebrow" maxlength="60">
+      <label for="s_introText">Intro message</label><textarea id="s_introText" maxlength="180"></textarea>
+      <div class="hint">The word "sponsor/sponsors" is highlighted on the screen.</div>
+      <label for="s_outroTitle">Closing title</label><input type="text" id="s_outroTitle" maxlength="40">
+      <label for="s_outroText">Closing message</label><input type="text" id="s_outroText" maxlength="120">
+      <span class="lbl">Seconds on screen</span>
+      <div class="grid3">
+        <div><div class="hint">Each major</div><input type="number" id="s_majorSeconds" min="2" max="30" aria-label="Seconds for each major sponsor"></div>
+        <div><div class="hint">Minor page</div><input type="number" id="s_minorSeconds" min="2" max="30" aria-label="Seconds for each minor page"></div>
+        <div><div class="hint">Thanks page</div><input type="number" id="s_specialSeconds" min="2" max="30" aria-label="Seconds for each special thanks page"></div>
+      </div>
+      <label for="s_minorPerPage">Minor sponsors per page</label>
+      <div class="seg" role="radiogroup" aria-label="Minor sponsors per page" id="s_minorPerPage">
+        <label><input type="radio" name="minorPer" value="8">8 per page</label>
+        <label><input type="radio" name="minorPer" value="4">4 per page (mas malaking logo)</label>
+      </div>
+      <h3 class="subh">Special Thanks intro</h3>
+      <p class="hint">Ang title card bago lumabas ang Special Thanks names.</p>
+      <label for="s_specialEyebrow">Small heading</label><input type="text" id="s_specialEyebrow" maxlength="60">
+      <div class="grid3" style="grid-template-columns:1fr 1fr">
+        <div><label for="s_specialTitle">Title</label><input type="text" id="s_specialTitle" maxlength="30"></div>
+        <div><label for="s_specialHighlight">Highlighted word</label><input type="text" id="s_specialHighlight" maxlength="30"></div>
+      </div>
+      <div class="sxprev" aria-hidden="true"><div class="e" id="sxE"></div><div class="t"><span id="sxA"></span> <b id="sxB"></b></div></div>
+      <div class="bar"><button id="settingsSave">Save display text</button></div>
+    </div></section>
+  </div>
+
+  <section class="card"><h2>Sponsors<span class="sp"></span></h2><div class="cb">
+    <p class="sub">Ito ang order sa screen. I-drag ang sponsor para ilipat, pati papunta sa ibang category (sa phone, ang ⋮⋮ ang i-drag). Puwede rin ang ↑ ↓.</p>
+    <div id="list"></div>
+  </div></section>
+</div>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="../firebase-config.js"></script><!-- sets window.FIREBASE_CONFIG (ccpc-1943f, Firestore: sponsors) -->
+<script src="firebase-config.js"></script><!-- default app + db (mindoropickleballorg RTDB: mpolive/state) -->
+<script>
+const $ = id => document.getElementById(id);
+function toast(t, bad){ const el = $('toast'); el.textContent = t; el.className = 'show' + (bad ? ' bad' : ''); clearTimeout(toast.t); toast.t = setTimeout(() => el.className = bad ? 'bad' : '', bad ? 6000 : 3000); }
+function setPill(id, state, text){ const p = $(id); p.className = 'pill' + (state ? ' ' + state : ''); p.querySelector('span').textContent = text; }
+const IC = {
+  up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 15l6-6 6 6"/></svg>',
+  grip:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>',
+  down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>'
+};
+
+/* ================= Firestore: sponsors (same data as index.html#sponsors) ================= */
+const SP_TYPES = ['major', 'minor', 'special'];
+const SP_DEFAULTS = { eventName:'', eyebrow:'With heartfelt thanks', introText:'This event would not be possible without the generous support of our sponsors.',
+  outroTitle:'Maraming Salamat!', outroText:'Thank you to everyone who helped make this event happen.', majorSeconds:6, minorSeconds:6, specialSeconds:7,
+  minorPerPage:8, specialEyebrow:'With special thanks to', specialTitle:'Special', specialHighlight:'Thanks' };
+const SP_SET_KEYS = Object.keys(SP_DEFAULTS);
+const SP_LABEL = { major:'Major sponsors', minor:'Minor sponsors', special:'Special thanks' };
+
+let fs = null;
+try {
+  const fapp = firebase.initializeApp(window.FIREBASE_CONFIG, 'ccpc');
+  fs = fapp.firestore();
+  try { fs.settings({ experimentalAutoDetectLongPolling: true, merge: true }); } catch (e) {}
+} catch (e) { setPill('dbPill', 'bad', 'Cannot start Firestore: ' + e.message); }
+
+const spShowRef = fs && fs.collection('sponsorShows').doc('main');
+const spRef = spShowRef && spShowRef.collection('sponsors');
+let spData = { settings: { ...SP_DEFAULTS }, sponsors: [] }, spRaw = { settings:null, sponsors:null };
+let editingId = null, logo = null, settingsLoaded = false;
+
+function emit(){
+  if (spRaw.settings === null || spRaw.sponsors === null) return;
+  const list = spRaw.sponsors.filter(x => x && x.name)
+    .map(x => ({ type:'minor', logo:null, order:0, ...x }))
+    .map(x => SP_TYPES.includes(x.type) ? x : { ...x, type:'minor' })
+    .sort((a, b) => SP_TYPES.indexOf(a.type) - SP_TYPES.indexOf(b.type) || (a.order - b.order) || ((a.createdAt || 0) - (b.createdAt || 0)));
+  spData = { settings: { ...SP_DEFAULTS, ...spRaw.settings }, sponsors: list };
+  if (!settingsLoaded) { SP_SET_KEYS.forEach(k => setField(k, spData.settings[k])); settingsLoaded = true; sxPreview(); }
+  if (editingId && !list.some(s => s.id === editingId)) resetForm();
+  setPill('dbPill', 'on', list.length + ' sponsor' + (list.length === 1 ? '' : 's') + ' · synced');
+  render(); updateShowBtn();
+}
+const syncErr = err => { setPill('dbPill', 'bad', 'Sponsors sync error'); toast('Sponsors sync error: ' + (err.code || err.message) + '. Check Firestore rules / internet.', true); };
+if (spRef) {
+  spShowRef.onSnapshot(d => { spRaw.settings = d.exists ? d.data() : {}; emit(); }, syncErr);
+  spRef.onSnapshot(snap => { spRaw.sponsors = snap.docs.map(d => ({ id:d.id, ...d.data() })); emit(); }, syncErr);
+}
+
+/* ---- logo: resize + compress, keeps transparency (same as index.html) ---- */
+function processLogo(file){
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) return reject(new Error('Image files lang ang puwede.'));
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Hindi mabasa ang file.'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Hindi mabuksan ang image na ito.'));
+      img.onload = () => {
+        // Up to 1600px so logos stay sharp on the big Major card; steps down if the file gets too big for Firestore.
+        const W0 = img.naturalWidth || 800, H0 = img.naturalHeight || 400;
+        for (const MAX of [1600, 1200, 800]) {
+          const sc = Math.min(1, MAX / Math.max(W0, H0));
+          const w = Math.max(1, Math.round(W0 * sc)), h = Math.max(1, Math.round(H0 * sc));
+          const c = document.createElement('canvas'); c.width = w; c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          let q = 0.9, out = c.toDataURL('image/webp', q);
+          const webp = out.startsWith('data:image/webp');
+          if (!webp) out = c.toDataURL('image/png');
+          while (webp && out.length > 600000 && q > 0.4) { q -= 0.15; out = c.toDataURL('image/webp', q); }
+          if (out.length <= 900000) return resolve({ url: out, w, h, kb: Math.round(out.length * 0.75 / 1024) });
+        }
+        reject(new Error('Masyadong malaki ang logo kahit na-compress na. Subukan ang mas maliit na file.'));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function showPreview(url, meta){
+  logo = url || null;
+  $('previewImg').src = url || '';
+  $('previewMeta').textContent = meta || '';
+  $('preview').classList.toggle('show', !!url);
+  $('drop').style.display = url ? 'none' : '';
+}
+async function handleFile(f){
+  if (!f) return;
+  try { const r = await processLogo(f); showPreview(r.url, `${r.w}×${r.h} · ${r.kb} KB`); }
+  catch (e) { toast(e.message, true); }
+}
+const drop = $('drop');
+drop.addEventListener('click', () => $('file').click());
+drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('file').click(); } });
+$('file').addEventListener('change', e => { handleFile(e.target.files[0]); e.target.value = ''; });
+['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => handleFile(e.dataTransfer.files[0]));
+$('removeLogo').addEventListener('click', () => showPreview(null));
+
+/* ---- add / edit form ---- */
+const nameIn = $('spName');
+nameIn.addEventListener('input', () => { $('errName').textContent = ''; nameIn.classList.remove('err'); });
+nameIn.addEventListener('keydown', e => { if (e.key === 'Enter') $('saveBtn').click(); });
+const getType = () => document.querySelector('input[name=spType]:checked').value;
+const setType = t => { document.querySelector(`input[name=spType][value=${t}]`).checked = true; };
+function resetForm(){
+  editingId = null; nameIn.value = ''; showPreview(null);
+  $('errName').textContent = ''; nameIn.classList.remove('err');
+  $('formTitle').textContent = 'Add sponsor';
+  $('formSub').textContent = 'Lalabas sa MPO LIVE Sponsors screen.';
+  $('saveBtn').textContent = 'Add sponsor';
+  $('cancelBtn').style.display = 'none';
+  render();
+}
+function startEdit(sp){
+  editingId = sp.id; nameIn.value = sp.name; setType(sp.type);
+  showPreview(sp.logo || null, sp.logo ? 'Current logo' : '');
+  $('formTitle').textContent = 'Edit sponsor';
+  $('formSub').textContent = 'Editing: ' + sp.name;
+  $('saveBtn').textContent = 'Save changes';
+  $('cancelBtn').style.display = '';
+  render(); nameIn.focus();
+  if (innerWidth < 900) nameIn.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+$('cancelBtn').addEventListener('click', resetForm);
+$('saveBtn').addEventListener('click', async () => {
+  if (!spRef) return toast('Walang connection sa Firestore.', true);
+  const name = nameIn.value.trim();
+  if (!name) { $('errName').textContent = "Enter the sponsor's name."; nameIn.classList.add('err'); nameIn.focus(); return; }
+  const btn = $('saveBtn'), label = btn.textContent, type = getType();
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    if (editingId) {
+      const cur = spData.sponsors.find(x => x.id === editingId);
+      const patch = { name, type, logo: logo || null };
+      if (cur && cur.type !== type) patch.order = Date.now();
+      await spRef.doc(editingId).update(patch);
+      toast('Saved ' + name);
+    } else {
+      await spRef.add({ name, type, logo: logo || null, order: Date.now(), createdAt: Date.now() });
+      toast('Added ' + name);
+    }
+    resetForm(); setType(type); nameIn.focus();
+  } catch (err) { toast('Hindi na-save: ' + (err.code || err.message), true); btn.textContent = label; }
+  finally { btn.disabled = false; }
+});
+
+/* ---- list ---- */
+function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+async function swap(a, b){
+  try { await Promise.all([ spRef.doc(a.id).update({ order: b.order }), spRef.doc(b.id).update({ order: a.order === b.order ? a.order + 1 : a.order }) ]); }
+  catch (e) { toast('Could not reorder: ' + (e.code || e.message), true); }
+}
+async function del(sp){
+  if (!confirm(`Delete ${sp.name}? Mawawala ito sa sponsor showcase at hindi na maibabalik.`)) return;
+  try { await spRef.doc(sp.id).delete(); toast('Deleted ' + sp.name); if (editingId === sp.id) resetForm(); }
+  catch (err) { toast('Hindi na-delete: ' + (err.code || err.message), true); }
+}
+let drag = null, renderPending = false;
+function render(){
+  if (drag) { renderPending = true; return; }
+  const list = $('list'); list.innerHTML = '';
+  SP_TYPES.forEach(t => {
+    const items = spData.sponsors.filter(s => s.type === t);
+    const wrap = el('div', 'tier');
+    const h = el('div', 'tier-h'); h.append(el('h4', null, SP_LABEL[t]), el('span', 'count', items.length)); wrap.append(h);
+    const dl = el('div', 'dlist'); dl.dataset.type = t; wrap.append(dl);
+    if (!items.length) dl.append(el('div', 'empty', t === 'special' ? 'Wala pang nasa Special Thanks.' : `Wala pang ${t === 'major' ? 'Major' : 'Minor'} sponsor. Idagdag gamit ang form.`));
+    items.forEach((sp, i) => {
+      const row = el('div', 'row' + (sp.id === editingId ? ' editing' : '')); row.dataset.id = sp.id;
+      const grip = el('div', 'grip'); grip.innerHTML = IC.grip; grip.title = 'Drag to move'; grip.setAttribute('aria-hidden', 'true');
+      row.addEventListener('pointerdown', e => armDrag(e, row, sp));
+      const th = el('div', 'thumb');
+      if (sp.logo) { const im = el('img'); im.src = sp.logo; im.alt = ''; th.append(im); }
+      else th.append(el('span', null, sp.name.trim().slice(0, 2).toUpperCase()));
+      const tools = el('div', 'tools');
+      const mk = (cls, html, title, fn) => { const b = el('button', cls); b.type = 'button'; b.innerHTML = html; if (title) { b.title = title; b.setAttribute('aria-label', title); } b.addEventListener('click', fn); return b; };
+      const up = mk('ic', IC.up, 'Move ' + sp.name + ' up', () => swap(sp, items[i - 1]));
+      const dn = mk('ic', IC.down, 'Move ' + sp.name + ' down', () => swap(sp, items[i + 1]));
+      up.disabled = i === 0; dn.disabled = i === items.length - 1;
+      tools.append(up, dn, mk('g sm', 'Edit', '', () => startEdit(sp)), mk('d sm', 'Delete', '', () => del(sp)));
+      row.append(grip, th, el('div', 'nm', sp.name), tools);
+      dl.append(row);
+    });
+    list.append(wrap);
+  });
+}
+
+
+/* ---- drag and drop: reorder within a category, or drop into another category ---- */
+/* Mouse: press anywhere on the row (not on its buttons) and move a few pixels.
+   Touch: use the ⋮⋮ handle, so the page can still scroll with a finger. */
+function armDrag(e, row, sp){
+  if (drag || e.button !== 0 || !spRef || e.target.closest('button')) return;
+  const onGrip = !!e.target.closest('.grip');
+  if (e.pointerType !== 'mouse' && !onGrip) return;
+  if (onGrip) { e.preventDefault(); startDrag(e, row, sp); return; }
+  const x0 = e.clientX, y0 = e.clientY;
+  const move = ev => { if (Math.abs(ev.clientX - x0) + Math.abs(ev.clientY - y0) > 5) { stop(); startDrag(e, row, sp); onDragMove(ev); } };
+  const stop = () => { removeEventListener('pointermove', move); removeEventListener('pointerup', stop); };
+  addEventListener('pointermove', move); addEventListener('pointerup', stop);
+}
+function startDrag(e, row, sp){
+  const r = row.getBoundingClientRect();
+  const ph = el('div', 'ph'); ph.style.height = r.height + 'px';
+  row.after(ph);
+  row.classList.add('dragging');
+  Object.assign(row.style, { position:'fixed', left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', zIndex: 60, pointerEvents: 'none' });
+  document.body.classList.add('dragging');
+  drag = { sp, row, ph, dx: e.clientX - r.left, dy: e.clientY - r.top, x: e.clientX, y: e.clientY, over: null };
+  addEventListener('pointermove', onDragMove);
+  addEventListener('pointerup', onDragEnd);
+  addEventListener('pointercancel', onDragCancel);
+  addEventListener('keydown', onDragKey);
+  drag.scroll = setInterval(autoScroll, 16);
+  placePh(e.clientX, e.clientY);
+}
+function placePh(x, y){
+  const target = document.elementFromPoint(x, y);
+  const dl = target && target.closest('.dlist');
+  if (drag.over && drag.over !== dl) drag.over.classList.remove('over');
+  if (!dl) return;
+  drag.over = dl; dl.classList.add('over');
+  const rows = [...dl.querySelectorAll('.row:not(.dragging)')];
+  const before = rows.find(r => { const b = r.getBoundingClientRect(); return y < b.top + b.height / 2; });
+  if (before) { if (drag.ph.nextSibling !== before) dl.insertBefore(drag.ph, before); }
+  else if (dl.lastElementChild !== drag.ph) dl.append(drag.ph);
+}
+function onDragMove(e){
+  drag.x = e.clientX; drag.y = e.clientY;
+  drag.row.style.left = (e.clientX - drag.dx) + 'px';
+  drag.row.style.top = (e.clientY - drag.dy) + 'px';
+  placePh(e.clientX, e.clientY);
+}
+function autoScroll(){
+  if (!drag) return;
+  const edge = 70, y = drag.y;
+  if (y < edge) scrollBy(0, -Math.ceil((edge - y) / 5));
+  else if (y > innerHeight - edge) scrollBy(0, Math.ceil((y - (innerHeight - edge)) / 5));
+  else return;
+  placePh(drag.x, drag.y);
+}
+function endDrag(){
+  removeEventListener('pointermove', onDragMove);
+  removeEventListener('pointerup', onDragEnd);
+  removeEventListener('pointercancel', onDragCancel);
+  removeEventListener('keydown', onDragKey);
+  clearInterval(drag.scroll);
+  if (drag.over) drag.over.classList.remove('over');
+  document.body.classList.remove('dragging');
+  const d = drag; drag = null; renderPending = false;
+  return d;
+}
+function onDragCancel(){ endDrag(); render(); }
+function onDragKey(e){ if (e.key === 'Escape') { e.preventDefault(); onDragCancel(); } }
+async function onDragEnd(){
+  const d = endDrag(), dl = d.ph.parentElement;
+  const type = dl && dl.dataset.type;
+  if (!type) { render(); return; }
+  const ids = [...dl.children].filter(c => c === d.ph || (c.classList.contains('row') && c !== d.row)).map(c => c === d.ph ? d.sp.id : c.dataset.id);
+  const before = spData.sponsors.filter(s => s.type === type).map(s => s.id);
+  const moved = d.sp.type !== type;
+  // show the new order right away, then save
+  spData.sponsors.forEach(s => { const i = ids.indexOf(s.id); if (i > -1) { s.type = type; s.order = i; } });
+  spData.sponsors.sort((a, b) => SP_TYPES.indexOf(a.type) - SP_TYPES.indexOf(b.type) || (a.order - b.order));
+  render();
+  if (!moved && ids.join() === before.join()) return;
+  try {
+    const batch = fs.batch();
+    ids.forEach((id, i) => { const patch = { order: i }; if (id === d.sp.id && moved) patch.type = type; batch.update(spRef.doc(id), patch); });
+    await batch.commit();
+    toast(moved ? `${d.sp.name} moved to ${SP_LABEL[type]}` : 'Order saved');
+  } catch (err) { toast('Hindi na-save ang order: ' + (err.code || err.message), true); emit(); }
+}
+
+/* ---- display text ---- */
+const getPerPage = () => { const r = document.querySelector('input[name=minorPer]:checked'); return r && r.value === '4' ? 4 : 8; };
+function setField(k, v){
+  if (k === 'minorPerPage') { const n = Number(v) === 4 ? '4' : '8'; document.querySelector(`input[name=minorPer][value="${n}"]`).checked = true; return; }
+  $('s_' + k).value = v ?? '';
+}
+$('settingsSave').addEventListener('click', async () => {
+  if (!spShowRef) return toast('Walang connection sa Firestore.', true);
+  const patch = {};
+  SP_SET_KEYS.forEach(k => {
+    if (k === 'minorPerPage') { patch[k] = getPerPage(); return; }
+    const v = $('s_' + k).value;
+    patch[k] = k.endsWith('Seconds') ? Math.min(30, Math.max(2, parseFloat(v) || SP_DEFAULTS[k])) : v.trim();
+  });
+  const btn = $('settingsSave'); btn.disabled = true;
+  try { await spShowRef.set(patch, { merge:true }); SP_SET_KEYS.forEach(k => setField(k, patch[k])); sxPreview(); toast('Display text saved'); }
+  catch (err) { toast('Hindi na-save: ' + (err.code || err.message), true); }
+  finally { btn.disabled = false; }
+});
+function sxPreview(){
+  $('sxE').textContent = $('s_specialEyebrow').value.trim() || SP_DEFAULTS.specialEyebrow;
+  const a = $('s_specialTitle').value.trim(), b = $('s_specialHighlight').value.trim();
+  $('sxA').textContent = a || b ? a : SP_DEFAULTS.specialTitle;
+  $('sxB').textContent = a || b ? b : SP_DEFAULTS.specialHighlight;
+}
+['s_specialEyebrow','s_specialTitle','s_specialHighlight'].forEach(id => $(id).addEventListener('input', sxPreview));
+render(); sxPreview();
+
+/* ================= RTDB: MPO LIVE screen switch (mpolive/state) ================= */
+const HAS_RTDB = typeof db !== 'undefined';
+const VIEW_LABEL = { countdown:'Countdown', sponsors:'Sponsors', draw:'Pool draw', schedule:'Schedule', format:'Game format', outro:'Outro' };
+let screenView = null, prevView = 'countdown';
+function updateShowBtn(){
+  const b = $('showBtn'), on = screenView === 'sponsors';
+  b.textContent = on ? '🎉 Hide Sponsors' : '🎉 Show Sponsors';
+  b.classList.toggle('on', on);
+  b.title = on ? 'Switch the MPO LIVE screen back to ' + (VIEW_LABEL[prevView] || 'Countdown') : 'Switch the MPO LIVE screen to the Sponsors view';
+  b.disabled = !HAS_RTDB;
+}
+if (HAS_RTDB) {
+  db.ref('mpolive/state/view').on('value', s => {
+    const v = s.val() || 'countdown';
+    if (v !== 'sponsors') prevView = v;
+    screenView = v;
+    setPill('scrPill', v === 'sponsors' ? 'on' : '', 'MPO LIVE screen: ' + (VIEW_LABEL[v] || v));
+    updateShowBtn();
+  }, e => setPill('scrPill', 'bad', 'MPO LIVE: ' + e.message));
+} else setPill('scrPill', 'bad', 'MPO LIVE: cannot start Firebase');
+$('showBtn').addEventListener('click', async () => {
+  const on = screenView === 'sponsors';
+  if (!on && !spData.sponsors.length) { toast('Add a sponsor first.', true); return; }
+  const next = on ? (prevView || 'countdown') : 'sponsors', btn = $('showBtn');
+  btn.disabled = true;
+  try {
+    await db.ref('mpolive/state').set({ view: next, at: firebase.database.ServerValue.TIMESTAMP, by: 'sponsors' });
+    toast(on ? 'MPO LIVE screen is back on ' + (VIEW_LABEL[next] || next) + '.' : 'Sponsors are now on the MPO LIVE screen.');
+  } catch (e) { toast('Could not switch: ' + e.message, true); }
+  finally { btn.disabled = false; updateShowBtn(); }
+});
+updateShowBtn();
+</script>
+</body>
+</html>

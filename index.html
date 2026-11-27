@@ -654,6 +654,12 @@
           <div class="helper" style="margin:10px 0 0;">In OBS: Sources → + → Browser → paste the link → Width 1920, Height 1080.</div>
         </div>
         <div class="bucket-card sp-card">
+          <h3>One-liner · <span id="obsLineCourt"></span></h3>
+          <div class="helper sp-sub">A short line under the scores, e.g. "Team 1 leads the set (2-0)". Stays until you change it or turn it off.</div>
+          <div class="field"><label>Show</label><div class="obs-chips" id="obsLineOn"><button type="button" data-v="0">Off</button><button type="button" data-v="1">On</button></div></div>
+          <div class="field" style="margin-bottom:0;"><label for="obsLineText">Text</label><input type="text" id="obsLineText" maxlength="60" autocomplete="off" placeholder="Team 1 leads the set (2-0)"><div class="helper" style="margin:6px 0 0;">Saves when you press Enter or click away. <span id="obsLineCount"></span></div></div>
+        </div>
+        <div class="bucket-card sp-card">
           <h3>Look</h3>
           <div class="helper sp-sub">Same look for every court. Event title and logo come from 📺 TV display.</div>
           <div class="field"><label>Background</label><div class="obs-chips" id="obsBg"><button type="button" data-v="transparent">Transparent</button><button type="button" data-v="green">Green screen</button></div></div>
@@ -3606,6 +3612,11 @@ function renderObs(){
   document.querySelectorAll('#obsBg button').forEach(b => b.classList.toggle('on', b.dataset.v === c.bg));
   document.querySelectorAll('#obsPos button').forEach(b => b.classList.toggle('on', b.dataset.v === c.pos));
   ['A','B'].forEach(k => { const el = document.getElementById('obsColor' + k); if (document.activeElement !== el) el.value = c['color' + k]; });
+  const ln = obsLine(obsCourt), lt = document.getElementById('obsLineText');
+  document.getElementById('obsLineCourt').textContent = 'Court ' + obsCourt;
+  document.querySelectorAll('#obsLineOn button').forEach(b => b.classList.toggle('on', b.dataset.v === (ln.on ? '1' : '0')));
+  if (document.activeElement !== lt || lt.dataset.court !== String(obsCourt)) { lt.value = ln.text; lt.dataset.court = String(obsCourt); }
+  obsLineCount();
   const f = document.getElementById('obsFrame'), want = obsUrl(obsCourt, true);
   if (document.getElementById('panel-obs').classList.contains('active') && f.dataset.src !== want) { f.src = want; f.dataset.src = want; }
 }
@@ -3613,6 +3624,29 @@ async function obsSave(patch){ try { await displayRef.set({ obs: Object.assign(o
 document.querySelectorAll('#obsBg button').forEach(b => b.addEventListener('click', () => obsSave({ bg: b.dataset.v })));
 document.querySelectorAll('#obsPos button').forEach(b => b.addEventListener('click', () => obsSave({ pos: b.dataset.v })));
 ['A','B'].forEach(k => document.getElementById('obsColor' + k).addEventListener('change', e => obsSave({ ['color' + k]: e.target.value })));
+/* one-liner per court: displaySettings.obs.lines[court] = { on, text } */
+function obsLine(court){ const l = (obsCfg().lines || {})[String(court)] || {}; return { on: !!l.on, text: String(l.text || '') }; }
+function obsLineSave(court, patch){
+  const cur = obsLine(court), next = Object.assign({}, cur, patch);
+  next.on = !!next.on; next.text = String(next.text || '').trim().slice(0, 60);
+  if (next.on === cur.on && next.text === cur.text) return;   // nothing changed
+  obsSave({ lines: Object.assign({}, obsCfg().lines || {}, { [String(court)]: next }) });
+}
+function obsLineCount(){ const n = document.getElementById('obsLineText').value.length; document.getElementById('obsLineCount').textContent = n ? `${n}/60` : ''; }
+function obsLinePreview(){
+  const f = document.getElementById('obsFrame'), lt = document.getElementById('obsLineText');
+  try { f.contentWindow.postMessage({ type:'pm-obs-line', court: obsCourt, on: obsLine(obsCourt).on, text: lt.value }, location.origin); } catch (e) {}
+}
+document.querySelectorAll('#obsLineOn button').forEach(b => b.addEventListener('click', () => {
+  const lt = document.getElementById('obsLineText');
+  obsLineSave(obsCourt, { on: b.dataset.v === '1', text: lt.dataset.court === String(obsCourt) ? lt.value : obsLine(obsCourt).text });
+}));
+(() => {
+  const lt = document.getElementById('obsLineText');
+  lt.addEventListener('input', () => { obsLineCount(); obsLinePreview(); });
+  lt.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); lt.blur(); } });
+  lt.addEventListener('blur', () => { const c = Number(lt.dataset.court) || obsCourt; obsLineSave(c, { text: lt.value }); });
+})();
 document.getElementById('btnObsCopy').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(document.getElementById('obsLink').textContent); showToast(`Court ${obsCourt} overlay link copied.`); }
   catch (e) { showToast('Copy the link by selecting it.', true); }

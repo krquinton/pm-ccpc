@@ -1,0 +1,369 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pool Draw</title>
+<!-- draw.html: TV screen for the pool draw. Fixed 1920x1080 stage, scaled to fit any screen.
+     F or double-click = fullscreen. Controlled from admin.html through Firebase (mpo/cmd). -->
+<!-- MPO LIVE copy: data under mpolive/rnd/, result also saved to mpolive/buckets/{config.bucket}/result, keys 1-6 forwarded to mpolive.html. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#F3F1E8;--dim:#A9C3B6;--forest:#0F3B2E;--card:#F6F4EC;--ball:#D7F03C;--clay:#E27A5C;--ink:#0B1D17}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:#000;overflow:hidden}
+body.idle{cursor:none}
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform-origin:50% 50%;overflow:hidden;
+  background:linear-gradient(180deg,#06120E 0%,#0B1D17 48%,#15342A 66%,#0B1D17 100%);font-family:Archivo,system-ui,sans-serif;color:var(--cream)}
+.layer{position:absolute;inset:0;pointer-events:none}
+#glow{background:radial-gradient(ellipse 760px 380px at 50% 58%,rgba(227,164,95,.22),rgba(227,164,95,0) 72%)}
+#land{position:absolute;left:0;top:660px;width:1920px;height:420px;display:block}
+#frame{position:absolute;inset:0;width:1920px;height:1080px;display:block}
+
+/* pools: absolutely placed, JS moves them between the draw layout and the final row */
+#pools{position:absolute;inset:0;--nm:21px}
+.pool{position:absolute;display:flex;flex-direction:column;background:var(--card);color:var(--ink);border-radius:20px;overflow:hidden;box-shadow:0 24px 50px rgba(0,0,0,.45);transition:box-shadow .35s}
+.pool.on{box-shadow:0 0 0 4px var(--ball),0 0 60px rgba(215,240,60,.35)}
+.ph{height:64px;flex:none;background:var(--forest);color:var(--cream);display:flex;align-items:center;justify-content:space-between;padding:0 24px;transition:height .6s}
+.ph .k{display:flex;align-items:center;gap:12px;font-weight:800;font-size:26px;letter-spacing:.26em;text-transform:uppercase}
+.ph .k b{color:var(--ball);font-stretch:115%;font-size:34px;letter-spacing:0;font-weight:800}
+.ph .c{font-weight:700;font-size:20px;font-stretch:115%;letter-spacing:.08em;color:var(--dim)}
+.pb{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:14px 16px}
+.slot{flex:1;min-height:0;max-height:72px;display:flex;align-items:center;gap:14px;padding:0 14px;border-radius:12px;border:1.5px dashed #CFCAB9;background:transparent}
+.slot i,.fly i{font-style:normal;font-size:15px;font-weight:700;letter-spacing:.14em;color:#6F7E74;width:26px;flex:none}
+.slot span,.fly span{font-weight:700;font-size:var(--nm);line-height:1.08;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:anywhere}
+.slot.filled{background:#fff;border:1.5px solid #DAD6C8}
+.slot.next{border-color:var(--forest);background:#EEF7C4}
+.final .ph{height:84px}.final .ph .k{font-size:30px}.final .ph .k b{font-size:46px}.final .ph .c{font-size:22px}
+.final .pb{gap:10px;padding:18px}.final .slot{max-height:96px;gap:16px;padding:0 18px}.final .slot span{font-weight:800}
+
+/* center column */
+#center{position:absolute;left:532px;right:532px;top:56px;bottom:104px;display:flex;flex-direction:column;align-items:center;gap:22px;text-align:center}
+#head{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+#eb{font-weight:700;font-size:20px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim)}
+#eb b{color:var(--ball);font-weight:700}
+#title{font-weight:800;font-stretch:105%;font-size:46px;line-height:1.06;max-width:100%}
+#cat{font-family:Inter,sans-serif;font-weight:600;font-size:20px;padding:8px 24px;border:1.5px solid rgba(243,241,232,.3);border-radius:999px;color:rgba(243,241,232,.9)}
+#cat:empty{display:none}
+#mid{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;gap:20px}
+#now{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
+.nr{display:flex;align-items:center;gap:16px;font-weight:700;font-size:18px;letter-spacing:.3em;text-transform:uppercase;color:var(--ball)}
+.nr #cnt{font-stretch:115%;letter-spacing:.08em;color:var(--dim)}
+#who{height:150px;width:100%;display:flex;align-items:center;justify-content:center}
+#whoIn{font-weight:900;font-stretch:112%;font-size:74px;line-height:1;text-transform:uppercase;max-width:100%}
+#whoIn.idle{font-weight:800;color:rgba(243,241,232,.35);letter-spacing:.06em}
+#whoIn .w{display:inline-block;overflow:hidden;vertical-align:top;padding:0 .04em .08em}
+#whoIn .wi{display:inline-block}
+#whoIn .hl{color:var(--ball)}
+#whoIn .amp{color:var(--dim);font-weight:700}
+#dots{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:100%}
+#dots i{width:10px;height:10px;border-radius:50%;background:rgba(243,241,232,.18);transition:background .3s}
+#dots i.done{background:rgba(243,241,232,.55)}#dots i.cur{background:var(--ball);box-shadow:0 0 10px var(--ball)}
+
+/* slot machine */
+#machine{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:18px}
+.arrow{width:34px;height:54px;flex:none;display:block}
+#cab{height:100%;max-height:360px;display:flex;flex-direction:column;background:var(--forest);border-radius:28px;padding:14px;box-shadow:0 36px 70px rgba(0,0,0,.5),0 0 0 2px rgba(243,241,232,.18)}
+#cab .lb{font-weight:800;font-size:16px;letter-spacing:.34em;text-transform:uppercase;color:var(--dim);padding:2px 0 10px}
+#win{position:relative;flex:1;min-height:0;width:280px;border-radius:18px;background:var(--card);overflow:hidden;--cell:96px}
+#win::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:3;box-shadow:inset 0 24px 28px -14px rgba(0,0,0,.5),inset 0 -24px 28px -14px rgba(0,0,0,.5)}
+.strip{position:absolute;left:0;right:0;top:0;will-change:transform}
+.strip div{height:var(--cell);display:flex;align-items:center;justify-content:center;font-weight:900;font-stretch:112%;font-size:calc(var(--cell) * .8);line-height:1}
+#s1 div{color:rgba(11,29,23,.22)}
+#band{position:absolute;left:0;right:0;top:var(--cell);height:var(--cell);background:var(--ink);border-top:3px solid var(--ball);border-bottom:3px solid var(--ball);overflow:hidden;z-index:2;transition:background .25s}
+#s2{top:calc(-1 * var(--cell) - 3px)}
+#s2 div{color:var(--ball);transition:color .25s}
+#band.flash{background:var(--ball)}#band.flash #s2 div{color:var(--ink)}
+#lever{height:100%;max-height:360px;display:flex;flex-direction:column;align-items:center;padding-top:10px;width:56px}
+#knob{width:56px;height:56px;flex:none;position:relative;z-index:2;display:block}
+#rod{width:6px;height:170px;flex:none;background:var(--dim);border-radius:3px;transform-origin:50% 100%}
+#base{width:26px;height:40px;flex:none;background:var(--forest);border-radius:6px;box-shadow:0 0 0 2px rgba(243,241,232,.18)}
+
+/* technical readout (visual) */
+#tech{width:100%;border-radius:16px;background:rgba(6,18,14,.82);border:1.5px solid rgba(243,241,232,.14);padding:14px 20px;font-family:'JetBrains Mono',monospace;text-align:left;display:flex;flex-direction:column;gap:10px}
+.tr{display:flex;justify-content:space-between;align-items:center;font-size:12px;letter-spacing:.2em;color:var(--dim)}
+.led{display:flex;align-items:center;gap:8px}
+.led i{width:8px;height:8px;border-radius:50%;background:#6F7E74}
+#tech.live .led i{background:var(--ball);box-shadow:0 0 10px var(--ball);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.35}}
+.tg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.tg div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.tg span{font-size:11px;letter-spacing:.18em;color:#6F8F80}
+.tg b{font-size:15px;font-weight:600;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hex{font-size:12px;color:#4F7A66;white-space:nowrap;overflow:hidden}
+
+/* footer, fx, controls */
+#footer{position:absolute;left:64px;right:64px;bottom:44px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-weight:700;font-size:20px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+#footer .ev{display:flex;align-items:center;gap:14px}
+#footer .ev img{height:34px;width:auto;display:block}
+#footer .geo{font-size:16px;font-weight:600;letter-spacing:.24em;color:rgba(169,195,182,.7)}
+#st{text-align:right;font-size:17px;letter-spacing:.12em}
+#st.bad{color:var(--clay)}
+#fx{position:absolute;inset:0;pointer-events:none;z-index:20}
+.ring{position:absolute;left:0;top:0;width:130px;height:130px;border-radius:50%;border:2px solid var(--ball)}
+.fly{position:absolute;left:0;top:0;display:flex;align-items:center;gap:14px;padding:0 14px;border-radius:12px;background:#fff;color:var(--ink);border:1.5px solid #DAD6C8;box-shadow:0 24px 50px rgba(0,0,0,.55)}
+#mute{position:absolute;top:44px;right:96px;z-index:30;font:700 14px Archivo,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);background:rgba(6,18,14,.6);border:1.5px solid rgba(243,241,232,.3);border-radius:999px;padding:8px 16px;cursor:pointer;transition:opacity .4s}
+body.idle #mute{opacity:0}
+#mute:focus-visible{outline:2px solid var(--ball);outline-offset:2px;opacity:1}
+</style></head><body>
+<div id="stage">
+  <div class="layer" id="glow"></div>
+  <svg id="land" viewBox="0 0 1920 420" aria-hidden="true">
+    <path fill="#132E25" d="M0 190 C120 160 220 120 330 126 C430 132 500 90 590 70 C660 56 720 84 780 96 C860 110 900 70 960 60 C1040 50 1120 96 1200 92 C1300 88 1360 40 1440 36 C1520 32 1600 90 1700 110 C1800 130 1870 150 1920 156 L1920 420 L0 420 Z"/>
+    <path fill="#1A4436" d="M0 250 C150 230 260 170 400 176 C500 180 570 130 680 112 C770 98 840 60 900 40 L960 20 L1020 44 C1100 74 1170 100 1270 108 C1400 118 1480 170 1600 182 C1720 194 1830 222 1920 216 L1920 420 L0 420 Z"/>
+    <path id="rLine" pathLength="1" stroke-dasharray="1" fill="none" stroke="#F3F1E8" stroke-opacity=".35" stroke-width="2" d="M0 250 C150 230 260 170 400 176 C500 180 570 130 680 112 C770 98 840 60 900 40 L960 20 L1020 44 C1100 74 1170 100 1270 108 C1400 118 1480 170 1600 182 C1720 194 1830 222 1920 216"/>
+    <path fill="#123326" d="M0 300 C160 282 270 254 410 262 C530 268 610 222 730 210 C830 200 900 240 1000 234 C1120 226 1200 178 1330 176 C1460 174 1560 232 1700 240 C1800 246 1880 264 1920 268 L1920 420 L0 420 Z"/>
+    <path fill="#0D251C" d="M0 352 C200 340 360 334 520 344 C700 354 820 322 980 318 C1160 314 1280 346 1460 344 C1640 342 1780 332 1920 338 L1920 420 L0 420 Z"/>
+  </svg>
+  <svg id="frame" viewBox="0 0 1920 1080" aria-hidden="true"><g fill="none" stroke="#F3F1E8" stroke-opacity=".28" stroke-width="2"><polyline points="32,76 32,32 76,32"/><polyline points="1844,32 1888,32 1888,76"/><polyline points="32,1004 32,1048 76,1048"/><polyline points="1844,1048 1888,1048 1888,1004"/></g></svg>
+
+  <div id="pools"></div>
+
+  <div id="center">
+    <div id="head">
+      <div id="eb">Official Pool Draw</div>
+      <h1 id="title">Pool Draw</h1>
+      <div id="cat"></div>
+      <svg viewBox="0 0 160 14" width="160" height="14" aria-hidden="true"><g fill="#D7F03C"><rect x="77" y="5" width="4" height="4"/><rect x="77" y="0" width="4" height="4"/><rect x="77" y="10" width="4" height="4"/><rect x="72" y="5" width="4" height="4"/><rect x="82" y="5" width="4" height="4"/></g><rect x="0" y="6" width="62" height="2" fill="#F3F1E8" fill-opacity=".35"/><rect x="98" y="6" width="62" height="2" fill="#F3F1E8" fill-opacity=".35"/></svg>
+    </div>
+    <div id="mid">
+      <div id="now">
+        <div class="nr"><span id="nl">Now drawing</span><span id="cnt"></span></div>
+        <div id="who"><div id="whoIn" class="idle">Ready to draw</div></div>
+        <div id="dots"></div>
+      </div>
+      <div id="machine">
+        <svg class="arrow" viewBox="0 0 34 54" aria-hidden="true"><path d="M2 2 L32 27 L2 52 Z" fill="#E27A5C"/></svg>
+        <div id="cab"><div class="lb">Pool</div>
+          <div id="win"><div class="strip" id="s1"></div><div id="band"><div class="strip" id="s2"></div></div></div>
+        </div>
+        <svg class="arrow" viewBox="0 0 34 54" aria-hidden="true"><path d="M32 2 L2 27 L32 52 Z" fill="#E27A5C"/></svg>
+        <div id="lever">
+          <svg id="knob" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#D7F03C"/><g fill="#000" opacity=".2"><circle cx="50" cy="20" r="6"/><circle cx="23" cy="40" r="6"/><circle cx="77" cy="40" r="6"/><circle cx="32" cy="72" r="6"/><circle cx="68" cy="72" r="6"/><circle cx="50" cy="50" r="5"/></g></svg>
+          <div id="rod"></div><div id="base"></div>
+        </div>
+      </div>
+      <div id="tech">
+        <div class="tr"><span class="led"><i></i><span id="tstate">RNG ENGINE · STANDBY</span></span><span id="clock"></span></div>
+        <div class="tg">
+          <div><span>SEED</span><b id="tSeed">—</b></div>
+          <div><span>SHUFFLE</span><b id="tShuf">Fisher–Yates</b></div>
+          <div><span>PICK</span><b id="tPick">—</b></div>
+          <div><span>DRAW HASH</span><b id="tHash">—</b></div>
+        </div>
+        <div id="hex"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="footer"><span class="ev"><img src="../../mpo-mark.png" alt="" onerror="this.remove()"><span>Pool Draw</span></span><span class="geo">13°N · 121°E</span><span id="st" role="status">Loading</span></div>
+  <div id="fx"></div>
+  <button id="mute" type="button">Sound on</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="../firebase-config.js"></script>
+<script>
+const $=s=>document.querySelector(s),stage=$('#stage'),fx=$('#fx'),s1=$('#s1'),s2=$('#s2');
+const u32=()=>crypto.getRandomValues(new Uint32Array(1))[0],rnd=n=>u32()%n,
+ hex=n=>Array.from(crypto.getRandomValues(new Uint8Array(n)),b=>b.toString(16).padStart(2,'0')).join(''),
+ sh=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a},
+ sleep=ms=>new Promise(r=>setTimeout(r,ms)),L=i=>String.fromCharCode(65+i),pad=n=>String(n).padStart(2,'0'),
+ esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),
+ play=a=>new Promise(r=>a.eventCallback('onComplete',()=>r()));
+const TRI='<svg viewBox="0 0 20 16" width="20" height="16" aria-hidden="true"><path d="M10 0 L20 16 L0 16 Z" fill="#D7F03C"/></svg>';
+let cfg={title:'Mindoro Pickleball Org Cup 2026',category:'',pools:4,speed:1,sound:true},teams=[],busy=false,stop=false,
+ pins=[],ac,mute=false,sp=1,N=4,mode='draw',scale=1,cur=0,cell=96,live=false,finalTop=238,CAP=1;
+
+const clean=x=>String(x||'').replace(/[\s*]+$/,'').trim(),mark=x=>((String(x||'').match(/\*[\s*]*$/)||[''])[0].match(/\*/g)||[]).length;
+const setTeams=v=>{const r=(Array.isArray(v)?v:Object.values(v||{})).map(String);teams=r.map(clean);pins=r.map(mark)};
+
+if(!window.gsap){$('#st').textContent='Animation library failed to load. Check the internet, then refresh.';$('#st').classList.add('bad')}
+
+/* ---------- screen fit, fullscreen, idle cursor ---------- */
+function fit(){scale=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform=`translate(-50%,-50%) scale(${scale})`}
+addEventListener('resize',fit);fit();
+const toggleFs=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen().catch(()=>{});else document.exitFullscreen()};
+addEventListener('keydown',e=>{if(parent!==window&&/^[1-6fF]$/.test(e.key)){try{parent.postMessage({type:'mpoliveKey',key:e.key},'*')}catch{}return}if((e.key==='f'||e.key==='F')&&!e.target.closest('button'))toggleFs()});
+window.unlockAudio=()=>unlock();
+if(parent===window)stage.addEventListener('dblclick',toggleFs);
+let idleT;const wake=()=>{document.body.classList.remove('idle');clearTimeout(idleT);idleT=setTimeout(()=>document.body.classList.add('idle'),2500)};
+addEventListener('mousemove',wake);wake();
+const box=el=>{const r=el.getBoundingClientRect(),s=stage.getBoundingClientRect();return{x:(r.left-s.left)/scale,y:(r.top-s.top)/scale,w:r.width/scale,h:r.height/scale}};
+
+/* ---------- sound ---------- */
+function tone(f,d=.06,v=.05,t='triangle'){if(!cfg.sound||mute||!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.type=t;o.frequency.value=f;g.gain.setValueAtTime(v,ac.currentTime);g.gain.exponentialRampToValueAtTime(1e-4,ac.currentTime+d);o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+d)}
+const unlock=()=>{try{ac=ac||new AudioContext();ac.resume()}catch{}};
+document.addEventListener('click',unlock);
+$('#mute').onclick=e=>{mute=!mute;e.currentTarget.textContent=mute?'Sound off':'Sound on'};
+
+/* ---------- text fitting ---------- */
+function fitBox(el,base,min,maxH){let f=base;el.style.fontSize=f+'px';while(el.scrollHeight>maxH+1&&f>min){f-=2;el.style.fontSize=f+'px'}return f}
+function setHead(final){
+ $('#eb').innerHTML=final?'Official Pool Draw · <b>Final</b>':'Official Pool Draw';
+ $('#title').textContent=cfg.title||'Pool Draw';$('#cat').textContent=cfg.category||'';
+ return fitBox($('#title'),final?56:46,30,final?124:104)}
+
+/* ---------- tech readout (visual only; the draw itself uses crypto.getRandomValues) ---------- */
+const hexRow=()=>Array.from({length:5},()=>hex(8).match(/..../g).join(' ')).join(' · ');
+$('#hex').textContent=hexRow();
+setInterval(()=>{const d=new Date();$('#clock').textContent=`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${String(d.getMilliseconds()).padStart(3,'0')} +08`;if(live)$('#hex').textContent=hexRow()},70);
+function setLive(on,text){live=on;$('#tech').classList.toggle('live',on);$('#tstate').textContent='RNG ENGINE · '+text}
+
+/* ---------- pools ---------- */
+function rects(m,n){const T=56,B=976;
+ if(m==='draw'){const W=420,X=[64,1920-64-W];if(n===2)return[[X[0],T,W,B-T],[X[1],T,W,B-T]];const h=(B-T-24)/2;
+  if(n===3)return[[X[0],T,W,h],[X[0],T+h+24,W,h],[X[1],T+(B-T-h)/2,W,h]];return[[X[0],T,W,h],[X[0],T+h+24,W,h],[X[1],T,W,h],[X[1],T+h+24,W,h]]}
+ const g=32,w=(1760-g*(n-1))/n,h=Math.min(B-finalTop,84+36+CAP*96+(CAP-1)*10);return Array.from({length:n},(_,i)=>[80+i*(w+g),finalTop,w,h])}
+const poolEls=()=>[...$('#pools').children];
+function place(m,anim){const rs=rects(m,N);poolEls().forEach((el,i)=>{if(!rs[i])return;const[x,y,w,h]=rs[i],v={left:x,top:y,width:w,height:h};
+ if(anim)gsap.to(el,{...v,duration:1.2,ease:'expo.inOut',delay:.15+i*.07});else gsap.set(el,v)})}
+/* cap: one number for every pool, or an array of per-pool sizes (custom sizes from setup) */
+function build(n,cap,fill){const cs=Array.isArray(cap)?cap:Array(n).fill(cap);N=n;CAP=Math.max(...cs);$('#pools').innerHTML=Array.from({length:n},(_,i)=>{const f=(fill&&fill[i])||[],c=cs[i];
+ return `<div class="pool"><div class="ph"><div class="k">${TRI}Pool <b>${L(i)}</b></div><div class="c"><span class="cn">${pad(f.length)}</span> / ${pad(c)}</div></div><div class="pb">${
+  Array.from({length:c},(_,k)=>`<div class="slot${f[k]?' filled':''}"><i>${pad(k+1)}</i><span>${f[k]?esc(f[k]):''}</span></div>`).join('')}</div></div>`}).join('');
+ place(mode,false)}
+
+/* ---------- layouts ---------- */
+function toDraw(){mode='draw';stage.classList.remove('final');const c=$('#center');gsap.set(c,{left:532,right:532});
+ $('#mid').style.display='';gsap.set('#mid',{autoAlpha:1,y:0});setHead(false);gsap.set('#pools',{'--nm':'21px'});place('draw',false)}
+function toFinal(anim){
+ const c=$('#center'),t=$('#title'),oldF=parseFloat(t.style.fontSize)||46;mode='final';
+ stage.classList.add('final');gsap.set(c,{left:80,right:80});$('#mid').style.display='none';
+ const nf=setHead(true);finalTop=56+$('#head').offsetHeight+32;
+ poolEls().forEach(el=>{el.querySelector('.c').textContent=el.querySelectorAll('.slot.filled').length+' teams'});
+ const nm=N===2?'40px':N===3?'32px':'25px';
+ if(!anim){gsap.set('#pools',{'--nm':nm});place('final',false);return}
+ $('#mid').style.display='';
+ gsap.to('#mid',{autoAlpha:0,y:50,duration:.5,ease:'power2.in',onComplete:()=>{$('#mid').style.display='none'}});
+ gsap.fromTo(c,{left:532,right:532},{left:80,right:80,duration:1.2,ease:'expo.inOut',delay:.15});
+ gsap.fromTo(t,{fontSize:oldF},{fontSize:nf,duration:1.2,ease:'expo.inOut',delay:.15});
+ gsap.from('#eb,#cat',{autoAlpha:0,y:-10,duration:.6,delay:.9});
+ gsap.to('#pools',{'--nm':nm,duration:1.2,ease:'expo.inOut',delay:.15});
+ place('final',true)}
+
+/* ---------- now drawing ---------- */
+function dots(n,done){$('#dots').innerHTML=Array.from({length:n},(_,i)=>`<i class="${i<done?'done':i===done?'cur':''}"></i>`).join('')}
+/* "Name1 & Name2": the part after the first & is in lime; & itself is dimmed; no & = all cream */
+function showWho(t){const w=$('#whoIn');w.className='';w.textContent='';const ws=t.split(/\s+/).filter(Boolean);let after=false;
+ ws.forEach(x=>{const o=document.createElement('span');o.className='w';const n=document.createElement('span');
+  if(!after&&x.includes('&')){const[a,...b]=x.split('&');n.className='wi';if(a)n.append(a);const amp=document.createElement('span');amp.className='amp';amp.textContent='&';n.append(amp);
+   const rest=b.join('&');if(rest){const h=document.createElement('span');h.className='hl';h.textContent=rest;n.append(h)}after=true}
+  else{n.className='wi'+(after?' hl':'');n.textContent=x}
+  o.append(n);w.append(o,' ')});
+ fitBox(w,74,34,150);const wi=w.querySelectorAll('.wi');
+ return gsap.fromTo(wi,{yPercent:115},{yPercent:0,duration:.8/sp,stagger:.06/sp,ease:'expo.out'})}
+function idleWho(text){const w=$('#whoIn');w.className='idle';w.textContent=text;fitBox(w,60,30,150)}
+
+/* ---------- slot machine ---------- */
+function reelSize(){const w=$('#win');cell=Math.max(40,Math.floor(w.clientHeight/3));w.style.setProperty('--cell',cell+'px')}
+function setStrip(ls){const h=ls.map(l=>`<div>${l}</div>`).join('');s1.innerHTML=h;s2.innerHTML=h;gsap.set([s1,s2],{y:0})}
+function reelRest(){reelSize();setStrip([L((cur-1+N)%N),L(cur%N),L((cur+1)%N)])}
+function lever(){return gsap.timeline()
+ .to('#knob',{y:120,duration:.28/sp,ease:'power2.in'},0).to('#rod',{scaleY:50/170,duration:.28/sp,ease:'power2.in'},0)
+ .to('#knob',{y:0,duration:.9,ease:'elastic.out(1,.45)'},.3/sp).to('#rod',{scaleY:1,duration:.9,ease:'elastic.out(1,.45)'},.3/sp)}
+function spin(p){cur%=N;const s0=(cur-1+N)%N,T=N*(5+rnd(3))+((p-cur)%N+N)%N;
+ setStrip(Array.from({length:T+3},(_,k)=>L((s0+k)%N)));$('#band').classList.remove('flash');
+ const end=-T*cell,st=.3/sp,D=3.2/sp;let last=0,lt=0;
+ const tl=gsap.timeline();tl.add(lever(),0);tone(180,.18,.08,'square');
+ tl.to([s1,s2],{y:end-cell*.2,duration:D,ease:'power4.out',onUpdate(){const i=Math.round(-gsap.getProperty(s1,'y')/cell),n=performance.now();if(i!==last&&n-lt>28){last=i;lt=n;tone(320+(i%5)*45,.03,.05)}}},st);
+ tl.fromTo('.strip',{filter:'blur(0px)'},{filter:'blur(6px)',duration:.25/sp},st).to('.strip',{filter:'blur(0px)',duration:D*.75,ease:'power2.in'},st+.3/sp);
+ tl.to([s1,s2],{y:end,duration:.7/sp,ease:'elastic.out(1,.5)'},st+D);
+ cur=p;return tl}
+function ring(x,y,size=1,color){[0,.14].forEach(o=>{const r=document.createElement('div');r.className='ring';if(color)r.style.borderColor=color;fx.append(r);
+ gsap.set(r,{x,y,xPercent:-50,yPercent:-50});gsap.fromTo(r,{scale:.2,autoAlpha:.8},{scale:3*size,autoAlpha:0,duration:1+o,delay:o,ease:'expo.out',onComplete:()=>r.remove()})})}
+function burst(el,n=45){if(!window.confetti)return;const r=el.getBoundingClientRect();
+ confetti({particleCount:n,spread:75,startVelocity:32,scalar:.9,ticks:120,origin:{x:(r.left+r.width/2)/innerWidth,y:(r.top+r.height/2)/innerHeight},colors:['#D7F03C','#F3F1E8','#E27A5C'],disableForReducedMotion:true})}
+function lockFx(p){$('#band').classList.add('flash');tone(523,.12,.07,'sine');setTimeout(()=>tone(784,.3,.08,'sine'),110);
+ const b=box($('#band'));ring(b.x+b.w/2,b.y+b.h/2,1.3);burst($('#band'));
+ gsap.fromTo('.arrow',{scale:1.45},{scale:1,duration:.6,ease:'back.out(3)'});
+ gsap.fromTo('#cab',{x:-7},{x:0,duration:.6,ease:'elastic.out(1,.3)'});
+ let v=u32();v=v-(v%N)+p;if(v>4294967295)v-=N;
+ $('#tPick').textContent=`0x${v.toString(16).toUpperCase().padStart(8,'0')} mod ${N} → ${L(p)}`}
+
+/* ---------- team flies into its slot ---------- */
+async function fly(t,p,k){const pool=poolEls()[p],slot=pool.querySelectorAll('.slot')[k];
+ pool.classList.add('on');slot.classList.add('next');tone(440,.08,.04);
+ const a=box($('#who')),b=box(slot),fs=getComputedStyle(slot.querySelector('span')).fontSize;
+ const f=document.createElement('div');f.className='fly';f.innerHTML=`<i>${pad(k+1)}</i><span style="font-size:${fs}">${esc(t)}</span>`;fx.append(f);
+ gsap.set(f,{width:b.w,height:b.h,x:a.x+a.w/2-b.w/2,y:a.y+a.h/2-b.h/2,autoAlpha:0,scale:.6});
+ gsap.to('#whoIn .wi',{yPercent:-115,duration:.4/sp,stagger:.03/sp,ease:'power3.in'});
+ const tl=gsap.timeline();
+ tl.to(f,{autoAlpha:1,scale:1.25,duration:.35/sp,ease:'back.out(2)'})
+   .to(f,{x:b.x,duration:.85/sp,ease:'power2.inOut'},'>')
+   .to(f,{y:b.y,duration:.85/sp,ease:'back.in(1.4)'},'<')
+   .to(f,{scale:1,duration:.85/sp,ease:'power2.in'},'<');
+ await play(tl);f.remove();
+ slot.classList.remove('next');slot.classList.add('filled');slot.querySelector('span').textContent=t;
+ const cn=pool.querySelector('.cn');if(cn)cn.textContent=pad(+cn.textContent+1);
+ gsap.fromTo(slot,{scale:.9,backgroundColor:'#D7F03C'},{scale:1,backgroundColor:'#ffffff',duration:.8,ease:'back.out(3)',clearProps:'transform,backgroundColor'});
+ ring(b.x+b.w/2,b.y+b.h/2,.7);tone(988,.25,.07,'sine');
+ setTimeout(()=>pool.classList.remove('on'),700)}
+
+function celebrate(){if(!window.confetti)return;const end=Date.now()+1800,col=['#D7F03C','#F3F1E8','#E27A5C','#A9C3B6'];
+ (function f(){confetti({particleCount:6,angle:60,spread:62,origin:{x:0,y:.8},colors:col,disableForReducedMotion:true});
+  confetti({particleCount:6,angle:120,spread:62,origin:{x:1,y:.8},colors:col,disableForReducedMotion:true});if(Date.now()<end)requestAnimationFrame(f)})()}
+
+/* ---------- draw flow ---------- */
+function plan(){const n=teams.length,base=Math.floor(n/N),ex=n%N,want=Array(N).fill(0);
+ pins.forEach(k=>{if(k>=1&&k<=N)want[k-1]++});
+ let caps=fixedSizes();
+ if(!caps){caps=Array(N).fill(base);sh([...Array(N).keys()]).sort((a,b)=>(want[b]>base)-(want[a]>base)).slice(0,ex).forEach(i=>caps[i]++)}
+ const ix=sh([...teams.keys()]),as=Array(n).fill(-1);
+ ix.forEach(i=>{const k=pins[i]-1;if(k>=0&&k<N&&caps[k]>0){as[i]=k;caps[k]--}});
+ ix.forEach(i=>{if(as[i]>=0)return;const o=caps.map((c,k)=>c>0?k:-1).filter(k=>k>=0),p=o[rnd(o.length)];caps[p]--;as[i]=p});
+ return sh(ix).map(i=>({t:teams[i],p:as[i]}))}
+const rep=(state,text)=>{const s=$('#st');s.textContent=text;s.classList.toggle('bad',state==='error');db.ref('mpolive/rnd/status').set({state,text,at:Date.now()}).catch(()=>{})};
+const applyCfg=v=>{cfg.sizes=null;Object.assign(cfg,v||{})};
+const load=async()=>{const[c,t]=await Promise.all(['config','teams'].map(k=>db.ref('mpolive/rnd/'+k).once('value')));applyCfg(c.val());setTeams(t.val());N=poolN(cfg.pools)};
+const poolN=v=>[2,3,4].includes(+v)?+v:4;
+/* custom per-pool sizes from setup (Pool A first). Used only when there is one per pool, each >=1, and they total the team count; else even split. */
+const fixedSizes=()=>{const s=cfg.sizes?Object.values(cfg.sizes).map(Number):null;
+ return s&&s.length===N&&s.every(v=>Number.isInteger(v)&&v>0)&&s.reduce((a,b)=>a+b,0)===teams.length?s:null};
+async function sha(s){try{const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return[...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}catch{return''}}
+
+function idle(msg){toDraw();const cap=Math.max(1,Math.ceil(teams.length/N));build(N,fixedSizes()||cap);cur=0;reelRest();
+ $('#nl').textContent='Next up';$('#cnt').textContent=teams.length?`${teams.length} teams · ${N} pools`:'';dots(teams.length,-1);
+ idleWho(teams.length?'Ready to draw':'No teams yet');setLive(false,'STANDBY');
+ ['#tSeed','#tPick','#tHash'].forEach(s=>$(s).textContent='—');$('#tShuf').textContent='Fisher–Yates';if(msg)$('#st').textContent=msg}
+
+async function run(){if(busy||!window.gsap)return;busy=true;stop=false;unlock();
+ try{await load()}catch(e){rep('error','Cannot read settings: '+e.message);busy=false;return}
+ if(teams.length<N*2){rep('error',`Need at least ${N*2} teams for ${N} pools. Found ${teams.length}`);busy=false;return}
+ sp=+cfg.speed||1;idle();
+ const pl=plan(),res=Array.from({length:N},()=>[]),seed='0x'+hex(8).toUpperCase();
+ $('#tSeed').textContent=seed;$('#tShuf').textContent=`Fisher–Yates · n=${pl.length}`;setLive(true,'CSPRNG · LIVE');$('#nl').textContent='Now drawing';
+ gsap.fromTo('#rLine',{strokeDashoffset:1},{strokeDashoffset:0,duration:1.6,ease:'power2.inOut'});
+ try{for(let i=0;i<pl.length;i++){const{t,p}=pl[i];rep('running',`Team ${i+1} of ${pl.length}`);
+   $('#cnt').textContent=`${pad(i+1)} / ${pad(pl.length)}`;dots(pl.length,i);
+   await play(showWho(t));await sleep(450/sp);
+   await play(spin(p));lockFx(p);await sleep(500/sp);
+   await fly(t,p,res[p].length);res[p].push(t);
+   if(stop)break;await sleep(350/sp)}
+  if(stop){setLive(false,'HALTED');idleWho('Draw stopped');rep('stopped','Draw stopped. Nothing was saved.');busy=false;return}
+  dots(pl.length,pl.length);$('#cnt').textContent=`${pad(pl.length)} / ${pad(pl.length)}`;idleWho('Draw complete');
+  const out={};res.forEach((r,i)=>out[L(i)]=r);
+  const h=await sha(seed+JSON.stringify(out));$('#tHash').textContent=h?`sha256:${h.slice(0,8)}…${h.slice(-4)}`:'—';setLive(false,'SEALED');
+  rep('running','Saving result');
+  await db.ref('mpolive/rnd/draw').set({at:firebase.database.ServerValue.TIMESTAMP,seed,hash:h||null,pools:out});
+  if(cfg.bucket)await db.ref('mpolive/buckets/'+cfg.bucket+'/result').set({at:firebase.database.ServerValue.TIMESTAMP,seed,hash:h||null,pools:out,category:cfg.category||''}).catch(()=>{});
+  [523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,.4,.08,'sawtooth'),i*140));celebrate();
+  await sleep(2200);toFinal(true);rep('done',`Draw complete · ${pl.length} teams · result saved`)}
+ catch(e){rep('error','Error: '+e.message)}
+ busy=false}
+
+async function reset(){stop=true;while(busy)await sleep(100);stop=false;try{await load()}catch{}idle();rep('idle','Reset. Waiting for the admin to start')}
+
+/* ---------- Firebase ---------- */
+let seen=null,first=true;
+db.ref('mpolive/rnd/cmd').on('value',s=>{const v=s.val();if(first){first=false;seen=v&&v.id;return}if(!v||v.id===seen)return;seen=v.id;
+ if(v.action==='stop'){if(busy)stop=true}else if(v.action==='reset')reset();else run()});
+db.ref('.info/connected').on('value',s=>{if(s.val()){const r=db.ref('mpolive/rnd/screen');r.onDisconnect().remove();r.set(true)}});
+(async()=>{await (document.fonts?document.fonts.ready:Promise.resolve());
+ try{const[c,t,d]=await Promise.all(['config','teams','draw'].map(k=>db.ref('mpolive/rnd/'+k).once('value')));
+  applyCfg(c.val());setTeams(t.val());N=poolN(cfg.pools);const dv=d.val()||{},last=dv.pools;
+  if(last&&Object.keys(last).length){const n=Math.max(...Object.keys(last).map(k=>k.charCodeAt(0)-64)),fill=Array.from({length:n},(_,i)=>last[L(i)]||[]);
+   toDraw();build(n,Math.max(...fill.map(f=>f.length)),fill);reelRest();toFinal(false);$('#st').textContent='Showing the last saved draw'}
+  else idle(teams.length?'Waiting for the admin to start':'Waiting for a category from MPO LIVE setup')}
+ catch(e){idle();$('#st').textContent='Cannot reach Firebase. Check firebase-config.js';$('#st').classList.add('bad')}})();
+</script></body></html>

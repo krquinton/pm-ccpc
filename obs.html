@@ -42,6 +42,12 @@ body.green .row{background:#0f1410}
 .box.noscore .sc,.box.noscore .srv{display:none}
 .box.noscore .row + .row .nm{border-radius:0 0 14px 0}
 
+/* one-liner under the scores (Tab 7, per court) */
+.line{display:none;background:rgba(15,20,16,.94);border-top:1px solid rgba(255,255,255,.08);border-radius:0 0 14px 14px;padding:10px 22px 11px 34px;font:700 24px Oswald,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#ffc43d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.green .line{background:#0f1410}
+.box.hasline .line{display:block}
+.box.hasline .row + .row,.box.hasline .row + .row .bar,.box.hasline .row + .row .sc,.box.hasline .row + .row .nm{border-radius:0}
+
 /* winner banner */
 .win .k{background:#ffc43d;color:#1d1600;font:700 22px Oswald,sans-serif;letter-spacing:.3em;padding:10px 22px;border-radius:16px 16px 0 0}
 .win .b{display:flex;align-items:center;background:rgba(15,20,16,.96);height:120px;border-radius:0 0 16px 16px;overflow:hidden}
@@ -57,6 +63,7 @@ body.green .win .b{background:#0f1410}
   <div class="top"><img class="lg" id="lg" alt="" hidden><div class="t"><b id="title"></b><small id="sub"></small></div><div class="clk" id="clk"></div><div class="call" id="call"></div></div>
   <div class="row" id="rowA"><div class="bar"></div><div class="nm" id="nA"></div><span class="tag" id="tagA"></span><div class="srv" id="sA"></div><div class="sc" id="cA"></div></div>
   <div class="row" id="rowB"><div class="bar"></div><div class="nm" id="nB"></div><span class="tag" id="tagB"></span><div class="srv" id="sB"></div><div class="sc" id="cB"></div></div>
+  <div class="line" id="line"></div>
 </div>
 <div class="box win hide" id="win"><div class="k">WINNER</div><div class="b"><div class="bar" id="wBar"></div><div class="n" id="wN"></div><div class="s" id="wS"></div></div></div>
 <div id="st"></div>
@@ -79,9 +86,20 @@ let ds = {}, logo = null, buckets = {}, match = null, live = null, sessionName =
 if (P.get('preview') === '1') { document.body.classList.add('preview'); const fitP = () => document.body.style.transform = `scale(${innerWidth / 1920})`; addEventListener('resize', fitP); fitP(); }
 
 function look(){ return Object.assign({ bg:'transparent', colorA:'#1f6fd6', colorB:'#e5484d', pos:'bl' }, ds.obs || {}); }
+/* one-liner: { on, text } per court in displaySettings.obs.lines; the Tab 7 preview can send unsaved typing */
+let linePreview = null;
+function lineFor(){
+  const l = linePreview || (((ds.obs || {}).lines || {})[String(COURT)]) || {};
+  return l.on ? String(l.text || '').trim().slice(0, 60) : '';
+}
+if (P.get('preview') === '1') addEventListener('message', e => {
+  const m = e.data || {};
+  if (e.origin !== location.origin || m.type !== 'pm-obs-line' || Number(m.court) !== COURT) return;
+  linePreview = { on: !!m.on, text: m.text }; paint();
+});
 const names = t => (t || []).map(p => p.name).join(' / ');
 
-db.collection('pkl-queue-events').doc('displaySettings').onSnapshot(d => { ds = d.exists ? d.data() : {}; paint(); }, err);
+db.collection('pkl-queue-events').doc('displaySettings').onSnapshot(d => { ds = d.exists ? d.data() : {}; linePreview = null; paint(); }, err);
 db.collection('pkl-queue-events').doc('tvLogo').onSnapshot(d => { logo = d.exists ? d.data() : null; paint(); }, err);
 db.collection('pkl-queue-session').doc('state').onSnapshot(d => { sessionName = (d.exists && d.data().currentSessionName) || ''; paint(); }, err);
 db.collection('pkl-queue-buckets').onSnapshot(s => { buckets = {}; s.forEach(d => { buckets[d.id] = d.data().name || ''; }); paint(); }, err);
@@ -125,6 +143,8 @@ function paint(){
     $('sA').classList.toggle('on', u.serving === 1); $('sB').classList.toggle('on', u.serving === 2);
     $('call').textContent = U.call(u);
   } else $('call').textContent = '';
+  const ln = lineFor();
+  $('line').textContent = ln; bug.classList.toggle('hasline', !!ln);
   bug.classList.remove('hide');
   tick();
 }

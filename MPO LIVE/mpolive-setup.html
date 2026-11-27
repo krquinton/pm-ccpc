@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<!-- mpolive-setup.html: backend for mpolive.html (MPO LIVE). Switch screens, run the countdown,
+     draw pools per category (buckets), edit schedule and game format. Data: RTDB mindoropickleballorg, path mpolive/. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MPO LIVE · Setup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#F3F1E8;--dim:#A9C3B6;--forest:#0F3B2E;--card:#F6F4EC;--ball:#D7F03C;--clay:#E27A5C;--ink:#0B1D17;--line:#DAD6C8;--mut:#56665e}
+*{box-sizing:border-box;margin:0}
+html{background:#15342A}
+body{background:linear-gradient(180deg,#06120E 0%,#0B1D17 40%,#15342A 100%) fixed;color:var(--cream);font:15px/1.45 Inter,system-ui,sans-serif;min-height:100vh}
+h1,h2,h3,button,.eyebrow{font-family:Archivo,system-ui,sans-serif}
+.wrap{max-width:1120px;margin:auto;padding:0 18px 60px}
+header{display:flex;align-items:center;gap:14px;padding:22px 0 6px}
+header img{height:44px}
+.eyebrow{font-weight:700;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim)}
+h1{font-weight:800;font-stretch:105%;font-size:28px;line-height:1.1}
+h1 em{font-style:normal;color:var(--ball)}
+header .sp{flex:1}
+header a{color:var(--dim);font-weight:600;font-size:14px}
+
+/* live bar */
+#live{position:sticky;top:0;z-index:20;background:rgba(6,18,14,.94);backdrop-filter:blur(6px);border-bottom:1px solid rgba(243,241,232,.12);margin:10px -18px 0;padding:12px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#live .lab{font-weight:700;font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);margin-right:4px}
+.vb{display:flex;gap:6px;flex-wrap:wrap}
+.vb button{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--cream);border:1.5px solid rgba(243,241,232,.25);border-radius:10px;padding:8px 14px;font-size:15px;font-weight:700}
+.vb button svg{width:18px;height:18px}
+.vb button.on{background:var(--ball);color:var(--ink);border-color:var(--ball)}
+.vb kbd{font:600 11px Inter,sans-serif;opacity:.55}
+#live .sp{flex:1}
+
+.card{background:var(--card);color:var(--ink);border-radius:16px;margin:18px 0;overflow:hidden;box-shadow:0 18px 36px rgba(0,0,0,.35)}
+.card>h2{background:var(--forest);color:var(--cream);font-weight:800;font-size:14px;letter-spacing:.22em;text-transform:uppercase;padding:13px 18px;display:flex;align-items:center;gap:10px}
+.card>h2 .sp{flex:1}
+.cb{padding:14px 18px 18px}
+label{display:block;font-weight:600;font-size:13px;color:#3d4d45;margin:10px 0 5px}
+input,select,textarea{width:100%;background:#fff;border:1.5px solid var(--line);color:var(--ink);border-radius:9px;padding:9px 11px;font:inherit}
+textarea{min-height:150px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:13px;resize:vertical}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 14px}
+button{border:0;border-radius:999px;padding:10px 20px;font-size:15px;font-weight:800;letter-spacing:.02em;cursor:pointer;color:var(--ink);background:var(--ball)}
+button.g{background:#fff;color:var(--forest);border:1.5px solid var(--forest)}
+button.d{background:#fff;color:#b4432a;border:1.5px solid #e3b5a8}
+button.sm{padding:6px 12px;font-size:13px}
+button.ic{width:34px;height:34px;padding:0;border-radius:9px;display:inline-grid;place-items:center;background:#fff;border:1.5px solid var(--line);color:var(--forest)}
+button.ic svg{width:16px;height:16px}
+button.ic:hover{border-color:var(--forest)}
+button:disabled{opacity:.4;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--clay);outline-offset:2px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.msg{color:var(--mut);margin-top:8px;min-height:1.3em;font-size:14px}
+.bad{color:#b4432a!important}.ok{color:#2f7d4b!important}
+.pill{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:13px;padding:6px 12px;border-radius:999px;background:#ece9dd;color:var(--ink)}
+.pill i{width:9px;height:9px;border-radius:50%;background:#b9b4a3}
+.pill.on i{background:#2f9e5b;box-shadow:0 0 0 3px rgba(47,158,91,.2)}
+#live .pill{background:rgba(243,241,232,.1);color:var(--cream)}
+.big{font:700 34px 'JetBrains Mono',monospace;color:var(--forest)}
+.hint{font-size:13px;color:var(--mut)}
+
+/* editable rows */
+table.ed{width:100%;border-collapse:separate;border-spacing:0 6px}
+table.ed th{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);text-align:left;padding:0 4px}
+table.ed td{padding:0 4px;vertical-align:middle}
+table.ed td.act{white-space:nowrap;width:1%}
+table.ed input{padding:7px 9px}
+
+/* buckets */
+#buckets{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.bk{border:1.5px solid var(--line);border-radius:14px;background:#fff;padding:12px 14px 14px;display:flex;flex-direction:column}
+.bk.live{border-color:var(--forest);box-shadow:0 0 0 3px rgba(215,240,60,.6)}
+.bk .top{display:flex;gap:8px;align-items:center}
+.bk .top input{font-weight:700}
+.bk .tag{font:700 11px Archivo,sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:4px 8px;border-radius:6px;background:var(--forest);color:var(--ball);white-space:nowrap}
+.bk .tag.done{background:#e3efd9;color:#2f7d4b}
+.bk textarea{min-height:130px}
+.bk .row2{display:grid;grid-template-columns:120px 1fr auto;gap:8px;align-items:end}
+.bk .szb{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.bk .szb:empty{display:none}
+.bk .szc{display:flex;align-items:center;gap:6px;margin:0;font-weight:700;color:var(--forest)}
+.bk .szc input{width:64px;padding:7px 9px;text-align:center}
+.res{display:grid;gap:6px;margin-top:10px;font-size:13px}
+.res .p{border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--card)}
+.res .p b{font-family:Archivo,sans-serif;color:var(--forest)}
+.res .p ol{margin:4px 0 0 18px;padding:0}
+#drawStatus{color:var(--forest);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><img src="../mpo-mark.png" alt="" onerror="this.remove()"><div><div class="eyebrow">MPO LIVE</div><h1>Live <em>setup</em></h1></div><span class="sp"></span><a href="mpolive-sponsors.html">Edit sponsors</a>&nbsp;&nbsp;<a href="mpolive.html" target="_blank" rel="noopener">Open screen ↗</a></header>
+
+<div id="live">
+  <span class="lab">On screen</span>
+  <div class="vb" id="vb"></div>
+  <span class="sp"></span>
+  <span class="pill" id="scrPill"><i></i><span>Draw screen not open</span></span>
+</div>
+
+<p class="msg" id="fb" role="status" style="color:var(--dim)"></p>
+
+<!-- countdown -->
+<section class="card"><h2>1 · Countdown</h2><div class="cb">
+  <div class="grid">
+    <div><label for="cdEb">Small label on top</label><input id="cdEb"></div>
+    <div><label for="cdText">Main text</label><input id="cdText"></div>
+    <div><label for="cdMin">Minutes</label><input id="cdMin" type="number" min="1" max="180" step="1"></div>
+    <div><label for="cdDone">Text when time is up</label><input id="cdDone"></div>
+  </div>
+  <div class="bar">
+    <button id="cdStart">Start countdown</button>
+    <button class="g" id="cdAdd">Add 1 minute</button>
+    <button class="g" id="cdStop">Stop and reset</button>
+    <button class="g" id="cdSave">Save text</button>
+    <span class="sp" style="flex:1"></span>
+    <span class="big" id="cdLeft">--:--</span>
+  </div>
+  <p class="msg" id="cdMsg">Start countdown also switches the screen to the countdown. When it reaches zero the screen shows the "time is up" text and stays there.</p>
+</div></section>
+
+<!-- buckets -->
+<section class="card"><h2>3 · Pool draw by category <span class="sp"></span><button class="d sm" id="bkReset" type="button" title="Clear every saved draw result (teams stay)">Reset all draws</button> <button class="sm" id="bkAdd" type="button">Add category</button></h2><div class="cb">
+  <div class="grid">
+    <div><label for="evName">Event name (top of the draw screen)</label><input id="evName"></div>
+    <div><label for="spd">Draw speed</label><select id="spd"><option value=".7">Slow</option><option value="1">Normal</option><option value="1.6">Fast</option><option value="2.5">Very fast</option></select></div>
+    <div><label for="snd">Draw sound</label><select id="snd"><option value="1">On</option><option value="0">Off</option></select></div>
+  </div>
+  <p class="msg" id="drawStatus" role="status"></p>
+  <p class="hint">One team per line (or upload a CSV, first column = team name). <b>Draw this category</b> loads the teams, switches the screen to the pool draw and starts the slot machine. Each category keeps its own result.</p>
+  <div id="buckets" style="margin-top:12px"></div>
+</div></section>
+
+<!-- schedule -->
+<section class="card"><h2>4 · Schedule <span class="sp"></span><button class="sm" id="schAdd" type="button">Add row</button></h2><div class="cb">
+  <table class="ed"><thead><tr><th style="width:14%">Date</th><th style="width:12%">Time</th><th>Category / event</th><th style="width:26%">Note</th><th></th></tr></thead><tbody id="schBody"></tbody></table>
+  <div class="bar"><button id="schSave" disabled>Save schedule</button><span class="msg" id="schMsg"></span></div>
+  <p class="hint">Rows with the same date are grouped on screen. Write the date like "Nov 28" so it shows as a big date.</p>
+</div></section>
+
+<!-- format -->
+<section class="card"><h2>5 · Game format <span class="sp"></span><button class="sm" id="fmtAdd" type="button">Add stage</button></h2><div class="cb">
+  <table class="ed"><thead><tr><th style="width:17%">Stage</th><th>Game</th><th>Scoring</th><th>Time limit</th><th>Advancement</th><th></th></tr></thead><tbody id="fmtBody"></tbody></table>
+  <div class="bar"><button id="fmtSave" disabled>Save game format</button><span class="msg" id="fmtMsg"></span></div>
+</div></section>
+
+<!-- outro -->
+<section class="card"><h2>6 · Outro</h2><div class="cb">
+  <div class="grid">
+    <div><label for="ouEb">Small label on top</label><input id="ouEb" data-k="eyebrow"></div>
+    <div><label for="ouEv">Event name</label><input id="ouEv" data-k="event"></div>
+    <div><label for="ouLead">Text before the venue</label><input id="ouLead" data-k="lead"></div>
+    <div><label for="ouVen">Venue (shown in yellow)</label><input id="ouVen" data-k="venue"></div>
+    <div><label for="ouDt">Date</label><input id="ouDt" data-k="date"></div>
+    <div><label for="ouCn">Contact name</label><input id="ouCn" data-k="contactName"></div>
+    <div><label for="ouCp">Contact number</label><input id="ouCp" data-k="contactPhone"></div>
+    <div><label for="ouFb">Facebook</label><input id="ouFb" data-k="facebook"></div>
+  </div>
+  <div class="bar"><button id="ouSave" disabled>Save outro</button><span class="msg" id="ouMsg"></span></div>
+  <p class="hint">Leave a field empty to hide that line on screen.</p>
+</div></section>
+
+<p class="hint" style="color:var(--dim);text-align:center">Sponsors (screen 2) come from the sponsor admin, the same list as mpo-sponsors.html. <a href="mpolive-sponsors.html" style="color:var(--ball)">Edit sponsors</a></p>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+const $=s=>document.querySelector(s),pad=n=>String(n).padStart(2,'0'),
+ esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),
+ arr=v=>Array.isArray(v)?v.filter(Boolean):(v&&typeof v==='object'?Object.values(v).filter(Boolean):[]),
+ TS=()=>firebase.database.ServerValue.TIMESTAMP,R=p=>db.ref('mpolive/'+p),sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const say=(t,bad)=>{const f=$('#fb');f.textContent=t;f.className='msg'+(bad?' bad':'');clearTimeout(say.t);say.t=setTimeout(()=>f.textContent='',6000)};
+
+const DEF={
+ settings:{eventName:'Mindoro Pickleball Org. Cup 2026',speed:1,sound:true},
+ countdown:{eyebrow:'Live Pool Draw',text:'Draw Assignment will commence in',minutes:5,endAt:null,doneText:'Draw is starting now'},
+ schedule:[
+  {date:'Nov 28',time:'8AM',title:'Intermediate Womens Doubles',note:'Pool Play upto Finals'},
+  {date:'Nov 28',time:'12PM',title:'Low Intermediate Mens Doubles',note:'Pool Play upto Finals'},
+  {date:'Nov 29',time:'8AM',title:'High Intermediate Doubles',note:'Pool Play upto Finals'},
+  {date:'Nov 29',time:'12PM',title:'Open Gender Advanced',note:'Pool Play upto Finals'}],
+ format:[
+  {stage:'Pool Play',game:'Sideout 11',win:'No Deuce',time:'15 mins time limit',advance:'Top 2 Advances'},
+  {stage:'Quarterfinals',game:'Sideout 11',win:'No Deuce',time:'15 mins time limit',advance:'Knockout Round'},
+  {stage:'Semifinals',game:'Sideout 11',win:'Win by 2',time:'No Time Limit',advance:'Knockout Round'},
+  {stage:'Finals',game:'Sideout 11',win:'Win by 2',time:'No Time Limit',advance:'Best of 3'}],
+ outro:{eyebrow:'Thank you for watching',event:'Mindoro Pickleball Org. Cup 2026',lead:'See you at the',venue:'Balai Mindoro',date:'November 28–29, 2026',
+  contactName:'Mr. Roy Albo',contactPhone:'0917 123 1234',facebook:'facebook.com/mindoropickleballorg'}
+};
+const IC={up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 15l6-6 6 6"/></svg>',
+ down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>',
+ del:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
+ csv:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
+ file:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20V9M7 14l5-5 5 5M5 4h14"/></svg>'};
+const VIEWS=[['countdown','Countdown','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>'],
+ ['sponsors','Sponsors','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg>'],
+ ['draw','Pool draw','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>'],
+ ['schedule','Schedule','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>'],
+ ['format','Game format','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor"/></svg>'],
+ ['outro','Outro','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>']];
+
+/* db comes from firebase-config.js */
+const HAS_DB=typeof db!=='undefined';if(!HAS_DB)say('Cannot start Firebase. Check firebase-config.js',true);
+let off=0,settings=Object.assign({},DEF.settings),cd=Object.assign({},DEF.countdown),buckets={},scr=false,rstat=null,liveBucket=null;
+const now=()=>Date.now()+off;
+
+/* ---------- view switcher ---------- */
+$('#vb').innerHTML=VIEWS.map(([id,l,ic],i)=>`<button type="button" data-v="${id}">${ic}${l}<kbd>${i+1}</kbd></button>`).join('');
+const setView=v=>R('state').set({view:v,at:TS(),by:'setup'}).catch(e=>say('Could not switch: '+e.message,true));
+$('#vb').onclick=e=>{const b=e.target.closest('button');if(b)setView(b.dataset.v)};
+
+/* ---------- countdown ---------- */
+function cdFill(){$('#cdEb').value=cd.eyebrow||'';$('#cdText').value=cd.text||'';$('#cdMin').value=cd.minutes||5;$('#cdDone').value=cd.doneText||''}
+const cdForm=()=>({eyebrow:$('#cdEb').value.trim(),text:$('#cdText').value.trim()||DEF.countdown.text,minutes:Math.max(1,Math.min(180,Math.round(+$('#cdMin').value||5))),doneText:$('#cdDone').value.trim()||DEF.countdown.doneText});
+$('#cdSave').onclick=()=>R('countdown').update(cdForm()).then(()=>say('Countdown text saved')).catch(e=>say(e.message,true));
+$('#cdStart').onclick=async()=>{const f=cdForm();if(cd.endAt&&cd.endAt>now()&&!confirm('A countdown is running. Restart it from '+f.minutes+' minutes?'))return;
+ await R('countdown').update(Object.assign(f,{endAt:now()+f.minutes*60000}));await setView('countdown');say('Countdown started')};
+$('#cdAdd').onclick=()=>{if(cd.endAt){const base=Math.max(cd.endAt,now());R('countdown/endAt').set(base+60000)}else{$('#cdMin').value=(+$('#cdMin').value||0)+1;R('countdown/minutes').set(+$('#cdMin').value)}};
+$('#cdStop').onclick=()=>R('countdown/endAt').set(null).then(()=>say('Countdown stopped'));
+setInterval(()=>{let t;if(cd.endAt){t=Math.ceil(Math.max(0,cd.endAt-now())/1000);$('#cdLeft').textContent=t?`${pad(Math.floor(t/60))}:${pad(t%60)}`:'Time up'}else $('#cdLeft').textContent=`${pad(cd.minutes||5)}:00`},250);
+
+/* ---------- editable row tables (schedule, format) ---------- */
+function rowTable(body,cols,saveBtn,msg,path){let rows=[];
+ const draw=()=>{body.innerHTML=rows.map((r,i)=>`<tr>${cols.map(c=>`<td><input data-i="${i}" data-k="${c.k}" value="${esc(r[c.k])}" placeholder="${esc(c.ph||'')}" aria-label="${esc(c.l)} row ${i+1}"></td>`).join('')}
+  <td class="act"><button class="ic" data-a="up" data-i="${i}" title="Move up" aria-label="Move up" ${i?'':'disabled'}>${IC.up}</button> <button class="ic" data-a="down" data-i="${i}" title="Move down" aria-label="Move down" ${i<rows.length-1?'':'disabled'}>${IC.down}</button> <button class="ic" data-a="del" data-i="${i}" title="Delete row" aria-label="Delete row">${IC.del}</button></td></tr>`).join('')};
+ const dirty=d=>{saveBtn.disabled=!d;msg.textContent=d?'Unsaved changes':'';msg.className='msg'};
+ body.addEventListener('input',e=>{const t=e.target;if(t.dataset.k){rows[+t.dataset.i][t.dataset.k]=t.value;dirty(true)}});
+ body.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i;
+  if(b.dataset.a==='del'){if(!confirm('Delete this row?'))return;rows.splice(i,1)}
+  else{const j=b.dataset.a==='up'?i-1:i+1;[rows[i],rows[j]]=[rows[j],rows[i]]}draw();dirty(true)});
+ saveBtn.onclick=()=>{const clean=rows.map(r=>Object.fromEntries(cols.map(c=>[c.k,(r[c.k]||'').trim()]))).filter(r=>cols.some(c=>r[c.k]));
+  R(path).set(clean.length?clean:[]).then(()=>{rows=clean;draw();dirty(false);msg.textContent='Saved. The screen updates right away.';msg.className='msg ok'}).catch(e=>{msg.textContent=e.message;msg.className='msg bad'})};
+ return{set(v){if(!saveBtn.disabled)return;rows=v.map(r=>Object.assign({},r));draw()},add(){rows.push({});draw();dirty(true);const ins=body.querySelectorAll('tr:last-child input');ins[0]&&ins[0].focus()}}}
+const sch=rowTable($('#schBody'),[{k:'date',l:'Date',ph:'Nov 28'},{k:'time',l:'Time',ph:'8AM'},{k:'title',l:'Category',ph:'Category or event'},{k:'note',l:'Note',ph:'Pool Play upto Finals'}],$('#schSave'),$('#schMsg'),'schedule');
+const fmt=rowTable($('#fmtBody'),[{k:'stage',l:'Stage',ph:'Pool Play'},{k:'game',l:'Game',ph:'Sideout 11'},{k:'win',l:'Scoring',ph:'No Deuce'},{k:'time',l:'Time limit',ph:'15 mins time limit'},{k:'advance',l:'Advancement',ph:'Top 2 Advances'}],$('#fmtSave'),$('#fmtMsg'),'format');
+$('#schAdd').onclick=()=>sch.add();$('#fmtAdd').onclick=()=>fmt.add();
+
+/* ---------- outro ---------- */
+const ouIns=()=>[...document.querySelectorAll('[data-k]')].filter(i=>i.id.startsWith('ou'));
+let ouDirty=false;
+document.addEventListener('input',e=>{if(e.target.id&&e.target.id.startsWith('ou')&&e.target.dataset.k){ouDirty=true;$('#ouSave').disabled=false;$('#ouMsg').textContent='Unsaved changes';$('#ouMsg').className='msg'}});
+$('#ouSave').onclick=()=>{const o={};ouIns().forEach(i=>o[i.dataset.k]=i.value.trim());
+ R('outro').set(o).then(()=>{ouDirty=false;$('#ouSave').disabled=true;$('#ouMsg').textContent='Saved. The screen updates right away.';$('#ouMsg').className='msg ok'}).catch(e=>{$('#ouMsg').textContent=e.message;$('#ouMsg').className='msg bad'})};
+
+/* ---------- draw settings ---------- */
+$('#evName').onchange=()=>R('settings/eventName').set($('#evName').value.trim()||DEF.settings.eventName);
+$('#spd').onchange=()=>R('settings/speed').set(+$('#spd').value);
+$('#snd').onchange=()=>R('settings/sound').set($('#snd').value==='1');
+
+/* ---------- buckets ---------- */
+const parse=t=>{const r=String(t||'').split(/\r?\n/).map(l=>{l=l.trim();const m=l.match(/^"((?:[^"]|"")*)"/);return(m?m[1].replace(/""/g,'"'):l.split(',')[0]).trim()}).filter(Boolean);if(r.length&&/^(teams?|team names?|names?)$/i.test(r[0]))r.shift();return r};
+const nm=x=>String(x||'').replace(/[\s*]+$/,'').trim(),dups=b=>{const a=b.map(nm);return[...new Set(a.filter((x,i)=>a.findIndex(y=>y.toLowerCase()===x.toLowerCase())!==i))]};
+const sizes=(k,n)=>[...new Set(Array.from({length:n},(_,i)=>Math.floor(k/n)+(i<k%n?1:0)))].sort((a,b)=>b-a);
+const running=()=>!!rstat&&rstat.state==='running'&&Date.now()-rstat.at<120000;
+const sortedB=()=>Object.entries(buckets).sort((a,b)=>(a[1].order||0)-(b[1].order||0));
+const editing=new Set(); // bucket ids with unsaved typing (don't overwrite them from Firebase)
+
+const PL=i=>String.fromCharCode(65+i);
+/* custom pool sizes: one number box per pool (Pool A first). Keeps typed values when the pool count stays the same. */
+function szBoxes(el,vals){const host=el.querySelector('.szb'),n=+el.querySelector('.pn').value;
+ if(el.querySelector('.szm').value!=='custom'){host.innerHTML='';return}
+ let v=(vals||[...host.querySelectorAll('input')].map(i=>i.value)).map(x=>x===''?'':+x);
+ if(v.length!==n){const k=parse(el.querySelector('textarea').value).length;v=Array.from({length:n},(_,i)=>k?Math.floor(k/n)+(i<k%n?1:0):'')}
+ host.innerHTML=v.map((x,i)=>`<label class="szc">${PL(i)}<input type="number" min="2" step="1" inputmode="numeric" value="${x}" aria-label="Pool ${PL(i)} size"></label>`).join('')}
+function bkCheck(id){const el=document.querySelector(`.bk[data-id="${id}"]`);if(!el)return null;
+ const teams=parse(el.querySelector('textarea').value),n=+el.querySelector('.pn').value,d=dups(teams),m=el.querySelector('.bm');
+ const cust=el.querySelector('.szm').value==='custom',sz=cust?[...el.querySelectorAll('.szb input')].map(i=>i.value===''?NaN:+i.value):null;
+ let ok=true,t;if(!teams.length){t='No teams yet';ok=false}else if(d.length){t='Duplicate names: '+d.join(', ');ok=false}
+ else if(teams.length<n*2){t=`${teams.length} teams. Need at least ${n*2} for ${n} pools.`;ok=false}
+ else if(cust){const tot=sz.reduce((a,b)=>a+b,0);
+  if(sz.length!==n||sz.some(v=>!Number.isInteger(v)||v<2)){t='Each pool needs a whole number of at least 2.';ok=false}
+  else if(tot!==teams.length){const df=teams.length-tot;t=`Pool sizes add up to ${tot}, but there are ${teams.length} teams. ${df>0?'Add':'Remove'} ${Math.abs(df)}.`;ok=false}
+  else t=`${teams.length} teams · `+sz.map((v,i)=>`${PL(i)} ${v}`).join(' · ')}
+ else t=`${teams.length} teams · ${n} pools of ${sizes(teams.length,n).join(' or ')}`;
+ m.textContent=t;m.className='msg bm'+(ok?'':' bad');return{ok,teams,pools:n,sizes:cust?sz.map(v=>v||0):null,title:el.querySelector('.ti').value.trim()}}
+
+function renderBuckets(){const host=$('#buckets'),list=sortedB();
+ if(!list.length){host.innerHTML='<p class="hint">No categories yet. Press Add category.</p>';return}
+ /* keep focus + unsaved text: only rebuild buckets that are not being edited */
+ const have=new Set([...host.querySelectorAll('.bk')].map(e=>e.dataset.id));
+ if(list.length!==have.size||list.some(([id])=>!have.has(id))){host.innerHTML=list.map(([id])=>`<div class="bk" data-id="${id}"></div>`).join('')}
+ list.forEach(([id,b])=>{const el=host.querySelector(`.bk[data-id="${id}"]`);
+  const res=b.result&&b.result.pools?b.result.pools:null,isLive=liveBucket===id;
+  el.classList.toggle('live',isLive);
+  if(!editing.has(id)||!el.firstChild){
+   el.innerHTML=`<div class="top"><input class="ti" value="${esc(b.title)}" aria-label="Category title" placeholder="Category title"><span class="tag ${res?'done':''}">${isLive?'On screen':res?'Drawn':'Not drawn'}</span></div>
+   <div class="row2"><div><label>Pools</label><select class="pn" aria-label="Number of pools"><option value="2"${+b.pools===2?' selected':''}>2 pools</option><option value="3"${+b.pools===3?' selected':''}>3 pools</option><option value="4"${+b.pools!==2&&+b.pools!==3?' selected':''}>4 pools</option></select></div>
+   <div><label>Teams per pool</label><select class="szm" aria-label="Teams per pool"><option value="auto">Auto (even split)</option><option value="custom"${Array.isArray(b.sizes)||(b.sizes&&typeof b.sizes==='object')?' selected':''}>Custom per pool</option></select></div>
+   <div style="text-align:right"><label class="ic" style="display:inline-grid;width:34px;height:34px;place-items:center;margin:0;border:1.5px solid var(--line);border-radius:9px;cursor:pointer;color:var(--forest)" title="Upload CSV">${IC.file}<input type="file" accept=".csv,.txt" style="display:none"></label></div></div>
+   <div class="szb"></div>
+   <label>Teams (one per line)</label><textarea placeholder="Team name&#10;Smashers&#10;Dink Dynasty">${esc(arr(b.teams).join('\n'))}</textarea>
+   <p class="msg bm"></p>
+   <div class="bar"><button class="go" type="button">Draw this category</button><button class="g sm sv" type="button" disabled>Save</button><button class="g sm prep" type="button" title="Show the empty board for this category without starting">Show ready</button>
+   <span style="flex:1"></span><button class="ic ex" type="button" title="Export result CSV" aria-label="Export result CSV" ${res?'':'disabled'}>${IC.csv}</button><button class="ic dl" type="button" title="Delete category" aria-label="Delete category">${IC.del}</button></div>
+   <div class="res">${res?Object.keys(res).sort().map(p=>`<div class="p"><b>Pool ${esc(p)}</b><ol>${arr(res[p]).map(t=>`<li>${esc(t)}</li>`).join('')}</ol></div>`).join(''):''}</div>`;
+   szBoxes(el,b.sizes?arr(b.sizes):null);bkCheck(id)}
+  else el.querySelector('.tag').textContent=isLive?'On screen':res?'Drawn':'Not drawn'});
+ updateGo()}
+
+function updateGo(){document.querySelectorAll('.bk').forEach(el=>{const c=bkCheck(el.dataset.id);if(!c)return;
+ el.querySelector('.go').disabled=!c.ok||running();el.querySelector('.prep').disabled=!c.ok||running()});
+ const st=$('#drawStatus');st.textContent=rstat?rstat.text:'';st.className='msg'+(rstat&&rstat.state==='error'?' bad':'');
+ const stop=$('#stopDraw');if(running()&&!stop){st.insertAdjacentHTML('afterend','<button class="d sm" id="stopDraw" type="button">Stop draw</button>');$('#stopDraw').onclick=()=>{if(confirm('Stop the draw? Nothing will be saved for this category.'))R('rnd/cmd').set({id:Date.now(),action:'stop'})}}
+ else if(!running()&&stop)stop.remove()}
+
+async function saveBucket(id){const c=bkCheck(id);await R('buckets/'+id).update({title:c.title||'Untitled category',teams:c.teams,pools:c.pools,sizes:c.sizes});
+ editing.delete(id);const el=document.querySelector(`.bk[data-id="${id}"] .sv`);if(el)el.disabled=true}
+
+/* load this bucket into the randomizer and show its empty board; resolves once the screen has reset */
+async function loadToScreen(id){await saveBucket(id);const b=buckets[id],c=bkCheck(id);
+ await R('rnd').update({teams:c.teams,config:{title:settings.eventName||DEF.settings.eventName,category:c.title,pools:c.pools,sizes:c.ok?c.sizes:null,speed:+settings.speed||1,sound:settings.sound!==false,bucket:id},draw:null,status:null});
+ await R('rnd/cmd').set({id:Date.now(),action:'reset'});await setView('draw');await sleep(1200)}
+
+$('#buckets').addEventListener('input',e=>{const el=e.target.closest('.bk');if(!el)return;editing.add(el.dataset.id);el.querySelector('.sv').disabled=false;updateGo()});
+$('#buckets').addEventListener('change',async e=>{const el=e.target.closest('.bk');if(!el)return;
+ if(e.target.type==='file'){const f=e.target.files[0];if(f){el.querySelector('textarea').value=await f.text();editing.add(el.dataset.id);el.querySelector('.sv').disabled=false;updateGo()}}
+ else if(e.target.tagName==='SELECT'){szBoxes(el);editing.add(el.dataset.id);el.querySelector('.sv').disabled=false;updateGo()}});
+$('#buckets').addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;const el=b.closest('.bk'),id=el.dataset.id,bk=buckets[id]||{};
+ try{
+ if(b.classList.contains('sv')){await saveBucket(id);say('Category saved')}
+ else if(b.classList.contains('dl')){if(!confirm(`Delete the category "${bk.title||'Untitled'}"${bk.result?' and its draw result':''}?`))return;editing.delete(id);await R('buckets/'+id).remove()}
+ else if(b.classList.contains('ex')){const res=bk.result&&bk.result.pools;if(!res)return;const q=s=>'"'+String(s).replace(/"/g,'""')+'"',rows=['Category,Pool,Slot,Team'];
+  Object.keys(res).sort().forEach(p=>arr(res[p]).forEach((t,i)=>rows.push(`${q(bk.title||'')},Pool ${p},${i+1},${q(t)}`)));
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.join('\n')],{type:'text/csv'}));a.download=(bk.title||'pool-draw').replace(/[^\w-]+/g,'-')+'.csv';a.click()}
+ else if(b.classList.contains('prep')||b.classList.contains('go')){
+  const c=bkCheck(id);if(!c.ok)return;
+  if(!scr){say('The draw screen is not open. Open mpolive.html on the streaming computer first.',true);return}
+  if(running()){say('A draw is still running. Stop it first.',true);return}
+  if(b.classList.contains('go')&&bk.result&&!confirm(`"${c.title}" was already drawn. Draw again and replace its result?`))return;
+  b.disabled=true;await loadToScreen(id);
+  if(b.classList.contains('go')){await R('rnd/cmd').set({id:Date.now()});say(`Drawing ${c.title} now`)}else say(`${c.title} is ready on screen`)}
+ }catch(err){say('Error: '+err.message,true)}finally{updateGo()}});
+$('#bkReset').onclick=async()=>{
+ if(running()){say('A draw is still running. Stop it first.',true);return}
+ const n=Object.values(buckets).filter(b=>b.result).length;
+ if(!confirm(`Reset all draws?\n\nThis deletes the saved result of ${n} categor${n===1?'y':'ies'} and clears the draw screen. Teams and categories stay. This cannot be undone.`))return;
+ try{const up={'rnd/draw':null,'rnd/status':null};Object.keys(buckets).forEach(id=>up['buckets/'+id+'/result']=null);
+  await R('').update(up);await R('rnd/cmd').set({id:Date.now(),action:'reset'});say('All draws reset. Teams kept.')}
+ catch(e){say('Error: '+e.message,true)}};
+$('#bkAdd').onclick=()=>{const k=R('buckets').push().key,o=Math.max(0,...Object.values(buckets).map(b=>b.order||0))+1;R('buckets/'+k).set({title:'New category',teams:[],pools:4,order:o})};
+
+/* ---------- Firebase ---------- */
+async function seed(){const s=await R('').once('value'),v=s.val()||{},up={};
+ if(!v.settings)up.settings=DEF.settings;if(!v.countdown)up.countdown=DEF.countdown;
+ if(!('schedule' in v))up.schedule=DEF.schedule;if(!v.outro)up.outro=DEF.outro;if(!('format' in v))up.format=DEF.format;
+ if(!v.buckets){up.buckets={};[...new Set(DEF.schedule.map(r=>r.title))].forEach((t,i)=>up.buckets['cat'+(i+1)]={title:t,teams:[],pools:4,order:i+1})}
+ if(!v.state)up.state={view:'countdown',at:Date.now(),by:'setup'};
+ if(Object.keys(up).length)await R('').update(up)}
+if(HAS_DB){
+ db.ref('.info/serverTimeOffset').on('value',s=>{off=+s.val()||0});
+ db.ref('.info/connected').on('value',s=>{if(!s.val())say('Not connected to Firebase. Reconnecting…',true)});
+ seed().catch(e=>say('Cannot reach Firebase: '+e.message+'. Check the database rules for mpolive.',true)).finally(()=>{
+  R('state/view').on('value',s=>{const v=s.val()||'countdown';document.querySelectorAll('#vb button').forEach(b=>b.classList.toggle('on',b.dataset.v===v))});
+  R('countdown').on('value',s=>{cd=Object.assign({},DEF.countdown,s.val()||{});if(!document.activeElement.closest||!document.activeElement.closest('#cdEb,#cdText,#cdMin,#cdDone'))cdFill()});
+  R('schedule').on('value',s=>sch.set(arr(s.val())));
+  R('format').on('value',s=>fmt.set(arr(s.val())));
+  R('outro').on('value',s=>{if(ouDirty)return;const o=Object.assign({},DEF.outro,s.val()||{});ouIns().forEach(i=>i.value=o[i.dataset.k]||'')});
+  R('settings').on('value',s=>{settings=Object.assign({},DEF.settings,s.val()||{});$('#evName').value=settings.eventName;$('#spd').value=String(settings.speed);$('#snd').value=settings.sound===false?'0':'1'});
+  R('buckets').on('value',s=>{buckets=s.val()||{};renderBuckets()});
+  R('rnd/screen').on('value',s=>{scr=!!s.val();const p=$('#scrPill');p.classList.toggle('on',scr);p.querySelector('span').textContent=scr?'Draw screen connected':'Draw screen not open';updateGo()});
+  R('rnd/status').on('value',s=>{rstat=s.val();updateGo()});
+  R('rnd/config/bucket').on('value',s=>{liveBucket=s.val();renderBuckets()});
+ });
+ setInterval(updateGo,5000);
+}
+</script>
+</body>
+</html>
